@@ -8,15 +8,14 @@ const config: Config = {
   theme: {
     extend: {
       animation: {
-        'rolling': 'rolling 5s linear infinite',
+        rolling: "rolling 8s linear infinite",
       },
       keyframes: {
         rolling: {
-          '0%, 40%': { transform: 'translateY(0)' },
-          '50%, 90%': { transform: 'translateY(-24px)' },
-          '100%': { transform: 'translateY(0)' },
-        }
-      }
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(-50%)" },
+        },
+      },
     },
   },
   plugins: [],
