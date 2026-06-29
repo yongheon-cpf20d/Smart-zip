@@ -66,22 +66,20 @@ export default function Home() {
         {/* ② + ③ 롤링 위젯 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* ② 오늘의 신고가 */}
-          <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 h-14 overflow-hidden">
-            <span className="shrink-0 text-[10px] font-bold bg-amber-400 text-amber-900 px-2 py-1 rounded">
-              오늘의 신고가
-            </span>
-            <div className="overflow-hidden flex-1 h-full relative">
-              <div className="animate-rolling absolute w-full">
-                {[...todayRecords, ...todayRecords].map((r, i) => (
-                  <div key={i} className="h-14 flex items-center text-sm gap-2">
-                    <span className="font-medium truncate">{r.name}</span>
-                    <span className="text-red-600 font-bold shrink-0">{r.price}</span>
-                    <span className="text-red-500 text-xs shrink-0">{r.diff}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+<div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 h-14 overflow-hidden">
+  <span className="shrink-0 text-[10px] font-bold bg-amber-400 text-amber-900 px-2 py-1 rounded">
+    오늘의 신고가
+  </span>
+  <div className="animate-rolling flex flex-col">
+    {[...todayRecords, ...todayRecords].map((r, i) => (
+      <div key={i} className="h-14 flex items-center text-sm gap-2">
+        <span className="font-medium truncate">{r.name}</span>
+        <span className="text-red-600 font-bold shrink-0">{r.price}</span>
+        <span className="text-red-500 text-xs shrink-0">{r.diff}</span>
+      </div>
+    ))}
+  </div>
+</div>
 
           {/* ③ 부동산 뉴스 */}
           <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 h-14 overflow-hidden">
