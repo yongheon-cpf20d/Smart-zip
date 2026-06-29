@@ -24,7 +24,6 @@ export default function RegulationMap() {
   return (
     <div style={{ position: "relative", width: "100%", height: "100%", background: "#f8fafc" }}>
 
-      {/* 뒤로가기 */}
       {view === "seoul" && (
         <button
           onClick={() => setView("provinces")}
@@ -39,7 +38,6 @@ export default function RegulationMap() {
         </button>
       )}
 
-      {/* 범례 */}
       <div style={{
         position: "absolute", bottom: 12, right: 12, zIndex: 10,
         background: "white", border: "1px solid #e2e8f0",
@@ -57,7 +55,6 @@ export default function RegulationMap() {
         ))}
       </div>
 
-      {/* 툴팁 */}
       {tooltip && (
         <div style={{
           position: "absolute",
@@ -73,21 +70,13 @@ export default function RegulationMap() {
         </div>
       )}
 
-      {/* 전국 지도 */}
       {view === "provinces" && (
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{ center: [127.5, 36], scale: 4500 }}
           style={{ width: "100%", height: "100%" }}
         >
-          <Geographies
-            geography="/korea-provinces.json"
-            parseGeographies={(topo) => {
-              const tj = require("topojson-client");
-              const key = Object.keys(topo.objects)[0];
-              return tj.feature(topo, topo.objects[key]).features;
-            }}
-          >
+          <Geographies geography="/korea-provinces.json">
             {({ geographies }) =>
               geographies.map((geo) => {
                 const name = geo.properties.name ?? "";
@@ -128,7 +117,6 @@ export default function RegulationMap() {
         </ComposableMap>
       )}
 
-      {/* 서울 구 지도 */}
       {view === "seoul" && (
         <ComposableMap
           projection="geoMercator"
@@ -142,7 +130,6 @@ export default function RegulationMap() {
                   geo.properties.name_kor ??
                   geo.properties.NAME_KOR ??
                   geo.properties.name ??
-                  geo.properties.SIG_KOR_NM ??
                   "";
                 const reg = getRegulation(name);
 
