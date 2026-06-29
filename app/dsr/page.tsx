@@ -313,7 +313,7 @@ export default function DSRPage() {
                   {dsrResult > limitDSR ? (
                     <p className="text-pink-700 font-bold pt-1">⚠️ 신규 대출을 줄이거나 기존 대출을 먼저 상환해야 합니다.</p>
                   ) : (
-                    <p className="text-emerald-700 font-bold pt-1">🎉 은행 심사를 무사히 통과할 수 있는 안전권입니다!</p>
+                    <p className="text-emerald-700 font-bold pt-1">🎉 은행 심사를 무사히 통과할 수 있는 안정권입니다!</p>
                   )}
                 </div>
               </div>
