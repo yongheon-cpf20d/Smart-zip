@@ -45,6 +45,7 @@ const regulations = [
   },
 ];
 
+// ✅ 새 기능 추가 시 이 배열에 한 줄만 추가하면 메인 버튼에 자동 반영됨
 const navItems = [
   { name: "주담대", href: "/loan", icon: "💰" },
   { name: "DSR", href: "/dsr", icon: "📊" },
@@ -52,6 +53,7 @@ const navItems = [
   { name: "보유세", href: "/tax-hold", icon: "🏢" },
   { name: "양도세", href: "/tax-sell", icon: "📈" },
   { name: "규제정보", href: "/regulation", icon: "📜" },
+  { name: "혜택모아보기", href: "/benefits", icon: "🎁" },
 ];
 
 const ROW_HEIGHT = 56; // px, 한 줄 높이
@@ -136,7 +138,7 @@ export default function Home() {
           </div>
 
           {/* ④ 네비게이션 버튼 */}
-          <nav className="grid grid-cols-3 md:grid-cols-6 gap-2">
+          <nav className="grid grid-cols-3 md:grid-cols-7 gap-2">
             {navItems.map((m) => (
               <Link
                 key={m.href}
