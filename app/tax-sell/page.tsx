@@ -136,8 +136,16 @@ export default function TaxSellPage() {
     }
 
     // 장기보유특별공제
+    // ✅ 소득세법 제95조②항: 다주택자 중과 적용 시 장특공제 전면 배제
+    // 단, 중과 유예기간(2022.5.10~2026.5.9) 중 양도분은 장특공제 적용 가능했으나
+    // 2026.5.10 이후 유예 종료 → 현재는 중과 적용 시 장특공제 배제
+    const isMultiHouseSurchargeApplied = applyMultiHouseTax &&
+      getMultiHouseSurcharge(houseCount, isAdjustedArea) > 0;
+
     let ltcgRate = 0;
-    if (isOneHouse) {
+    if (isMultiHouseSurchargeApplied) {
+      ltcgRate = 0; // 중과 적용 시 장특공제 배제
+    } else if (isOneHouse) {
       ltcgRate = getOneHouseLTCG(years, Number(livingYears));
     } else {
       ltcgRate = getGeneralLTCG(years);
