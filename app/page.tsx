@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import RegulationMap from "../components/RegulationMap";
 import RollingWidget from "../components/RollingWidget";
 
@@ -126,11 +127,15 @@ export default function Home() {
 
         {/* ① 로고 */}
         <header>
-          <Link href="/" className="inline-flex items-center gap-2 text-xl font-black text-emerald-600 tracking-tight">
-            🏠 똑집
-            <span className="text-xs font-semibold text-emerald-500 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-              DDokzip
-            </span>
+          <Link href="/" className="inline-flex items-center">
+            <Image
+              src="/logo.svg"
+              alt="똑집 DDokzip"
+              width={200}
+              height={200}
+              className="h-10 w-auto"
+              priority
+            />
           </Link>
         </header>
 
