@@ -4,12 +4,42 @@
 import { useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 
-const REGULATION_DATA = {
+// ✅ 규제지역 데이터 — 규제 변경 시 이 객체만 수정하면 지도에 바로 반영됨
+// 시군구 단위는 "시/군/구명"으로 매칭 (예: "수원시", "성남시 분당구")
+const REGULATION_DATA: Record<string, { type: string; color: string }> = {
+  // 시도 단위
   "서울특별시": { type: "투기과열지구", color: "#ef4444" },
   "인천광역시": { type: "조정대상지역", color: "#f97316" },
   "경기도":     { type: "조정대상지역", color: "#f97316" },
   "대구광역시": { type: "조정대상지역", color: "#f97316" },
   "부산광역시": { type: "조정대상지역", color: "#f97316" },
+
+  // 서울 구별 (투기과열지구)
+  "강남구": { type: "투기과열지구", color: "#ef4444" },
+  "서초구": { type: "투기과열지구", color: "#ef4444" },
+  "송파구": { type: "투기과열지구", color: "#ef4444" },
+  "용산구": { type: "투기과열지구", color: "#ef4444" },
+
+  // 서울 구별 (조정대상지역)
+  "성동구": { type: "조정대상지역", color: "#f97316" },
+  "마포구": { type: "조정대상지역", color: "#f97316" },
+  "영등포구": { type: "조정대상지역", color: "#f97316" },
+  "광진구": { type: "조정대상지역", color: "#f97316" },
+
+  // 경기도 시군구 — 규제지역 지정된 곳만 명시, 나머지는 일반지역
+  "수원시 장안구": { type: "조정대상지역", color: "#f97316" },
+  "수원시 권선구": { type: "조정대상지역", color: "#f97316" },
+  "수원시 팔달구": { type: "조정대상지역", color: "#f97316" },
+  "수원시 영통구": { type: "조정대상지역", color: "#f97316" },
+  "성남시 수정구": { type: "조정대상지역", color: "#f97316" },
+  "성남시 중원구": { type: "조정대상지역", color: "#f97316" },
+  "성남시 분당구": { type: "투기과열지구", color: "#ef4444" },
+  "안양시 만안구": { type: "조정대상지역", color: "#f97316" },
+  "안양시 동안구": { type: "조정대상지역", color: "#f97316" },
+  "구리시": { type: "조정대상지역", color: "#f97316" },
+  "하남시": { type: "조정대상지역", color: "#f97316" },
+  "광명시": { type: "조정대상지역", color: "#f97316" },
+  "과천시": { type: "투기과열지구", color: "#ef4444" },
 };
 
 const DEFAULT_COLOR = "#cbd5e1";
@@ -17,14 +47,26 @@ const DEFAULT_COLOR = "#cbd5e1";
 const getRegulation = (name: string) =>
   REGULATION_DATA[name] ?? { type: "규제 없음", color: DEFAULT_COLOR };
 
+type ViewType = "provinces" | "seoul" | "gyeonggi";
+
 export default function RegulationMap() {
-  const [view, setView] = useState<"provinces" | "seoul">("provinces");
-  const [tooltip, setTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
+  const [view, setView] = useState<ViewType>("provinces");
+  const [tooltip, setTooltip] = useState<{ name: string; type: string; x: number; y: number } | null>(null);
+
+  const handleMouseEnter = (name: string, e: React.MouseEvent) => {
+    const reg = getRegulation(name);
+    setTooltip({ name, type: reg.type, x: e.clientX, y: e.clientY });
+  };
+  const handleMouseMove = (name: string, e: React.MouseEvent) => {
+    const reg = getRegulation(name);
+    setTooltip({ name, type: reg.type, x: e.clientX, y: e.clientY });
+  };
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%", background: "#f8fafc" }}>
 
-      {view === "seoul" && (
+      {/* 뒤로가기 버튼 */}
+      {view !== "provinces" && (
         <button
           onClick={() => setView("provinces")}
           style={{
@@ -32,16 +74,32 @@ export default function RegulationMap() {
             background: "white", border: "1px solid #e2e8f0",
             borderRadius: 8, padding: "6px 12px", fontSize: 12,
             fontWeight: 600, cursor: "pointer", color: "#334155",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
           }}
         >
           ← 전국 보기
         </button>
       )}
 
+      {/* 현재 뷰 표시 */}
+      {view !== "provinces" && (
+        <div style={{
+          position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
+          zIndex: 10, background: "white", border: "1px solid #e2e8f0",
+          borderRadius: 8, padding: "6px 12px", fontSize: 12,
+          fontWeight: 700, color: "#334155",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+        }}>
+          {view === "seoul" ? "서울특별시" : "경기도"}
+        </div>
+      )}
+
+      {/* 범례 */}
       <div style={{
         position: "absolute", bottom: 12, right: 12, zIndex: 10,
         background: "white", border: "1px solid #e2e8f0",
         borderRadius: 10, padding: "10px 14px", fontSize: 11,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
       }}>
         {[
           { color: "#ef4444", label: "투기과열지구" },
@@ -53,23 +111,30 @@ export default function RegulationMap() {
             <span style={{ color: "#475569" }}>{item.label}</span>
           </div>
         ))}
+        {view === "provinces" && (
+          <p style={{ color: "#94a3b8", fontSize: 10, marginTop: 6, marginBottom: 0 }}>
+            서울·경기 클릭 시 시군구 확대
+          </p>
+        )}
       </div>
 
+      {/* 툴팁 */}
       {tooltip && (
         <div style={{
-          position: "absolute",
+          position: "fixed",
           left: tooltip.x + 12,
-          top: tooltip.y - 36,
-          zIndex: 20,
+          top: tooltip.y - 40,
+          zIndex: 9999,
           background: "#1e293b", color: "white",
           borderRadius: 8, padding: "6px 10px",
           fontSize: 12, fontWeight: 500,
           pointerEvents: "none", whiteSpace: "nowrap",
         }}>
-          {tooltip.name} · {getRegulation(tooltip.name).type}
+          {tooltip.name} · {tooltip.type}
         </div>
       )}
 
+      {/* ① 전국 시도 지도 */}
       {view === "provinces" && (
         <ComposableMap
           projection="geoMercator"
@@ -81,15 +146,18 @@ export default function RegulationMap() {
               geographies.map((geo) => {
                 const name = geo.properties.name ?? "";
                 const reg = getRegulation(name);
-                const isSeoul = name === "서울특별시";
+                const isClickable = name === "서울특별시" || name === "경기도";
 
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    onClick={() => isSeoul && setView("seoul")}
-                    onMouseEnter={(e) => setTooltip({ name, x: e.clientX, y: e.clientY })}
-                    onMouseMove={(e) => setTooltip({ name, x: e.clientX, y: e.clientY })}
+                    onClick={() => {
+                      if (name === "서울특별시") setView("seoul");
+                      if (name === "경기도") setView("gyeonggi");
+                    }}
+                    onMouseEnter={(e) => handleMouseEnter(name, e)}
+                    onMouseMove={(e) => handleMouseMove(name, e)}
                     onMouseLeave={() => setTooltip(null)}
                     style={{
                       default: {
@@ -104,8 +172,8 @@ export default function RegulationMap() {
                         stroke: "#ffffff",
                         strokeWidth: 1.5,
                         outline: "none",
-                        filter: "brightness(1.2) drop-shadow(0 3px 8px rgba(0,0,0,0.25))",
-                        cursor: isSeoul ? "pointer" : "default",
+                        filter: "brightness(1.15) drop-shadow(0 3px 8px rgba(0,0,0,0.2))",
+                        cursor: isClickable ? "pointer" : "default",
                       },
                       pressed: { fill: reg.color, outline: "none" },
                     }}
@@ -117,6 +185,7 @@ export default function RegulationMap() {
         </ComposableMap>
       )}
 
+      {/* ② 서울 구별 지도 */}
       {view === "seoul" && (
         <ComposableMap
           projection="geoMercator"
@@ -137,8 +206,8 @@ export default function RegulationMap() {
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    onMouseEnter={(e) => setTooltip({ name, x: e.clientX, y: e.clientY })}
-                    onMouseMove={(e) => setTooltip({ name, x: e.clientX, y: e.clientY })}
+                    onMouseEnter={(e) => handleMouseEnter(name, e)}
+                    onMouseMove={(e) => handleMouseMove(name, e)}
                     onMouseLeave={() => setTooltip(null)}
                     style={{
                       default: {
@@ -153,7 +222,7 @@ export default function RegulationMap() {
                         stroke: "#ffffff",
                         strokeWidth: 1,
                         outline: "none",
-                        filter: "brightness(1.2) drop-shadow(0 3px 8px rgba(0,0,0,0.25))",
+                        filter: "brightness(1.15) drop-shadow(0 3px 8px rgba(0,0,0,0.2))",
                         cursor: "default",
                       },
                       pressed: { fill: reg.color, outline: "none" },
@@ -161,6 +230,63 @@ export default function RegulationMap() {
                   />
                 );
               })
+            }
+          </Geographies>
+        </ComposableMap>
+      )}
+
+      {/* ③ 경기도 시군구 지도 */}
+      {view === "gyeonggi" && (
+        <ComposableMap
+          projection="geoMercator"
+          projectionConfig={{ center: [127.5, 37.5], scale: 30000 }}
+          style={{ width: "100%", height: "100%" }}
+        >
+          <Geographies geography="/korea-sgg.geojson">
+            {({ geographies }) =>
+              // 경기도 시군구만 필터링 (SGG_CD가 41로 시작 = 경기도)
+              geographies
+                .filter((geo) => {
+                  const code = geo.properties.SGG_CD ?? geo.properties.sgg_cd ?? "";
+                  return String(code).startsWith("41");
+                })
+                .map((geo) => {
+                  // 시군구명 추출 — vuski/admdongkor 파일 기준
+                  const name =
+                    geo.properties.SGG_NM ??
+                    geo.properties.sgg_nm ??
+                    geo.properties.name ??
+                    "";
+                  const reg = getRegulation(name);
+
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      onMouseEnter={(e) => handleMouseEnter(name, e)}
+                      onMouseMove={(e) => handleMouseMove(name, e)}
+                      onMouseLeave={() => setTooltip(null)}
+                      style={{
+                        default: {
+                          fill: reg.color,
+                          stroke: "#ffffff",
+                          strokeWidth: 0.5,
+                          outline: "none",
+                          transition: "all 0.2s ease",
+                        },
+                        hover: {
+                          fill: reg.color,
+                          stroke: "#ffffff",
+                          strokeWidth: 1,
+                          outline: "none",
+                          filter: "brightness(1.15) drop-shadow(0 3px 8px rgba(0,0,0,0.2))",
+                          cursor: "default",
+                        },
+                        pressed: { fill: reg.color, outline: "none" },
+                      }}
+                    />
+                  );
+                })
             }
           </Geographies>
         </ComposableMap>
