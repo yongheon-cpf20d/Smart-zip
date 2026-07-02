@@ -112,9 +112,10 @@ export default function FeedbackPage() {
       if (dbError) throw dbError;
 
       setDone(true);
-    } catch (err) {
-      console.error(err);
-      setError("전송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } catch (err: any) {
+      console.error("피드백 저장 오류:", JSON.stringify(err, null, 2));
+      const msg = err?.message ?? err?.details ?? err?.hint ?? JSON.stringify(err);
+      setError(`오류: ${msg}`);
     } finally {
       setSubmitting(false);
     }
