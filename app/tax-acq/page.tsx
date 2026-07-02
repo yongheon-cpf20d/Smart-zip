@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import PriceInput, { formatManwon } from "../../components/PriceInput";
 
 // ✅ 법령 출처: 지방세법 제11조(부동산 취득의 세율), 제13조의2(법인의 주택 취득 등 중과)
 //    지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육)
@@ -120,6 +121,7 @@ const PROPERTY_TYPE_OPTIONS: { key: PropertyType; label: string; desc: string }[
 ];
 
 export default function TaxAcqPage() {
+  const resultRef = useRef<HTMLDivElement>(null);
   const [dealType, setDealType] = useState<DealType>("purchase");
   const [propertyType, setPropertyType] = useState<PropertyType>("house");
   const [priceInput, setPriceInput] = useState("");
@@ -230,6 +232,11 @@ export default function TaxAcqPage() {
       effectiveRate,
       price,
     });
+
+    // 결과 영역으로 자동 스크롤
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   return (
@@ -312,12 +319,10 @@ export default function TaxAcqPage() {
             <label className="text-xs text-slate-400 mb-1 block">
               {PRICE_LABEL[dealType].label}
             </label>
-            <input
-              type="number"
+            <PriceInput
               value={priceInput}
-              onChange={(e) => setPriceInput(e.target.value)}
+              onChange={setPriceInput}
               placeholder={PRICE_LABEL[dealType].placeholder}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
             />
             <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
               {PRICE_LABEL[dealType].desc}
@@ -516,7 +521,7 @@ export default function TaxAcqPage() {
 
         {/* 결과 */}
         {result && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
             <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
 
             {result.isMultiHouseApplied && (

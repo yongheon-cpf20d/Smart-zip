@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import PriceInput from "../../components/PriceInput";
 
 // ✅ 법령 출처
 // 취득세: 지방세법 제11조, 제13조의2 / 지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육)
@@ -173,6 +174,7 @@ export default function TotalCostPage() {
   const [saleInput, setSaleInput] = useState("");
   const [kbInput, setKbInput] = useState("");
   const [areaInput, setAreaInput] = useState("");
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const [result, setResult] = useState<{
     salePrice: number;
@@ -250,6 +252,10 @@ export default function TotalCostPage() {
       ltv, loanLimit, policyNote,
       myCapitalNoVat, myCapitalWithVat,
     });
+
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   return (
@@ -377,17 +383,19 @@ export default function TotalCostPage() {
           <h2 className="text-sm font-bold text-slate-600">주택 정보 입력</h2>
 
           <div className="grid grid-cols-2 gap-3">
+            <PriceInput
+              label="매매가액 (만원)"
+              value={saleInput}
+              onChange={setSaleInput}
+              placeholder="예: 90000"
+            />
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">매매가액 (만원)</label>
-              <input type="number" value={saleInput} onChange={(e) => setSaleInput(e.target.value)}
-                placeholder="예: 90000"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">KB시세 (만원)</label>
-              <input type="number" value={kbInput} onChange={(e) => setKbInput(e.target.value)}
+              <PriceInput
+                label="KB시세 (만원)"
+                value={kbInput}
+                onChange={setKbInput}
                 placeholder="예: 95000"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+              />
               <p className="text-[10px] text-slate-400 mt-1">주담대 한도 산정 기준</p>
             </div>
           </div>
@@ -421,7 +429,7 @@ export default function TotalCostPage() {
 
         {/* 결과 */}
         {result && (
-          <div className="space-y-4">
+          <div ref={resultRef} className="space-y-4">
 
             {/* 비용 상세 내역 */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import RegulationMap from "../components/RegulationMap";
 import RollingWidget from "../components/RollingWidget";
+import { REGULATION_STYLE, groupByType } from "../lib/regulationData";
 
 // 하드코딩 신고가 (나중에 Supabase 연동으로 교체 예정)
 const todayRecords = [
@@ -13,35 +14,22 @@ const todayRecords = [
   { name: "마포 래미안 푸르지오 84㎡", price: "18.5억", diff: "▲ 3천만" },
 ];
 
-const regulations = [
-  {
-    zone: "투기과열지구",
-    borderColor: "#fca5a5",
-    bgColor: "#fef2f2",
-    textColor: "#991b1b",
-    dotColor: "#ef4444",
-    areas: ["강남구", "서초구", "송파구", "용산구"],
-    rules: ["LTV 40%", "DSR 40%", "2년 실거주 의무", "분양권 전매 제한"],
-  },
-  {
-    zone: "조정대상지역",
-    borderColor: "#fcd34d",
-    bgColor: "#fffbeb",
-    textColor: "#92400e",
-    dotColor: "#f59e0b",
-    areas: ["성동구", "마포구", "영등포구", "광진구"],
-    rules: ["LTV 50%", "DSR 40%", "다주택 양도세 중과"],
-  },
-  {
-    zone: "일반지역",
-    borderColor: "#6ee7b7",
-    bgColor: "#f0fdf4",
-    textColor: "#065f46",
-    dotColor: "#10b981",
-    areas: ["그 외 서울·경기 지역"],
-    rules: ["LTV 70%", "DSR 40%", "규제 없음"],
-  },
-];
+// ✅ lib/regulationData.ts 에서 자동 생성 — 그 파일만 수정하면 여기 자동 반영
+const groupedByType = groupByType();
+const regulations = (["투기과열지구", "조정대상지역", "규제없음"] as const).map((type) => {
+  const style = REGULATION_STYLE[type];
+  const areas = groupedByType[type].map((a) => a.name);
+  return {
+    zone: type,
+    borderColor: style.borderColor,
+    bgColor: style.bgColor,
+    textColor: style.textColor,
+    dotColor: style.dotColor,
+    areas: areas.length > 0 ? areas : ["해당 지역 없음"],
+    rules: style.rules,
+  };
+});
+
 
 const navItems = [
   { name: "주담대", href: "/loan", icon: "💰" },
@@ -52,6 +40,9 @@ const navItems = [
   { name: "규제정보", href: "/regulation", icon: "📜" },
   { name: "혜택모아보기", href: "/benefits", icon: "🎁" },
   { name: "총비용", href: "/total-cost", icon: "🧮" },
+  { name: "신고가", href: "/new-high", icon: "🏆" },
+  { name: "갈아타기", href: "/switch-sim", icon: "🔄" },
+  { name: "자산시뮬", href: "/asset-sim", icon: "🚀" },
 ];
 
 type NewsItem = {
@@ -142,15 +133,17 @@ export default function Home() {
         {/* ② + ③ + ④ 롤링 위젯 3개 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 
-          {/* ② 오늘의 신고가 */}
-          <RollingWidget
-            items={highItems}
-            badge="오늘의 신고가"
-            badgeStyle="bg-amber-400 text-amber-900"
-            containerStyle="bg-amber-50 border border-amber-200 text-amber-900"
-            displayMs={3500}
-            transitionMs={400}
-          />
+          {/* ② 오늘의 신고가 — 클릭 시 신고가 페이지로 이동 */}
+          <Link href="/new-high" className="block hover:opacity-90 transition">
+            <RollingWidget
+              items={highItems}
+              badge="오늘의 신고가"
+              badgeStyle="bg-amber-400 text-amber-900"
+              containerStyle="bg-amber-50 border border-amber-200 text-amber-900"
+              displayMs={3500}
+              transitionMs={400}
+            />
+          </Link>
 
           {/* ③ 부동산 뉴스 */}
           {newsLoading ? (
@@ -194,7 +187,7 @@ export default function Home() {
         </div>
 
         {/* ④ 네비게이션 버튼 */}
-        <nav className="grid grid-cols-4 md:grid-cols-8 gap-2">
+        <nav className="grid grid-cols-4 md:grid-cols-11 gap-2">
           {navItems.map((m) => (
             <Link
               key={m.href}
@@ -206,6 +199,16 @@ export default function Home() {
             </Link>
           ))}
         </nav>
+
+        {/* 피드백 + 업데이트 배너 */}
+        <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+          <Link href="/changelog" className="text-xs text-slate-500 hover:text-emerald-600 transition">
+            🙌 여러분의 의견이 반영되었어요! →
+          </Link>
+          <Link href="/feedback" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition">
+            💬 피드백 보내기
+          </Link>
+        </div>
 
         {/* ⑤ + ⑥ 지도 + 규제 요약 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

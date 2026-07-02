@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { REGULATION_AREAS } from "../../lib/regulationData";
 
 // ✅ 법령/정책 출처: 금융위원회 「주택시장 안정화 대책」 관련 「긴급 가계부채 점검회의」(2025.10.15)
 //    + 지방세법 제13조의2(법인의 주택 취득 등 중과), 종합부동산세법 등
 // 규제는 자주 바뀌므로 이 배열만 수정하면 화면에 바로 반영됨.
+// ✅ 적용 지역 목록은 lib/regulationData.ts 에서 자동으로 가져옵니다.
+//    → 그 파일 하나만 수정하면 메인페이지 지도 + 규제요약 + 이 페이지 전부 반영됩니다.
 
 type RegColor = "red" | "orange" | "amber";
 
@@ -103,6 +106,10 @@ export default function RegulationPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {regulations.map((reg) => {
             const c = colorMap[reg.color];
+            // lib/regulationData.ts 에서 해당 규제유형의 지역 목록 자동 조회
+            const matchedAreas = REGULATION_AREAS.filter(
+              (a) => a.type === reg.title && a.sido !== "기타"
+            );
             return (
               <div
                 key={reg.title}
@@ -114,7 +121,7 @@ export default function RegulationPage() {
                 <p className={`text-sm font-bold ${c.text} mb-3 leading-snug`}>
                   {reg.summary}
                 </p>
-                <ul className="space-y-1.5 mt-auto">
+                <ul className="space-y-1.5">
                   {reg.details.map((d) => (
                     <li key={d} className={`text-xs ${c.text} flex items-start gap-1.5 leading-relaxed`}>
                       <span className="mt-0.5 shrink-0">•</span>
@@ -122,6 +129,23 @@ export default function RegulationPage() {
                     </li>
                   ))}
                 </ul>
+
+                {/* 적용 지역 목록 (lib/regulationData.ts 연동) */}
+                {matchedAreas.length > 0 && (
+                  <div className={`mt-4 pt-3 border-t ${c.border}`}>
+                    <p className={`text-[10px] font-bold ${c.text} mb-1.5 opacity-70`}>적용 지역</p>
+                    <div className="flex flex-wrap gap-1">
+                      {matchedAreas.map((a) => (
+                        <span
+                          key={a.name}
+                          className={`text-[10px] px-2 py-0.5 rounded-full bg-white/60 ${c.text}`}
+                        >
+                          {a.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

@@ -3,49 +3,9 @@
 
 import { useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { getRegulationByName } from "../lib/regulationData";
 
-// ✅ 규제지역 데이터 — 규제 변경 시 이 객체만 수정하면 지도에 바로 반영됨
-// 시군구 단위는 "시/군/구명"으로 매칭 (예: "수원시", "성남시 분당구")
-const REGULATION_DATA: Record<string, { type: string; color: string }> = {
-  // 시도 단위
-  "서울특별시": { type: "투기과열지구", color: "#ef4444" },
-  "인천광역시": { type: "조정대상지역", color: "#f97316" },
-  "경기도":     { type: "조정대상지역", color: "#f97316" },
-  "대구광역시": { type: "조정대상지역", color: "#f97316" },
-  "부산광역시": { type: "조정대상지역", color: "#f97316" },
-
-  // 서울 구별 (투기과열지구)
-  "강남구": { type: "투기과열지구", color: "#ef4444" },
-  "서초구": { type: "투기과열지구", color: "#ef4444" },
-  "송파구": { type: "투기과열지구", color: "#ef4444" },
-  "용산구": { type: "투기과열지구", color: "#ef4444" },
-
-  // 서울 구별 (조정대상지역)
-  "성동구": { type: "조정대상지역", color: "#f97316" },
-  "마포구": { type: "조정대상지역", color: "#f97316" },
-  "영등포구": { type: "조정대상지역", color: "#f97316" },
-  "광진구": { type: "조정대상지역", color: "#f97316" },
-
-  // 경기도 시군구 — 규제지역 지정된 곳만 명시, 나머지는 일반지역
-  "수원시 장안구": { type: "조정대상지역", color: "#f97316" },
-  "수원시 권선구": { type: "조정대상지역", color: "#f97316" },
-  "수원시 팔달구": { type: "조정대상지역", color: "#f97316" },
-  "수원시 영통구": { type: "조정대상지역", color: "#f97316" },
-  "성남시 수정구": { type: "조정대상지역", color: "#f97316" },
-  "성남시 중원구": { type: "조정대상지역", color: "#f97316" },
-  "성남시 분당구": { type: "투기과열지구", color: "#ef4444" },
-  "안양시 만안구": { type: "조정대상지역", color: "#f97316" },
-  "안양시 동안구": { type: "조정대상지역", color: "#f97316" },
-  "구리시": { type: "조정대상지역", color: "#f97316" },
-  "하남시": { type: "조정대상지역", color: "#f97316" },
-  "광명시": { type: "조정대상지역", color: "#f97316" },
-  "과천시": { type: "투기과열지구", color: "#ef4444" },
-};
-
-const DEFAULT_COLOR = "#cbd5e1";
-
-const getRegulation = (name: string) =>
-  REGULATION_DATA[name] ?? { type: "규제 없음", color: DEFAULT_COLOR };
+const getRegulation = getRegulationByName;
 
 type ViewType = "provinces" | "seoul" | "gyeonggi";
 
@@ -239,32 +199,29 @@ export default function RegulationMap() {
       {view === "gyeonggi" && (
         <ComposableMap
           projection="geoMercator"
-          projectionConfig={{ center: [127.5, 37.5], scale: 30000 }}
+          projectionConfig={{ center: [127.3, 37.6], scale: 20000 }}
           style={{ width: "100%", height: "100%" }}
         >
-          <Geographies geography="/korea-sgg.geojson">
+          <Geographies geography="/gyeonggi-sgg.geojson">
             {({ geographies }) =>
-              // 경기도 시군구만 필터링 (SGG_CD가 41로 시작 = 경기도)
               geographies
                 .filter((geo) => {
-                  const code = geo.properties.SGG_CD ?? geo.properties.sgg_cd ?? "";
-                  return String(code).startsWith("41");
+                  // 이 파일은 경기도 code가 31로 시작
+                  const code = geo.properties.code ?? "";
+                  return String(code).startsWith("31");
                 })
                 .map((geo) => {
-                  // 시군구명 추출 — vuski/admdongkor 파일 기준
-                  const name =
-                    geo.properties.SGG_NM ??
-                    geo.properties.sgg_nm ??
-                    geo.properties.name ??
-                    "";
-                  const reg = getRegulation(name);
+                  // name이 "수원시영통구" 형태라 regulationData의 "수원시 영통구"와 매칭 안됨
+                  // → 공백 없는 버전도 비교하도록 처리
+                  const rawName = geo.properties.name ?? "";
+                  const reg = getRegulation(rawName);
 
                   return (
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      onMouseEnter={(e) => handleMouseEnter(name, e)}
-                      onMouseMove={(e) => handleMouseMove(name, e)}
+                      onMouseEnter={(e) => handleMouseEnter(rawName, e)}
+                      onMouseMove={(e) => handleMouseMove(rawName, e)}
                       onMouseLeave={() => setTooltip(null)}
                       style={{
                         default: {

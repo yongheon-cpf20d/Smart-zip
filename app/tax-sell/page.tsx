@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import PriceInput from "@/components/PriceInput";
 
 // ✅ 법령 출처: 소득세법 제55조(세율), 제95조(장기보유특별공제), 제103조(기본공제), 제104조(양도소득세 세율)
 // 규제 변경 시 이 파일의 세율표/공제율만 수정하면 전체 반영됨.
@@ -37,9 +38,14 @@ function getMultiHouseSurcharge(houseCount: "1" | "2" | "3+", isAdjusted: boolea
 
 // ── 1세대1주택 장기보유특별공제 (제95조제2항 표2) ──
 function getOneHouseLTCG(holdingYears: number, livingYears: number): number {
-  const holdingRate = Math.min(Math.floor(holdingYears) * 0.04, 0.4); // 연 4%, 최대 40%
-  const livingRate = Math.min(Math.floor(livingYears) * 0.04, 0.4); // 연 4%, 최대 40%
-  return Math.min(holdingRate + livingRate, 0.8); // 최대 80%
+  // 1. 3년 미만 보유 시 전면 배제
+  if (holdingYears < 3) return 0;
+  // 2. 거주 2년 미만 → 일반표(연 2%, 최대 30%)로 강등
+  if (livingYears < 2) return getGeneralLTCG(holdingYears);
+  // 3. 3년 이상 보유 + 2년 이상 거주 → 보유4%+거주4%, 최대 80%
+  const holdingRate = Math.min(Math.floor(holdingYears) * 0.04, 0.4);
+  const livingRate = Math.min(Math.floor(livingYears) * 0.04, 0.4);
+  return Math.min(holdingRate + livingRate, 0.8);
 }
 
 // ── 일반 장기보유특별공제 (제95조제2항 표1) — 3년 이상부터 ──
@@ -67,6 +73,7 @@ export default function TaxSellPage() {
   const [applyMultiHouseTax, setApplyMultiHouseTax] = useState(false);
   const [houseCount, setHouseCount] = useState<HouseCount>("2");
   const [isAdjustedArea, setIsAdjustedArea] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const [result, setResult] = useState<{
     gainBeforeLTCG: number;
@@ -194,6 +201,10 @@ export default function TaxSellPage() {
       isNonTaxable: false,
       nonTaxableNote,
     });
+
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   return (
@@ -214,40 +225,26 @@ export default function TaxSellPage() {
           <h2 className="text-sm font-bold text-slate-600">거래 정보 입력</h2>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">양도가액 (만원)</label>
-              <input
-                type="number"
-                value={salePrice}
-                onChange={(e) => setSalePrice(e.target.value)}
-                placeholder="예: 150000"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">취득가액 (만원)</label>
-              <input
-                type="number"
-                value={purchasePrice}
-                onChange={(e) => setPurchasePrice(e.target.value)}
-                placeholder="예: 100000"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs text-slate-400 mb-1 block">
-              필요경비 (만원) <span className="text-slate-400">— 중개수수료, 취득세, 법무사비 등</span>
-            </label>
-            <input
-              type="number"
-              value={otherExpenses}
-              onChange={(e) => setOtherExpenses(e.target.value)}
-              placeholder="예: 1000"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
+            <PriceInput
+              label="양도가액 (만원)"
+              value={salePrice}
+              onChange={setSalePrice}
+              placeholder="예: 150000"
+            />
+            <PriceInput
+              label="취득가액 (만원)"
+              value={purchasePrice}
+              onChange={setPurchasePrice}
+              placeholder="예: 100000"
             />
           </div>
+
+          <PriceInput
+            label="필요경비 (만원) — 중개수수료, 취득세, 법무사비 등"
+            value={otherExpenses}
+            onChange={setOtherExpenses}
+            placeholder="예: 1000"
+          />
 
           <div>
             <label className="text-xs text-slate-400 mb-1 block">보유기간 (년)</label>
@@ -372,7 +369,7 @@ export default function TaxSellPage() {
 
         {/* 결과 */}
         {result && result.isNonTaxable && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
             <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
               <p className="text-xs text-emerald-600 font-semibold mb-1">1세대 1주택 비과세</p>
@@ -388,7 +385,7 @@ export default function TaxSellPage() {
         )}
 
         {result && !result.isNonTaxable && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
             <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
 
             {result.nonTaxableNote && (
