@@ -116,7 +116,7 @@ export default function Home() {
 
         {/* ① 로고 */}
         <header>
-          <Link href="/" className="inline-flex items-center gap-2.5 link-press">
+          <Link href="/" className="inline-flex items-center gap-0.5 link-press">
             <Image
               src="/logo.svg"
               alt="똑집 DDokzip"
@@ -128,8 +128,7 @@ export default function Home() {
             <span
               className="font-brand text-2xl tracking-tight leading-none select-none"
               style={{
-                color: "#10b981",
-                WebkitTextStroke: "0.6px #047857",
+                color: "#000000",
               }}
             >
               똑집
