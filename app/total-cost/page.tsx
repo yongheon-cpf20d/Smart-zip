@@ -262,7 +262,7 @@ export default function TotalCostPage() {
     <div className="min-h-screen bg-white text-slate-800 font-sans">
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition">
+        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
           ← 메인으로
         </Link>
 
@@ -423,13 +423,13 @@ export default function TotalCostPage() {
         </div>
 
         <button onClick={calculate}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition text-base">
+          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition text-base btn-press">
           총비용 계산하기
         </button>
 
         {/* 결과 */}
         {result && (
-          <div ref={resultRef} className="space-y-4">
+          <div ref={resultRef} className="space-y-4 result-enter">
 
             {/* 비용 상세 내역 */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5">

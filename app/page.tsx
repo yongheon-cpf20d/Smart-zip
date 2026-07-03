@@ -111,7 +111,7 @@ export default function Home() {
 
         {/* ① 로고 */}
         <header>
-          <Link href="/" className="inline-flex items-center">
+          <Link href="/" className="inline-flex items-center gap-1 link-press">
             <Image
               src="/logo.svg"
               alt="똑집 DDokzip"
@@ -120,6 +120,15 @@ export default function Home() {
               className="h-10 w-auto"
               priority
             />
+            <span
+              className="font-brand text-2xl tracking-tight leading-none select-none"
+              style={{
+                color: "#10b981",
+                WebkitTextStroke: "0.1px #047857",
+              }}
+            >
+              똑집
+            </span>
           </Link>
         </header>
 
@@ -163,7 +172,7 @@ export default function Home() {
             <Link
               key={m.href}
               href={m.href}
-              className="flex flex-col items-center justify-center gap-1 py-3 bg-white border border-slate-200 rounded-xl hover:bg-emerald-50 hover:border-emerald-300 transition-all"
+              className="flex flex-col items-center justify-center gap-1 py-3 bg-white border border-slate-200 rounded-xl hover:bg-emerald-50 hover:border-emerald-300 transition-all hover-lift nav-link"
             >
               <span className="text-lg">{m.icon}</span>
               <span className="text-xs font-semibold text-slate-700 text-center leading-tight">{m.name}</span>
@@ -173,14 +182,14 @@ export default function Home() {
 
         {/* 피드백 + 업데이트 배너 */}
         <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-          <Link href="/changelog" className="text-xs text-slate-500 hover:text-emerald-600 transition">
+          <Link href="/changelog" className="text-xs text-slate-500 hover:text-emerald-600 transition link-press">
             🙌 여러분의 의견이 반영되었어요! →
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/feedback/board" className="text-xs text-slate-400 hover:text-emerald-600 transition">
+            <Link href="/feedback/board" className="text-xs text-slate-400 hover:text-emerald-600 transition link-press">
               내 피드백 확인
             </Link>
-            <Link href="/feedback" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition">
+            <Link href="/feedback" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition link-press">
               💬 피드백 보내기
             </Link>
           </div>
@@ -242,7 +251,7 @@ export default function Home() {
                 </div>
               ))}
               <div className="text-center pt-2">
-                <Link href="/regulation" className="text-xs text-emerald-600 font-semibold hover:underline">
+                <Link href="/regulation" className="text-xs text-emerald-600 font-semibold hover:underline link-press">
                   전체 규제 내역 보기 →
                 </Link>
               </div>
@@ -252,7 +261,7 @@ export default function Home() {
 
         {/* ⑦ 정책발표 박스 — Supabase 최신 3개 자동 반영 */}
         <Link href="/policy" className="block group">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-300 hover:bg-blue-50 transition-all">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-300 hover:bg-blue-50 transition-all hover-lift nav-link">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-slate-700">📢 최신 정책발표</span>

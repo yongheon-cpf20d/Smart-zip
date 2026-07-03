@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import PriceInput from "@/components/PriceInput";
+import PriceInput from "../../components/PriceInput";
 
 // ✅ 법령 출처
 // 양도세: 소득세법 제89조(비과세), 제95조(장특공제), 제103조(기본공제), 제104조(세율·중과)
@@ -288,7 +288,7 @@ export default function SwitchSimPage() {
     <div className="min-h-screen bg-white text-slate-800 font-sans">
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition">
+        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
           ← 메인으로
         </Link>
 
@@ -495,13 +495,13 @@ export default function SwitchSimPage() {
         </div>
 
         <button onClick={calculate}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition text-base">
+          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition text-base btn-press">
           갈아타기 시뮬레이션 실행
         </button>
 
         {/* ═══ 결과 ═══ */}
         {result && (
-          <div ref={resultRef} className="space-y-4">
+          <div ref={resultRef} className="space-y-4 result-enter">
 
             {/* 매도 내역 */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-2">

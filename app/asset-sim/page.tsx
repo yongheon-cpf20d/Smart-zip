@@ -135,7 +135,7 @@ export default function AssetSimPage() {
     <div className="min-h-screen bg-white text-slate-800 font-sans">
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition">
+        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
           ← 메인으로
         </Link>
 

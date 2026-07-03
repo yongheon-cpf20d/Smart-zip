@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import PriceInput from "@/components/PriceInput";
+import PriceInput from "../../components/PriceInput";
 
 // ✅ 법령 출처: 소득세법 제55조(세율), 제95조(장기보유특별공제), 제103조(기본공제), 제104조(양도소득세 세율)
 // 규제 변경 시 이 파일의 세율표/공제율만 수정하면 전체 반영됨.
@@ -213,7 +213,7 @@ export default function TaxSellPage() {
 
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition"
+          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press"
         >
           ← 메인으로
         </Link>
@@ -362,14 +362,14 @@ export default function TaxSellPage() {
 
         <button
           onClick={calculate}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition"
+          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition btn-press"
         >
           계산하기
         </button>
 
         {/* 결과 */}
         {result && result.isNonTaxable && (
-          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 result-enter">
             <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
               <p className="text-xs text-emerald-600 font-semibold mb-1">1세대 1주택 비과세</p>
@@ -385,7 +385,7 @@ export default function TaxSellPage() {
         )}
 
         {result && !result.isNonTaxable && (
-          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 result-enter">
             <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
 
             {result.nonTaxableNote && (

@@ -13,6 +13,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// ✅ 브랜드 폰트 "그린 체리1스푼"은 로컬 ttf 파일 사용
+// public/fonts/Griun_Cherry1Spoon-Rg.ttf → globals.css에 @font-face로 등록
+// 여기서는 Google Fonts만 처리 (로컬 폰트는 CSS에서 --font-brand 변수로 관리)
+
 const BASE_URL = "https://ddokzip.com"; // 도메인 확정 후 수정
 
 export const metadata: Metadata = {
