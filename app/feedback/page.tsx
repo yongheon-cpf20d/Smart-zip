@@ -128,12 +128,16 @@ export default function FeedbackPage() {
           <span className="text-5xl">✅</span>
           <h2 className="text-xl font-black text-slate-800">피드백이 접수되었습니다!</h2>
           <p className="text-sm text-slate-500 leading-relaxed">
-            소중한 의견 감사합니다. 이메일을 남기셨다면 처리 후 회신드릴게요.
-            반영 내역은 <Link href="/changelog" className="text-emerald-600 font-semibold hover:underline">업데이트 로그</Link>에서 확인하실 수 있습니다.
+            소중한 의견 감사합니다. 이메일을 남기셨다면 처리 후 회신드릴게요.<br />
+            <Link href="/feedback/board" className="text-emerald-600 font-semibold hover:underline">피드백 게시판</Link>에서
+            이름과 비밀번호로 내 피드백과 답변을 확인하실 수 있어요.
           </p>
-          <div className="flex gap-3 justify-center">
+          <div className="flex gap-3 justify-center flex-wrap">
             <Link href="/" className="px-4 py-2 bg-emerald-500 text-white text-sm font-bold rounded-xl hover:bg-emerald-600 transition">
               메인으로
+            </Link>
+            <Link href="/feedback/board" className="px-4 py-2 bg-white border border-emerald-200 text-emerald-600 text-sm font-bold rounded-xl hover:bg-emerald-50 transition">
+              내 피드백 확인
             </Link>
             <button
               onClick={() => {

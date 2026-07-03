@@ -75,7 +75,7 @@ export default function Footer() {
         {/* 면책 고지 */}
         <div className="bg-slate-800/50 rounded-xl px-4 py-3">
           <p className="text-xs text-slate-500 leading-relaxed">
-            ⚠️ <span className="text-slate-400 font-semibold">면책 고지</span> —
+            <span className="text-slate-400 font-semibold">면책 고지</span> —
             본 사이트에서 제공하는 세금 계산, 대출 한도, 규제 정보 등 모든 내용은
             참고용이며 실제 세액·대출 조건과 다를 수 있습니다.
             부동산 거래 및 세금 신고 시에는 반드시 관할 세무서, 금융기관,

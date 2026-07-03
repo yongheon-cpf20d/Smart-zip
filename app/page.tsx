@@ -38,17 +38,17 @@ const regulations = (["투기과열지구", "조정대상지역", "토지거래�
 
 
 const navItems = [
-  { name: "주담대 계산기", href: "/loan", icon: "💰" },
-  { name: "DSR 계산기", href: "/dsr", icon: "📊" },
-  { name: "취득세 계산기", href: "/tax-acq", icon: "🏠" },
-  { name: "보유세 계산기", href: "/tax-hold", icon: "🏢" },
-  { name: "양도세 계산기", href: "/tax-sell", icon: "📈" },
+  { name: "주담대", href: "/loan", icon: "💰" },
+  { name: "DSR", href: "/dsr", icon: "📊" },
+  { name: "취득세", href: "/tax-acq", icon: "🏠" },
+  { name: "보유세", href: "/tax-hold", icon: "🏢" },
+  { name: "양도세", href: "/tax-sell", icon: "📈" },
   { name: "규제정보", href: "/regulation", icon: "📜" },
-  { name: "정부혜택", href: "/benefits", icon: "🎁" },
-  { name: "총비용 계산기", href: "/total-cost", icon: "🧮" },
-  { name: "오늘의 신고가", href: "/new-high", icon: "🏆" },
+  { name: "혜택모아보기", href: "/benefits", icon: "🎁" },
+  { name: "총비용", href: "/total-cost", icon: "🧮" },
+  { name: "신고가", href: "/new-high", icon: "🏆" },
   { name: "갈아타기", href: "/switch-sim", icon: "🔄" },
-  { name: "매도시뮬레이터", href: "/asset-sim", icon: "🚀" },
+  { name: "자산시뮬", href: "/asset-sim", icon: "🚀" },
 ];
 
 type NewsItem = {
@@ -176,9 +176,14 @@ export default function Home() {
           <Link href="/changelog" className="text-xs text-slate-500 hover:text-emerald-600 transition">
             🙌 여러분의 의견이 반영되었어요! →
           </Link>
-          <Link href="/feedback" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition">
-            💬 피드백 보내기
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/feedback/board" className="text-xs text-slate-400 hover:text-emerald-600 transition">
+              내 피드백 확인
+            </Link>
+            <Link href="/feedback" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition">
+              💬 피드백 보내기
+            </Link>
+          </div>
         </div>
 
         {/* ⑤ + ⑥ 지도 + 규제 요약 */}
