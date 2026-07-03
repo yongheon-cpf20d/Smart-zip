@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { Lightbulb, Bug, MessageCircle, CheckCircle2, RefreshCw, AlertCircle, MessageSquare } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,9 +35,9 @@ function generateCaptcha(): { question: string; answer: number } {
 }
 
 const CATEGORIES = [
-  { key: "feature", label: "🙋 기능 건의", desc: "새로운 기능이나 개선사항" },
-  { key: "bug", label: "🐛 오류 신고", desc: "계산 오류나 버그 발견" },
-  { key: "other", label: "💬 기타", desc: "칭찬, 욕, 뭐든지" },
+  { key: "feature", label: "기능 건의", icon: Lightbulb, desc: "새로운 기능이나 개선사항" },
+  { key: "bug", label: "오류 신고", icon: Bug, desc: "계산 오류나 버그 발견" },
+  { key: "other", label: "기타", icon: MessageCircle, desc: "의견이나 문의사항" },
 ];
 
 export default function FeedbackPage() {
@@ -125,8 +126,10 @@ export default function FeedbackPage() {
     return (
       <div className="min-h-screen bg-white font-sans flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center space-y-4">
-          <span className="text-5xl">✅</span>
-          <h2 className="text-xl font-black text-slate-800">피드백이 접수되었습니다!</h2>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100">
+            <CheckCircle2 size={28} strokeWidth={1.75} className="text-emerald-600" />
+          </div>
+          <h2 className="text-xl font-black text-slate-800">피드백이 접수되었습니다</h2>
           <p className="text-sm text-slate-500 leading-relaxed">
             소중한 의견 감사합니다. 이메일을 남기셨다면 처리 후 회신드릴게요.<br />
             <Link href="/feedback/board" className="text-emerald-600 font-semibold hover:underline">피드백 게시판</Link>에서
@@ -164,7 +167,10 @@ export default function FeedbackPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-bold text-slate-800">💬 피드백 보내기</h1>
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <MessageSquare size={20} strokeWidth={1.75} className="text-emerald-600" />
+          피드백 보내기
+        </h1>
           <p className="text-xs text-slate-400 mt-1">기능 건의, 오류 신고, 뭐든지 환영합니다. 모든 피드백은 기본 비공개로 처리됩니다.</p>
         </div>
 
@@ -172,20 +178,24 @@ export default function FeedbackPage() {
         <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
           <h2 className="text-sm font-bold text-slate-600">어떤 내용인가요?</h2>
           <div className="grid grid-cols-3 gap-2">
-            {CATEGORIES.map(c => (
-              <button
-                key={c.key}
-                onClick={() => setCategory(c.key)}
-                className={`py-3 px-2 rounded-xl border transition flex flex-col items-center gap-1 text-center ${
-                  category === c.key
-                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                }`}
-              >
-                <span className="text-sm font-bold">{c.label}</span>
-                <span className="text-[10px] opacity-70">{c.desc}</span>
-              </button>
-            ))}
+            {CATEGORIES.map(c => {
+              const Icon = c.icon;
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setCategory(c.key)}
+                  className={`py-3 px-2 rounded-xl border transition flex flex-col items-center gap-1.5 text-center btn-press ${
+                    category === c.key
+                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  <Icon size={16} strokeWidth={1.75} />
+                  <span className="text-sm font-bold">{c.label}</span>
+                  <span className="text-[10px] opacity-70">{c.desc}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -244,7 +254,7 @@ export default function FeedbackPage() {
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder="예: 부동산러버"
+                placeholder="예: 홍길동"
                 maxLength={20}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
               />
@@ -255,7 +265,7 @@ export default function FeedbackPage() {
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="글 확인용"
+                placeholder="게시글 확인용"
                 maxLength={20}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
               />
@@ -291,17 +301,19 @@ export default function FeedbackPage() {
               />
               <button
                 onClick={refreshCaptcha}
-                className="text-xs text-slate-400 hover:text-slate-600 transition"
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition"
               >
-                🔄 새로고침
+                <RefreshCw size={12} strokeWidth={1.75} />
+                새로고침
               </button>
             </div>
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
-            ⚠️ {error}
+          <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
+            <AlertCircle size={15} strokeWidth={1.75} className="shrink-0" />
+            {error}
           </div>
         )}
 

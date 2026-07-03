@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { BarChart3 } from "lucide-react";
 
 type RepayType = "equal-pi" | "equal-principal" | "bullet" | "graduated";
 
@@ -123,7 +124,10 @@ export default function DSRPage() {
           ← 메인으로
         </Link>
 
-        <h1 className="text-xl font-bold text-slate-800">📊 DSR 계산기</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <BarChart3 size={20} strokeWidth={1.75} className="text-emerald-600" />
+          DSR 계산기
+        </h1>
 
         <div className="relative bg-white border border-slate-200 rounded-2xl p-5">
           <span className="absolute top-4 right-4 text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-full">

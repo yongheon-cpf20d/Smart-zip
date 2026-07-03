@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import PriceInput from "../../components/PriceInput";
+import { Calculator, AlertTriangle, Info } from "lucide-react";
+import PriceInput from "@/components/PriceInput";
 
 // ✅ 법령 출처
 // 취득세: 지방세법 제11조, 제13조의2 / 지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육)
@@ -123,7 +124,7 @@ function getLoanLimit(
         loanLimit: 0,
         basePrice,
         ltv: 0,
-        policyNote: `⚠️ 매매가(${fmtHundred(salePrice)})가 ${policyInfo.label} 대상 주택가액 상한(${fmtHundred(policyInfo.maxHousePrice)})을 초과하여 해당 정책대출 이용이 불가합니다.`,
+        policyNote: `[주의] 매매가(${fmtHundred(salePrice)})가 ${policyInfo.label} 대상 주택가액 상한(${fmtHundred(policyInfo.maxHousePrice)})을 초과하여 해당 정책대출 이용이 불가합니다.`,
       };
     }
     // LTV 70% 적용 (규제지역 포함, 25.6.27 이후)
@@ -135,8 +136,8 @@ function getLoanLimit(
       basePrice,
       ltv,
       policyNote: isRegulated
-        ? `💡 ${policyInfo.label}: 규제지역 적용 LTV ${(ltv * 100).toFixed(0)}%, 최대 ${fmtHundred(policyInfo.maxLoan)} 한도 적용. 대출 실행 후 6개월 이내 전입 의무가 발생합니다.`
-        : `💡 ${policyInfo.label}: LTV ${(ltv * 100).toFixed(0)}%, 최대 ${fmtHundred(policyInfo.maxLoan)} 한도 적용.`,
+        ? `[안내] ${policyInfo.label}: 규제지역 적용 LTV ${(ltv * 100).toFixed(0)}%, 최대 ${fmtHundred(policyInfo.maxLoan)} 한도 적용. 대출 실행 후 6개월 이내 전입 의무가 발생합니다.`
+        : `[안내] ${policyInfo.label}: LTV ${(ltv * 100).toFixed(0)}%, 최대 ${fmtHundred(policyInfo.maxLoan)} 한도 적용.`,
     };
   }
 
@@ -151,7 +152,7 @@ function getLoanLimit(
   }
   const loanLimit = Math.min(ltvAmount, capAmount);
   const note = isRegulated
-    ? "💡 대출 실행 후 6개월 이내 전입 의무가 발생합니다."
+    ? "[안내] 대출 실행 후 6개월 이내 전입 의무가 발생합니다."
     : "";
   return { loanLimit, basePrice, ltv, policyNote: note };
 }
@@ -267,7 +268,10 @@ export default function TotalCostPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-bold text-slate-800">🧮 총비용 계산기</h1>
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <Calculator size={20} strokeWidth={1.75} className="text-emerald-600" />
+            총비용 계산기
+          </h1>
           <p className="text-xs text-slate-400 mt-1">집 구매 시 실제 필요한 총비용과 자기자본을 한눈에</p>
         </div>
 
@@ -496,12 +500,15 @@ export default function TotalCostPage() {
 
                 {/* 정책대출/전입의무 안내 */}
                 {result.policyNote && (
-                  <div className={`rounded-lg px-3 py-2.5 text-[11px] leading-relaxed ${
-                    result.policyNote.startsWith("⚠️")
+                  <div className={`flex items-start gap-1.5 rounded-lg px-3 py-2.5 text-[11px] leading-relaxed ${
+                    result.policyNote.startsWith("[주의]")
                       ? "bg-red-50 border border-red-200 text-red-700"
                       : "bg-blue-50 border border-blue-200 text-blue-700"
                   }`}>
-                    {result.policyNote}
+                    {result.policyNote.startsWith("[주의]")
+                      ? <AlertTriangle size={14} strokeWidth={1.75} className="shrink-0 mt-0.5" />
+                      : <Info size={14} strokeWidth={1.75} className="shrink-0 mt-0.5" />}
+                    <span>{result.policyNote.replace(/^\[(주의|안내)\]\s*/, "")}</span>
                   </div>
                 )}
               </div>
@@ -537,7 +544,7 @@ export default function TotalCostPage() {
             {/* 주석 안내 */}
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                💡 본 계산은 필수 세금(취득세·지방교육세·농어촌특별세)과 법정 최대 중개수수료를 합산한 예상치입니다.
+                본 계산은 필수 세금(취득세·지방교육세·농어촌특별세)과 법정 최대 중개수수료를 합산한 예상치입니다.
                 단, 아래 항목은 계약 조건에 따라 달라지므로 총액에서 제외되었습니다.
               </p>
               <ul className="mt-2 space-y-1 text-[11px] text-slate-400">

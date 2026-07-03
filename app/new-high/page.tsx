@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+import { Trophy, ArrowUpRight } from "lucide-react";
 
-// ✅ 샘플 데이터 — 백필 완료 후 Supabase DB 조회로 교체 예정
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+// ✅ new_high_view (Supabase SQL 뷰)에서 실시간 조회
+// 백필이 진행 중이어도 현재까지 쌓인 데이터 기준으로 항상 최신 결과가 반영됨
 type NewHighRecord = {
-  id: number;
+  id: string; // complex_name+dong+area 조합으로 생성 (뷰에는 PK가 없어서)
   complexName: string;
   dong: string;
   regionName: string;
@@ -17,20 +25,7 @@ type NewHighRecord = {
   dealDate: string;
 };
 
-const SAMPLE_DATA: NewHighRecord[] = [
-  { id: 1, complexName: "반포자이", dong: "반포동", regionName: "서울 서초구", area: 84.97, floor: 15, price: 3_950_000_000, previousHighPrice: 3_830_000_000, priceDiff: 120_000_000, dealDate: "2026-07-02" },
-  { id: 2, complexName: "아크로리버파크", dong: "반포동", regionName: "서울 서초구", area: 59.92, floor: 20, price: 3_200_000_000, previousHighPrice: 3_100_000_000, priceDiff: 100_000_000, dealDate: "2026-07-02" },
-  { id: 3, complexName: "잠실 엘스", dong: "잠실동", regionName: "서울 송파구", area: 84.94, floor: 8, price: 2_350_000_000, previousHighPrice: 2_280_000_000, priceDiff: 70_000_000, dealDate: "2026-07-02" },
-  { id: 4, complexName: "헬리오시티", dong: "가락동", regionName: "서울 송파구", area: 84.99, floor: 25, price: 2_150_000_000, previousHighPrice: 2_080_000_000, priceDiff: 70_000_000, dealDate: "2026-07-02" },
-  { id: 5, complexName: "래미안 퍼스티지", dong: "반포동", regionName: "서울 서초구", area: 114.97, floor: 12, price: 4_800_000_000, previousHighPrice: 4_650_000_000, priceDiff: 150_000_000, dealDate: "2026-07-02" },
-  { id: 6, complexName: "대치 래미안", dong: "대치동", regionName: "서울 강남구", area: 84.88, floor: 7, price: 3_050_000_000, previousHighPrice: 2_950_000_000, priceDiff: 100_000_000, dealDate: "2026-07-02" },
-  { id: 7, complexName: "은마아파트", dong: "대치동", regionName: "서울 강남구", area: 76.79, floor: 5, price: 2_650_000_000, previousHighPrice: 2_580_000_000, priceDiff: 70_000_000, dealDate: "2026-07-02" },
-  { id: 8, complexName: "마포 래미안 푸르지오", dong: "아현동", regionName: "서울 마포구", area: 84.97, floor: 11, price: 1_850_000_000, previousHighPrice: 1_790_000_000, priceDiff: 60_000_000, dealDate: "2026-07-02" },
-  { id: 9, complexName: "판교 알파리움", dong: "백현동", regionName: "경기 성남시 분당구", area: 84.83, floor: 18, price: 1_850_000_000, previousHighPrice: 1_790_000_000, priceDiff: 60_000_000, dealDate: "2026-07-02" },
-  { id: 10, complexName: "광교 중흥S클래스", dong: "이의동", regionName: "경기 수원시 영통구", area: 84.97, floor: 22, price: 1_450_000_000, previousHighPrice: 1_390_000_000, priceDiff: 60_000_000, dealDate: "2026-07-02" },
-  { id: 11, complexName: "위례 중흥S클래스", dong: "학암동", regionName: "경기 하남시", area: 59.94, floor: 10, price: 1_050_000_000, previousHighPrice: 1_010_000_000, priceDiff: 40_000_000, dealDate: "2026-07-02" },
-  { id: 12, complexName: "과천 푸르지오 써밋", dong: "별양동", regionName: "경기 과천시", area: 84.97, floor: 15, price: 2_100_000_000, previousHighPrice: 2_030_000_000, priceDiff: 70_000_000, dealDate: "2026-07-02" },
-];
+// SAMPLE_DATA 제거 — 이제 Supabase new_high_view에서 실시간 조회
 
 const SEOUL_DISTRICTS = [
   "종로구","중구","용산구","성동구","광진구","동대문구","중랑구","성북구",
@@ -70,7 +65,7 @@ function PosterCard({ record }: { record: NewHighRecord }) {
     if (!cardRef.current || downloading) return;
     setDownloading(true);
     try {
-      const html2canvas = (await import("html2canvas")).default;
+      const html2canvas = (await import("html2canvas-pro")).default;
       const canvas = await html2canvas(cardRef.current, {
         scale: 3,
         backgroundColor: null,
@@ -91,89 +86,90 @@ function PosterCard({ record }: { record: NewHighRecord }) {
   }, [record, downloading]);
 
   return (
-    <div className="relative group">
+    <div className="relative group hover-lift">
       {/* 포스터 본체 (캡처 대상) */}
       <div
         ref={cardRef}
         style={{
-          background: "linear-gradient(145deg, #0f172a 0%, #1a2744 45%, #0f1f35 100%)",
+          background: "#ffffff",
+          border: "1.5px solid #10b981",
           borderRadius: "16px",
           padding: "28px 24px 22px",
           position: "relative",
           overflow: "hidden",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         }}
       >
-        {/* 배경 장식 */}
-        <div style={{ position: "absolute", top: -50, right: -50, width: 160, height: 160, borderRadius: "50%", background: "rgba(16,185,129,0.07)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: -40, left: -20, width: 130, height: 130, borderRadius: "50%", background: "rgba(59,130,246,0.05)", pointerEvents: "none" }} />
+        {/* 배경 장식 (은은하게) */}
+        <div style={{ position: "absolute", top: -50, right: -50, width: 160, height: 160, borderRadius: "50%", background: "rgba(16,185,129,0.05)", pointerEvents: "none" }} />
 
         {/* 헤더: 뱃지 + 날짜 */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 5,
-            background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)",
+            background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
             borderRadius: 999, padding: "3px 10px",
           }}>
-            <span style={{ fontSize: 11 }}>🏆</span>
-            <span style={{ color: "#10b981", fontWeight: 800, fontSize: 10, letterSpacing: "0.05em" }}>신고가 달성</span>
+            <Trophy size={12} strokeWidth={2} color="#dc2626" />
+            <span style={{ color: "#dc2626", fontWeight: 800, fontSize: 10, letterSpacing: "0.05em" }}>신고가</span>
           </div>
-          <span style={{ color: "#334155", fontSize: 9 }}>{record.dealDate}</span>
+          <span style={{ color: "#94a3b8", fontSize: 9 }}>{record.dealDate}</span>
         </div>
 
         {/* 지역 */}
-        <p style={{ color: "#475569", fontSize: 10, marginBottom: 3 }}>
+        <p style={{ color: "#64748b", fontSize: 10, marginBottom: 3 }}>
           {record.regionName} · {record.dong}
         </p>
 
-        {/* 단지명 */}
-        <p style={{ color: "#ffffff", fontWeight: 900, fontSize: record.complexName.length > 9 ? 18 : 22, marginBottom: 3, lineHeight: 1.2 }}>
+        {/* 단지명 · 평형 · 타입 (검은색) */}
+        <p style={{ color: "#0f172a", fontWeight: 900, fontSize: record.complexName.length > 9 ? 18 : 22, marginBottom: 3, lineHeight: 1.2 }}>
           {record.complexName}
         </p>
 
-        {/* 면적/층 */}
+        {/* 면적/층 (검은색 계열) */}
         <p style={{ color: "#334155", fontSize: 10, marginBottom: 18 }}>
           전용 {record.area}㎡ (약 {toPyeong(record.area)}평) · {record.floor}층
         </p>
 
         {/* 구분선 */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", marginBottom: 16 }} />
+        <div style={{ borderTop: "1px solid #f1f5f9", marginBottom: 16 }} />
 
-        {/* 신고가 */}
+        {/* 신고가 (빨간색) */}
         <div style={{ marginBottom: 12 }}>
-          <p style={{ color: "#334155", fontSize: 9, marginBottom: 3, letterSpacing: "0.1em" }}>신 고 가</p>
-          <p style={{ color: "#ffffff", fontWeight: 900, fontSize: 26, lineHeight: 1 }}>
+          <p style={{ color: "#94a3b8", fontSize: 9, marginBottom: 3, letterSpacing: "0.1em" }}>신 고 가</p>
+          <p style={{ color: "#ef4444", fontWeight: 900, fontSize: 26, lineHeight: 1 }}>
             {fmtPriceFull(record.price)}
           </p>
         </div>
 
-        {/* 직전 신고가 + 상승률 */}
+        {/* 직전 신고가(연한 빨강) + 상승률(빨강) */}
         {record.previousHighPrice && record.priceDiff && (
           <>
             <div style={{ display: "flex", gap: 20, marginBottom: 12 }}>
               <div>
-                <p style={{ color: "#1e293b", fontSize: 9, marginBottom: 2 }}>직전 신고가</p>
-                <p style={{ color: "#64748b", fontWeight: 700, fontSize: 12 }}>
+                <p style={{ color: "#94a3b8", fontSize: 9, marginBottom: 2 }}>직전 신고가</p>
+                <p style={{ color: "#fca5a5", fontWeight: 700, fontSize: 12 }}>
                   {fmtPriceFull(record.previousHighPrice)}
                 </p>
               </div>
               <div>
-                <p style={{ color: "#1e293b", fontSize: 9, marginBottom: 2 }}>직전 대비 상승률</p>
-                <p style={{ color: "#f87171", fontWeight: 800, fontSize: 12 }}>
+                <p style={{ color: "#94a3b8", fontSize: 9, marginBottom: 2 }}>직전 대비 상승률</p>
+                <p style={{ color: "#ef4444", fontWeight: 800, fontSize: 12 }}>
                   +{diffPct}%
                 </p>
               </div>
             </div>
 
-            {/* 상승액 강조 */}
+            {/* 상승액(갭) 강조 — 빨간색 */}
             <div style={{
-              background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
+              background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)",
               borderRadius: 10, padding: "10px 12px",
               display: "flex", alignItems: "center", gap: 8,
               marginBottom: 18,
             }}>
-              <span style={{ color: "#ef4444", fontSize: 14 }}>🔺</span>
+              <ArrowUpRight size={16} strokeWidth={2} color="#ef4444" />
               <div>
-                <p style={{ color: "#475569", fontSize: 8, marginBottom: 1 }}>직전 신고가 대비 상승</p>
+                <p style={{ color: "#94a3b8", fontSize: 8, marginBottom: 1 }}>직전 신고가 대비 상승</p>
                 <p style={{ color: "#ef4444", fontWeight: 900, fontSize: 16 }}>
                   {fmtPriceFull(record.priceDiff)}
                 </p>
@@ -182,19 +178,24 @@ function PosterCard({ record }: { record: NewHighRecord }) {
           </>
         )}
 
-        {/* 푸터: 로고 */}
+        {/* 푸터: 로고 + 슬로건 */}
         <div style={{
-          borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12,
+          borderTop: "1px solid #f1f5f9", paddingTop: 12,
           display: "flex", alignItems: "center", justifyContent: "space-between"
         }}>
-          {/* SVG 로고 이미지 */}
-          <img
-            src="/logo.svg"
-            alt="똑집 DDokzip"
-            style={{ height: 18, width: "auto", objectFit: "contain" }}
-            crossOrigin="anonymous"
-          />
-          <span style={{ color: "#1e293b", fontSize: 8 }}>국토교통부 실거래가 기반</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {/* SVG 로고 이미지 */}
+            <img
+              src="/logo.svg"
+              alt="똑집 DDokzip"
+              style={{ height: 18, width: "auto", objectFit: "contain" }}
+              crossOrigin="anonymous"
+            />
+            <span style={{ color: "#334155", fontSize: 9, fontWeight: 700 }}>
+              똑집<span style={{ color: "#94a3b8", fontWeight: 400 }}>, 똑똑한 부동산 길잡이</span>
+            </span>
+          </div>
+          <span style={{ color: "#94a3b8", fontSize: 8 }}>국토교통부 실거래가 기반</span>
         </div>
       </div>
 
@@ -204,11 +205,10 @@ function PosterCard({ record }: { record: NewHighRecord }) {
         disabled={downloading}
         className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 text-[10px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-lg"
         style={{
-          background: "rgba(255,255,255,0.92)",
-          color: "#1e293b",
-          backdropFilter: "blur(4px)",
+          background: "#10b981",
+          color: "#ffffff",
           zIndex: 10,
-          border: "1px solid rgba(255,255,255,0.5)",
+          border: "1px solid #059669",
         }}
       >
         {downloading ? <span className="animate-pulse">저장 중...</span> : <>⬇️ 저장</>}
@@ -222,6 +222,38 @@ export default function NewHighPage() {
   const [regionView, setRegionView] = useState<RegionView>("top");
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [records, setRecords] = useState<NewHighRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Supabase new_high_view에서 조회 — 백필 진행 중에도 현재까지 쌓인 데이터로 작동
+  useEffect(() => {
+    const fetchNewHighs = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("new_high_view")
+        .select("*")
+        .order("price_diff", { ascending: false })
+        .limit(150); // 상승액 큰 순 상위 150건만 (전체 기간 기준이라 개수 제한)
+
+      if (!error && data) {
+        const mapped: NewHighRecord[] = data.map((d: any) => ({
+          id: `${d.complex_name}__${d.dong}__${d.area}`,
+          complexName: d.complex_name,
+          dong: d.dong,
+          regionName: d.region_name,
+          area: d.area,
+          floor: d.floor,
+          price: d.price,
+          previousHighPrice: d.previous_high_price,
+          priceDiff: d.price_diff,
+          dealDate: d.deal_date,
+        }));
+        setRecords(mapped);
+      }
+      setLoading(false);
+    };
+    fetchNewHighs();
+  }, []);
 
   const switchView = (view: RegionView) => {
     setIsAnimating(true);
@@ -232,7 +264,7 @@ export default function NewHighPage() {
     }, 300);
   };
 
-  const filteredData = SAMPLE_DATA.filter(d => {
+  const filteredData = records.filter(d => {
     if (regionView === "top") return true;
     if (regionView === "seoul") {
       if (!d.regionName.startsWith("서울")) return false;
@@ -245,7 +277,7 @@ export default function NewHighPage() {
       return true;
     }
     return true;
-  }).sort((a, b) => (b.priceDiff ?? 0) - (a.priceDiff ?? 0));
+  }); // 이미 price_diff desc로 정렬되어 옴
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 font-sans">
@@ -256,8 +288,11 @@ export default function NewHighPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-bold text-slate-800">🏆 오늘의 신고가</h1>
-          <p className="text-xs text-slate-400 mt-1">2026.07.02 · 국토교통부 실거래가 · 카드에 마우스 올리면 저장 버튼이 나타납니다</p>
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <Trophy size={20} strokeWidth={1.75} className="text-emerald-600" />
+            오늘의 신고가
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">국토교통부 실거래가 기반 · 매일 자동 갱신 · 카드에 마우스 올리면 저장 버튼이 나타납니다</p>
         </div>
 
         {/* 지역 선택 */}
@@ -274,13 +309,13 @@ export default function NewHighPage() {
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => switchView("seoul")}
                   className="py-3.5 rounded-xl border-2 border-emerald-200 bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 hover:border-emerald-400 transition-all">
-                  🗺️ 서울
+                  서울
                   <span className="block text-[11px] font-normal text-emerald-500 mt-0.5">25개 자치구</span>
                 </button>
                 <button onClick={() => switchView("gyeonggi")}
-                  className="py-3.5 rounded-xl border-2 border-blue-200 bg-blue-50 text-blue-700 font-bold hover:bg-blue-100 hover:border-blue-400 transition-all">
-                  🗺️ 경기도
-                  <span className="block text-[11px] font-normal text-blue-500 mt-0.5">31개 시군</span>
+                  className="py-3.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 hover:border-slate-400 transition-all">
+                  경기도
+                  <span className="block text-[11px] font-normal text-slate-500 mt-0.5">31개 시군</span>
                 </button>
               </div>
             )}
@@ -333,9 +368,18 @@ export default function NewHighPage() {
         </div>
 
         {/* 포스터 그리드 */}
-        {filteredData.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-400 text-sm">
-            해당 지역의 신고가 데이터가 없습니다.
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-64 bg-white border border-slate-200 rounded-2xl animate-pulse" />
+            ))}
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-400 text-sm space-y-2">
+            <p>해당 지역의 신고가 데이터가 없습니다.</p>
+            <p className="text-xs text-slate-300">
+              실거래가 데이터를 매일 수집 중입니다. 데이터가 쌓일수록 더 많은 신고가가 표시돼요.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

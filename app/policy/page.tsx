@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { Megaphone } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,11 +21,12 @@ type Policy = {
   source_url: string | null;
   tag: string;
   created_at: string;
+  display_date: string;
 };
 
 const TAG_STYLE: Record<string, { bg: string; text: string }> = {
-  "국토부": { bg: "bg-blue-100", text: "text-blue-700" },
-  "금융위": { bg: "bg-purple-100", text: "text-purple-700" },
+  "국토부": { bg: "bg-emerald-100", text: "text-emerald-700" },
+  "금융위": { bg: "bg-slate-200", text: "text-slate-700" },
   "기타": { bg: "bg-slate-100", text: "text-slate-600" },
 };
 
@@ -32,6 +34,7 @@ async function getPolicies(): Promise<Policy[]> {
   const { data, error } = await supabase
     .from("policies")
     .select("*")
+    .order("display_date", { ascending: false })
     .order("created_at", { ascending: false });
   if (error) return [];
   return data ?? [];
@@ -49,7 +52,10 @@ export default async function PolicyPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-bold text-slate-800">📢 정책발표</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <Megaphone size={20} strokeWidth={1.75} className="text-emerald-600" />
+          정책발표
+        </h1>
           <p className="text-xs text-slate-400 mt-1">국토교통부·금융위원회 공식 발표 요약</p>
         </div>
 
@@ -72,7 +78,7 @@ export default async function PolicyPage() {
                       {p.tag}
                     </span>
                     <span className="text-xs text-slate-400">
-                      {new Date(p.created_at).toLocaleDateString("ko-KR")}
+                      {new Date(p.display_date).toLocaleDateString("ko-KR")}
                     </span>
                   </div>
                   <h2 className="text-sm font-bold text-slate-800 mb-1.5">{p.title}</h2>

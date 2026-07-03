@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import { FileText } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,11 +18,12 @@ type Policy = {
   source_url: string | null;
   tag: string;
   created_at: string;
+  display_date: string;
 };
 
 const TAG_STYLE: Record<string, { bg: string; text: string }> = {
-  "국토부": { bg: "bg-blue-100", text: "text-blue-700" },
-  "금융위": { bg: "bg-purple-100", text: "text-purple-700" },
+  "국토부": { bg: "bg-emerald-100", text: "text-emerald-700" },
+  "금융위": { bg: "bg-slate-200", text: "text-slate-700" },
   "기타": { bg: "bg-slate-100", text: "text-slate-600" },
 };
 
@@ -63,7 +65,7 @@ export default async function PolicyDetailPage({ params }: { params: Promise<{ s
               {policy.tag}
             </span>
             <span className="text-xs text-slate-400">
-              {new Date(policy.created_at).toLocaleDateString("ko-KR")}
+              {new Date(policy.display_date).toLocaleDateString("ko-KR")}
             </span>
           </div>
           <h1 className="text-xl font-black text-slate-800 leading-snug">{policy.title}</h1>
@@ -80,9 +82,10 @@ export default async function PolicyDetailPage({ params }: { params: Promise<{ s
             href={policy.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block text-center bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition text-sm"
+            className="block text-center bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-1.5"
           >
-            📄 원문 보기 →
+            <FileText size={15} strokeWidth={1.75} />
+            원문 보기
           </a>
         )}
 

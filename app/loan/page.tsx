@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import { Landmark } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -11,6 +12,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import PriceInput from "@/components/PriceInput";
 
 type RepaymentType = "equal-pi" | "equal-principal" | "graduated";
 
@@ -37,13 +39,14 @@ const QUICK_YEARS = [30, 40, 50];
 
 export default function LoanPage() {
   const [repaymentType, setRepaymentType] = useState<RepaymentType>("equal-pi");
-  const [loanAmountInput, setLoanAmountInput] = useState(""); // 단위: 만원
+  const [loanAmountInput, setLoanAmountInput] = useState("");
   const [loanYears, setLoanYears] = useState("");
   const [interestRate, setInterestRate] = useState("");
   const [result, setResult] = useState<CalcResult | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const calculate = () => {
-    const principalTotal = Number(loanAmountInput) * 10000; // 만원 -> 원
+    const principalTotal = Number(loanAmountInput) * 10000;
     const years = Number(loanYears);
     const rate = Number(interestRate);
 
@@ -61,7 +64,6 @@ export default function LoanPage() {
     const yearlyData: YearlyData[] = [];
 
     if (repaymentType === "equal-pi") {
-      // 원리금균등상환
       const pmt =
         monthlyRate === 0
           ? principalTotal / months
@@ -88,7 +90,6 @@ export default function LoanPage() {
         yearlyData[yearIdx].interest += interestPay;
       }
     } else if (repaymentType === "equal-principal") {
-      // 원금균등상환
       const fixedPrincipal = principalTotal / months;
       let balance = principalTotal;
 
@@ -111,7 +112,6 @@ export default function LoanPage() {
         yearlyData[yearIdx].interest += interestPay;
       }
     } else {
-      // 체증식상환 (간단 모델: 초기 5년 이자만 납부 후 원리금균등 전환)
       const gracePeriodMonths = Math.min(60, Math.floor(months * 0.2));
       const remainingMonths = months - gracePeriodMonths;
 
@@ -131,7 +131,6 @@ export default function LoanPage() {
         let totalPay = 0;
 
         if (m <= gracePeriodMonths) {
-          // 이자만 납부
           totalPay = interestPay;
           principalPay = 0;
         } else {
@@ -161,6 +160,10 @@ export default function LoanPage() {
       firstMonthlyInterest,
       yearlyData,
     });
+
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const formatWon = (n: number) =>
@@ -170,15 +173,17 @@ export default function LoanPage() {
     <div className="min-h-screen bg-white text-slate-800 font-sans">
       <div className="max-w-4xl mx-auto px-4 py-4 space-y-5">
 
-        {/* 메인으로 돌아가기 */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition"
+          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press"
         >
           ← 메인으로
         </Link>
 
-        <h1 className="text-xl font-bold text-slate-800">💰 주택담보대출 계산기</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <Landmark size={20} strokeWidth={1.75} className="text-emerald-600" />
+          주택담보대출 계산기
+        </h1>
 
         {/* 1. 상환방식 설정 */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5">
@@ -190,7 +195,7 @@ export default function LoanPage() {
                 <button
                   key={opt.key}
                   onClick={() => setRepaymentType(opt.key)}
-                  className={`py-3 rounded-xl text-sm font-bold border transition-all ${
+                  className={`py-3 rounded-xl text-sm font-bold border transition-all btn-press ${
                     active
                       ? "bg-emerald-100 border-emerald-400 text-emerald-700"
                       : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
@@ -207,16 +212,12 @@ export default function LoanPage() {
         <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
           <h2 className="text-sm font-bold text-slate-600">대출정보 입력</h2>
 
-          <div>
-            <label className="text-xs text-slate-400 mb-1 block">대출금액 (만원)</label>
-            <input
-              type="number"
-              value={loanAmountInput}
-              onChange={(e) => setLoanAmountInput(e.target.value)}
-              placeholder="예: 50000 (= 5억원)"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-            />
-          </div>
+          <PriceInput
+            label="대출금액 (만원)"
+            value={loanAmountInput}
+            onChange={setLoanAmountInput}
+            placeholder="예: 50000"
+          />
 
           <div>
             <label className="text-xs text-slate-400 mb-1 block">대출기간 (년)</label>
@@ -258,7 +259,7 @@ export default function LoanPage() {
 
           <button
             onClick={calculate}
-            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition"
+            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition btn-press"
           >
             계산하기
           </button>
@@ -266,7 +267,7 @@ export default function LoanPage() {
 
         {/* 3. 월 원리금 결과 */}
         {result && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center">
+          <div ref={resultRef} className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center result-enter">
             <p className="text-xs text-emerald-600 font-semibold mb-1">월 상환액 (첫 회차 기준)</p>
             <p className="text-3xl font-black text-emerald-700">
               {formatWon(result.firstMonthlyPayment)}
@@ -279,7 +280,7 @@ export default function LoanPage() {
 
         {/* 4. 시뮬레이션 그래프 */}
         {result && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 result-enter">
             <h2 className="text-sm font-bold text-slate-600 mb-4">연차별 원금·이자 구성</h2>
             <div style={{ width: "100%", height: 320 }}>
               <ResponsiveContainer>
@@ -298,14 +299,16 @@ export default function LoanPage() {
                   <Tooltip
                     formatter={(value) => formatWon(Number(value))}
                     labelFormatter={(y) => `${y}년차`}
+                    contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
                   />
                   <Legend
                     formatter={(value) =>
                       value === "principal" ? "원금" : "이자"
                     }
+                    wrapperStyle={{ fontSize: 12 }}
                   />
-                  <Bar dataKey="principal" stackId="a" fill="#93c5fd" name="principal" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="interest" stackId="a" fill="#fca5a5" name="interest" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="principal" stackId="a" fill="#10b981" name="principal" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="interest" stackId="a" fill="#cbd5e1" name="interest" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

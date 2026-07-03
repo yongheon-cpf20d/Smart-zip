@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { Lock, Megaphone, MessageSquare, PencilLine } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +18,13 @@ type Policy = {
   source_url: string | null;
   tag: string;
   created_at: string;
+  display_date: string; // 관리자가 지정하는 표시 날짜 (YYYY-MM-DD)
 };
+
+// 오늘 날짜를 YYYY-MM-DD 형식으로
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 // 한글 제목 → slug 자동 생성 (날짜 + 랜덤 문자열)
 function generateSlug(): string {
@@ -27,9 +34,9 @@ function generateSlug(): string {
 }
 
 const TAG_OPTIONS = [
-  { key: "국토부", label: "🏛️ 국토부" },
-  { key: "금융위", label: "🏦 금융위" },
-  { key: "기타", label: "📋 기타" },
+  { key: "국토부", label: "국토부" },
+  { key: "금융위", label: "금융위" },
+  { key: "기타", label: "기타" },
 ];
 
 export default function AdminPolicyPage() {
@@ -42,6 +49,7 @@ export default function AdminPolicyPage() {
   const [content, setContent] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [tag, setTag] = useState("국토부");
+  const [displayDate, setDisplayDate] = useState(todayStr());
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -58,7 +66,8 @@ export default function AdminPolicyPage() {
     const { data, error } = await supabase
       .from("policies")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("display_date", { ascending: false })
+      .order("created_at", { ascending: false }); // 같은 날짜면 등록순
     if (!error && data) setPolicies(data);
   };
 
@@ -71,6 +80,7 @@ export default function AdminPolicyPage() {
     setContent("");
     setSourceUrl("");
     setTag("국토부");
+    setDisplayDate(todayStr());
     setEditingId(null);
   };
 
@@ -90,6 +100,7 @@ export default function AdminPolicyPage() {
           content: content.trim(),
           source_url: sourceUrl.trim() || null,
           tag,
+          display_date: displayDate,
         })
         .eq("id", editingId);
       if (!error) {
@@ -104,6 +115,7 @@ export default function AdminPolicyPage() {
         content: content.trim(),
         source_url: sourceUrl.trim() || null,
         tag,
+        display_date: displayDate,
       });
       if (!error) {
         await fetchPolicies();
@@ -119,6 +131,7 @@ export default function AdminPolicyPage() {
     setContent(p.content);
     setSourceUrl(p.source_url ?? "");
     setTag(p.tag);
+    setDisplayDate(p.display_date ?? todayStr());
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -133,7 +146,10 @@ export default function AdminPolicyPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="bg-white border border-slate-200 rounded-2xl p-8 w-full max-w-sm space-y-4">
-          <h1 className="text-lg font-black text-slate-800">🔐 관리자 로그인</h1>
+          <h1 className="flex items-center gap-2 text-lg font-black text-slate-800">
+            <Lock size={18} strokeWidth={1.75} className="text-emerald-600" />
+            관리자 로그인
+          </h1>
           <input
             type="password"
             value={pwInput}
@@ -162,10 +178,14 @@ export default function AdminPolicyPage() {
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
 
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">📢 정책발표 관리</h1>
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <Megaphone size={20} strokeWidth={1.75} className="text-emerald-600" />
+            정책발표 관리
+          </h1>
           <div className="flex gap-2">
-            <Link href="/admin/feedback" className="text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
-              💬 피드백 관리
+            <Link href="/admin/feedback" className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+              <MessageSquare size={13} strokeWidth={1.75} />
+              피드백 관리
             </Link>
             <button onClick={() => setIsAuth(false)}
               className="text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
@@ -177,8 +197,9 @@ export default function AdminPolicyPage() {
         {/* 작성/수정 폼 */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-700">
-              {editingId ? "✏️ 정책 수정" : "새 정책발표 작성"}
+            <h2 className="flex items-center gap-1.5 text-sm font-bold text-slate-700">
+              {editingId && <PencilLine size={14} strokeWidth={1.75} />}
+              {editingId ? "정책 수정" : "새 정책발표 작성"}
             </h2>
             {editingId && (
               <button onClick={resetForm} className="text-xs text-slate-400 hover:text-slate-600">
@@ -199,6 +220,18 @@ export default function AdminPolicyPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">
+              표시 날짜 <span className="text-slate-300">— 게시판 정렬 기준 (이 날짜가 최신일수록 위에 표시)</span>
+            </label>
+            <input
+              type="date"
+              value={displayDate}
+              onChange={e => setDisplayDate(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
+            />
           </div>
 
           <div>
@@ -254,7 +287,9 @@ export default function AdminPolicyPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{p.tag}</span>
-                    <span className="text-[10px] text-slate-400">{new Date(p.created_at).toLocaleDateString("ko-KR")}</span>
+                    <span className="text-[10px] text-slate-400">
+                      {new Date(p.display_date).toLocaleDateString("ko-KR")}
+                    </span>
                   </div>
                   <p className="text-sm font-bold text-slate-800">{p.title}</p>
                   <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{p.content}</p>

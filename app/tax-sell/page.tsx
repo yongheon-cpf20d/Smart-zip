@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import PriceInput from "../../components/PriceInput";
+import { TrendingUp } from "lucide-react";
+import PriceInput from "@/components/PriceInput";
 
 // ✅ 법령 출처: 소득세법 제55조(세율), 제95조(장기보유특별공제), 제103조(기본공제), 제104조(양도소득세 세율)
 // 규제 변경 시 이 파일의 세율표/공제율만 수정하면 전체 반영됨.
@@ -218,7 +219,10 @@ export default function TaxSellPage() {
           ← 메인으로
         </Link>
 
-        <h1 className="text-xl font-bold text-slate-800">📈 양도소득세 계산기</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <TrendingUp size={20} strokeWidth={1.75} className="text-emerald-600" />
+          양도소득세 계산기
+        </h1>
 
         {/* 거래 정보 */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">

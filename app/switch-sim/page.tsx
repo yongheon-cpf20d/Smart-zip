@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import PriceInput from "../../components/PriceInput";
+import { ArrowLeftRight, Wallet, CalendarClock, Lightbulb, CheckCircle2 } from "lucide-react";
+import PriceInput from "@/components/PriceInput";
 
 // ✅ 법령 출처
 // 양도세: 소득세법 제89조(비과세), 제95조(장특공제), 제103조(기본공제), 제104조(세율·중과)
@@ -293,7 +294,10 @@ export default function SwitchSimPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-bold text-slate-800">🔄 갈아타기 시뮬레이터</h1>
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <ArrowLeftRight size={20} strokeWidth={1.75} className="text-emerald-600" />
+            이사 계획 시뮬레이터
+          </h1>
           <p className="text-xs text-slate-400 mt-1">현재 집 매도 → 새 집 매수 시 추가 필요 자기자본을 계산합니다</p>
         </div>
 
@@ -576,7 +580,10 @@ export default function SwitchSimPage() {
 
             {/* 자금 흐름 시각화 */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-              <h3 className="text-sm font-bold text-slate-600">💰 자금 흐름 한눈에 보기</h3>
+              <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-600">
+                <Wallet size={15} strokeWidth={1.75} />
+                자금 흐름 한눈에 보기
+              </h3>
               <p className="text-[11px] text-slate-400">새 집 매수 총비용 {fmtWon(result.totalBuyCost)}는 아래 3가지로 충당됩니다</p>
 
               {(() => {
@@ -651,24 +658,33 @@ export default function SwitchSimPage() {
               </div>
 
               {result.additionalCapital > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 leading-relaxed">
-                  💡 매도 실수령액({fmtWon(result.netProceeds)})과 주담대({fmtWon(result.loanLimit)})를 합산해도
-                  <span className="font-bold"> {fmtWon(result.additionalCapital)}</span>가 부족합니다.
-                  갈아타기 전 추가 자금 마련 계획이 필요합니다.
+                <div className="flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 leading-relaxed">
+                  <Lightbulb size={14} strokeWidth={1.75} className="shrink-0 mt-0.5" />
+                  <span>
+                    매도 실수령액({fmtWon(result.netProceeds)})과 주담대({fmtWon(result.loanLimit)})를 합산해도
+                    <span className="font-bold"> {fmtWon(result.additionalCapital)}</span>가 부족합니다.
+                    이사 전 추가 자금 마련 계획이 필요합니다.
+                  </span>
                 </div>
               )}
 
               {result.additionalCapital <= 0 && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-xs text-emerald-700 leading-relaxed">
-                  ✅ 매도 실수령액과 주담대로 새 집 구매가 가능합니다.
-                  <span className="font-bold"> {fmtWon(Math.abs(result.additionalCapital))}</span> 여유자금이 남습니다.
+                <div className="flex items-start gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-xs text-emerald-700 leading-relaxed">
+                  <CheckCircle2 size={14} strokeWidth={1.75} className="shrink-0 mt-0.5" />
+                  <span>
+                    매도 실수령액과 주담대로 새 집 구매가 가능합니다.
+                    <span className="font-bold"> {fmtWon(Math.abs(result.additionalCapital))}</span> 여유자금이 남습니다.
+                  </span>
                 </div>
               )}
             </div>
 
             {/* 월 부담 변화 분석 */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-              <h3 className="text-sm font-bold text-slate-600">📅 매달 대출 상환 부담 변화</h3>
+              <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-600">
+                <CalendarClock size={15} strokeWidth={1.75} />
+                매달 대출 상환 부담 변화
+              </h3>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">

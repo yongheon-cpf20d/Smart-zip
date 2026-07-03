@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import PriceInput from "../../components/PriceInput";
+import { Building2, FileCheck, CheckCircle2 } from "lucide-react";
+import PriceInput from "@/components/PriceInput";
 
 // ✅ 법령 출처
 // 재산세: 지방세법 제110조(과세표준), 제111조(세율), 제111조의2(1세대1주택 특례),
@@ -251,7 +252,10 @@ export default function TaxHoldPage() {
           ← 메인으로
         </Link>
 
-        <h1 className="text-xl font-bold text-slate-800">🏢 보유세 계산기</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <Building2 size={20} strokeWidth={1.75} className="text-emerald-600" />
+          보유세 계산기
+        </h1>
         <p className="text-xs text-slate-400 -mt-2">재산세 + 지방교육세 + 도시지역분 + 종합부동산세 + 농어촌특별세</p>
 
         {/* ① 공시가격 입력 */}
@@ -426,12 +430,14 @@ export default function TaxHoldPage() {
 
             {/* 종부세 과세대상 알림 */}
             {result.isCSVTarget ? (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-700">
-                📋 종합부동산세 과세 대상입니다. 매년 12월에 고지서가 발송됩니다.
+              <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-700">
+                <FileCheck size={14} strokeWidth={1.75} className="shrink-0" />
+                종합부동산세 과세 대상입니다. 매년 12월에 고지서가 발송됩니다.
               </div>
             ) : (
-              <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-xs text-slate-500">
-                ✅ 종합부동산세 과세 대상이 아닙니다. (공제액 이하)
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-xs text-slate-500">
+                <CheckCircle2 size={14} strokeWidth={1.75} className="shrink-0" />
+                종합부동산세 과세 대상이 아닙니다 (공제액 이하)
               </div>
             )}
 

@@ -3,6 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import {
+  Lock, RefreshCw, MessageSquare, ClipboardList, Lightbulb, Bug,
+  MessageCircle, Trash2, Mail, Sparkles, PencilLine,
+} from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,9 +35,9 @@ type ChangelogItem = {
 };
 
 const CATEGORY_LABEL: Record<string, string> = {
-  feature: "🙋 기능건의",
-  bug: "🐛 오류신고",
-  other: "💬 기타",
+  feature: "기능건의",
+  bug: "오류신고",
+  other: "기타",
 };
 
 // ── 토글 스위치 공통 컴포넌트 ──
@@ -201,7 +205,10 @@ export default function AdminFeedbackPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="bg-white border border-slate-200 rounded-2xl p-8 w-full max-w-sm space-y-4">
-          <h1 className="text-lg font-black text-slate-800">🔐 관리자 로그인</h1>
+          <h1 className="flex items-center gap-2 text-lg font-black text-slate-800">
+            <Lock size={18} strokeWidth={1.75} className="text-emerald-600" />
+            관리자 로그인
+          </h1>
           <input
             type="password"
             value={pwInput}
@@ -232,11 +239,12 @@ export default function AdminFeedbackPage() {
 
         {/* 헤더 */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">⚙️ 관리자</h1>
+          <h1 className="text-xl font-bold text-slate-800">관리자</h1>
           <div className="flex gap-2">
             <button onClick={() => { fetchFeedbacks(); fetchChangelogs(); }}
-              className="text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
-              🔄 새로고침
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+              <RefreshCw size={12} strokeWidth={1.75} />
+              새로고침
             </button>
             <button onClick={() => setIsAuth(false)}
               className="text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">
@@ -248,16 +256,18 @@ export default function AdminFeedbackPage() {
         {/* 탭 */}
         <div className="flex gap-2">
           <button onClick={() => setTab("feedback")}
-            className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition ${
               tab === "feedback" ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"
             }`}>
-            💬 피드백 ({feedbacks.length})
+            <MessageSquare size={14} strokeWidth={1.75} />
+            피드백 ({feedbacks.length})
           </button>
           <button onClick={() => setTab("changelog")}
-            className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border transition ${
               tab === "changelog" ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"
             }`}>
-            📋 업데이트 로그 ({changelogs.length})
+            <ClipboardList size={14} strokeWidth={1.75} />
+            업데이트 로그 ({changelogs.length})
           </button>
         </div>
 
@@ -268,9 +278,9 @@ export default function AdminFeedbackPage() {
             <div className="flex gap-2 flex-wrap">
               {[
                 { k: "all", l: "전체" },
-                { k: "feature", l: "🙋 기능건의" },
-                { k: "bug", l: "🐛 오류신고" },
-                { k: "other", l: "💬 기타" },
+                { k: "feature", l: "기능건의" },
+                { k: "bug", l: "오류신고" },
+                { k: "other", l: "기타" },
               ].map(f => (
                 <button key={f.k} onClick={() => setFilter(f.k as any)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
@@ -316,10 +326,10 @@ export default function AdminFeedbackPage() {
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteFeedback(f.id, f.title); }}
-                        className="text-slate-300 hover:text-red-500 transition text-sm p-1"
+                        className="text-slate-300 hover:text-red-500 transition p-1"
                         title="삭제"
                       >
-                        🗑️
+                        <Trash2 size={14} strokeWidth={1.75} />
                       </button>
                     </div>
                   </div>
@@ -328,7 +338,12 @@ export default function AdminFeedbackPage() {
                     <div className="border-t border-slate-100 p-4 space-y-4">
                       <div className="bg-slate-50 rounded-xl p-4">
                         <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{f.content}</p>
-                        {f.email && <p className="text-xs text-slate-400 mt-2">📧 {f.email}</p>}
+                        {f.email && (
+                          <p className="flex items-center gap-1 text-xs text-slate-400 mt-2">
+                            <Mail size={12} strokeWidth={1.75} />
+                            {f.email}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between">
@@ -355,9 +370,10 @@ export default function AdminFeedbackPage() {
                           </button>
                           <button
                             onClick={() => deleteFeedback(f.id, f.title)}
-                            className="px-4 py-2 bg-white border border-red-200 hover:bg-red-50 text-red-500 text-xs font-bold rounded-lg transition"
+                            className="flex items-center gap-1 px-4 py-2 bg-white border border-red-200 hover:bg-red-50 text-red-500 text-xs font-bold rounded-lg transition"
                           >
-                            🗑️ 삭제
+                            <Trash2 size={12} strokeWidth={1.75} />
+                            삭제
                           </button>
                         </div>
                       </div>
@@ -427,7 +443,7 @@ export default function AdminFeedbackPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-600 font-semibold">유저 피드백 반영</p>
-                  <p className="text-[11px] text-slate-400">체인지로그에 💬 피드백 반영 배지 표시</p>
+                  <p className="text-[11px] text-slate-400">체인지로그에 피드백 반영 배지 표시</p>
                 </div>
                 <Toggle
                   value={newLog.is_feedback_based}
@@ -457,7 +473,7 @@ export default function AdminFeedbackPage() {
                           {log.category === "feature" ? "신기능" : log.category === "fix" ? "버그수정" : "개선"}
                         </span>
                         {log.is_feedback_based && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">💬 피드백반영</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">피드백반영</span>
                         )}
                         <span className="text-[10px] text-slate-400">{log.date}</span>
                       </div>

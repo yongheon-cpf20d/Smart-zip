@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import PriceInput, { formatManwon } from "../../components/PriceInput";
+import { Home as HomeIcon, Lightbulb } from "lucide-react";
+import PriceInput, { formatManwon } from "@/components/PriceInput";
 
 // ✅ 법령 출처: 지방세법 제11조(부동산 취득의 세율), 제13조의2(법인의 주택 취득 등 중과)
 //    지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육)
@@ -247,7 +248,10 @@ export default function TaxAcqPage() {
           ← 메인으로
         </Link>
 
-        <h1 className="text-xl font-bold text-slate-800">🏠 취득세 계산기</h1>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <HomeIcon size={20} strokeWidth={1.75} className="text-emerald-600" />
+          취득세 계산기
+        </h1>
 
         {/* ① 거래유형 선택 */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
@@ -609,7 +613,10 @@ export default function TaxAcqPage() {
             {/* ② 감면 자동 추천 넛지 (매매이고 감면 미선택 시) */}
             {isPurchase && !isOfficetelCommercial && reductionType === "none" && result.price <= 1_200_000_000 && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
-                <p className="text-xs font-bold text-amber-700">💡 취득세 감면 혜택을 받을 수 있어요!</p>
+                <p className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
+                  <Lightbulb size={14} strokeWidth={1.75} />
+                  적용 가능한 취득세 감면 혜택이 있습니다
+                </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <div>
@@ -637,7 +644,7 @@ export default function TaxAcqPage() {
                   </div>
                 </div>
                 <p className="text-[10px] text-amber-600 border-t border-amber-200 pt-2">
-                  👆 적용해보기 버튼을 누른 후 위의 옵션을 확인하고 계산하기를 다시 눌러주세요.
+                  적용해보기 버튼을 누른 후 위 옵션을 확인하고 다시 계산해주세요.
                 </p>
               </div>
             )}

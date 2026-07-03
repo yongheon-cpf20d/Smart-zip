@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { AlertTriangle } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -73,7 +74,8 @@ export default function Footer() {
         </div>
 
         {/* 면책 고지 */}
-        <div className="bg-slate-800/50 rounded-xl px-4 py-3">
+        <div className="flex items-start gap-2 bg-slate-800/50 rounded-xl px-4 py-3">
+          <AlertTriangle size={14} strokeWidth={1.75} className="text-slate-500 shrink-0 mt-0.5" />
           <p className="text-xs text-slate-500 leading-relaxed">
             <span className="text-slate-400 font-semibold">면책 고지</span> —
             본 사이트에서 제공하는 세금 계산, 대출 한도, 규제 정보 등 모든 내용은

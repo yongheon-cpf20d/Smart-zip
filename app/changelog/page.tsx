@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { ClipboardList, MessageSquare, Sparkles } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,9 +17,9 @@ type ChangelogItem = {
 };
 
 const CATEGORY_STYLE = {
-  fix: { label: "버그수정", bg: "bg-red-100", text: "text-red-700" },
+  fix: { label: "버그 수정", bg: "bg-red-100", text: "text-red-700" },
   feature: { label: "신기능", bg: "bg-emerald-100", text: "text-emerald-700" },
-  improvement: { label: "개선", bg: "bg-blue-100", text: "text-blue-700" },
+  improvement: { label: "개선", bg: "bg-slate-200", text: "text-slate-600" },
 };
 
 async function getChangelogs(): Promise<ChangelogItem[]> {
@@ -46,30 +47,34 @@ export default async function ChangelogPage() {
     <div className="min-h-screen bg-white text-slate-800 font-sans">
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-6">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition">
+        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
           ← 메인으로
         </Link>
 
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-slate-800">📋 업데이트 로그</h1>
+            <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+              <ClipboardList size={20} strokeWidth={1.75} className="text-emerald-600" />
+              업데이트 로그
+            </h1>
             <p className="text-xs text-slate-400 mt-1">똑집의 변화를 기록합니다</p>
           </div>
           <Link
             href="/feedback"
-            className="text-xs font-bold px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl hover:bg-emerald-100 transition"
+            className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl hover:bg-emerald-100 transition link-press"
           >
-            💬 피드백 보내기
+            <MessageSquare size={13} strokeWidth={1.75} />
+            피드백 보내기
           </Link>
         </div>
 
         {/* 피드백 반영 건수 배너 */}
         {items.filter(i => i.is_feedback_based).length > 0 && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <span className="text-xl">🙌</span>
+          <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+            <Sparkles size={18} strokeWidth={1.75} className="text-emerald-500 shrink-0" />
             <p className="text-sm text-emerald-700">
               지금까지 <span className="font-black">{items.filter(i => i.is_feedback_based).length}개</span>의
-              유저 피드백이 반영되었습니다. 소중한 의견 감사합니다!
+              유저 피드백이 반영되었습니다. 소중한 의견 감사합니다.
             </p>
           </div>
         )}
@@ -104,7 +109,7 @@ export default async function ChangelogPage() {
                           </span>
                           {item.is_feedback_based && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                              💬 피드백 반영
+                              피드백 반영
                             </span>
                           )}
                           <p className="text-sm font-bold text-slate-800">{item.title}</p>

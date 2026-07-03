@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
-import PriceInput from "../../components/PriceInput";
+import { LineChart } from "lucide-react";
+import PriceInput from "@/components/PriceInput";
 
 // ✅ 법령 출처
 // 양도세: 소득세법 제95조(장특공제), 제103조(기본공제), 제104조(세율)
@@ -140,7 +141,10 @@ export default function AssetSimPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-bold text-slate-800">📈 미래 자산 시뮬레이터</h1>
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <LineChart size={20} strokeWidth={1.75} className="text-emerald-600" />
+            자산 시뮬레이션
+          </h1>
           <p className="text-xs text-slate-400 mt-1">집값이 오르면 세금 내고 실제로 얼마 남을까?</p>
         </div>
 
