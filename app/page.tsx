@@ -183,7 +183,7 @@ export default function Home() {
         {/* 피드백 + 업데이트 배너 */}
         <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
           <Link href="/changelog" className="text-xs text-slate-500 hover:text-emerald-600 transition link-press">
-            🙌 여러분의 의견이 반영되었어요! →
+            🙌 여러분의 의견이 반영되었어요! → 업데이트 내역
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/feedback/board" className="text-xs text-slate-400 hover:text-emerald-600 transition link-press">
