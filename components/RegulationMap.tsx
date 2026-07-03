@@ -3,23 +3,48 @@
 
 import { useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
-import { getRegulationByName } from "../lib/regulationData";
-
-const getRegulation = getRegulationByName;
+import { getRegulationByName, REGULATION_STYLE } from "../lib/regulationData";
 
 type ViewType = "provinces" | "seoul" | "gyeonggi";
 
+const TOHEO_COLOR = "#7c3aed"; // 토지거래허가구역 테두리 색 (보라)
+
 export default function RegulationMap() {
   const [view, setView] = useState<ViewType>("provinces");
-  const [tooltip, setTooltip] = useState<{ name: string; type: string; x: number; y: number } | null>(null);
+  const [tooltip, setTooltip] = useState<{ name: string; type: string; hasToheo: boolean; x: number; y: number } | null>(null);
 
   const handleMouseEnter = (name: string, e: React.MouseEvent) => {
-    const reg = getRegulation(name);
-    setTooltip({ name, type: reg.type, x: e.clientX, y: e.clientY });
+    const reg = getRegulationByName(name);
+    setTooltip({ name, type: reg.type, hasToheo: reg.hasToheo, x: e.clientX, y: e.clientY });
   };
   const handleMouseMove = (name: string, e: React.MouseEvent) => {
-    const reg = getRegulation(name);
-    setTooltip({ name, type: reg.type, x: e.clientX, y: e.clientY });
+    const reg = getRegulationByName(name);
+    setTooltip({ name, type: reg.type, hasToheo: reg.hasToheo, x: e.clientX, y: e.clientY });
+  };
+
+  // Geography 스타일 생성 함수
+  const makeStyle = (name: string, strokeBase = "#ffffff", strokeBaseWidth = 0.5, isClickable = false) => {
+    const reg = getRegulationByName(name);
+    const stroke = reg.hasToheo ? TOHEO_COLOR : strokeBase;
+    const strokeWidth = reg.hasToheo ? 2.5 : strokeBaseWidth;
+    return {
+      default: {
+        fill: reg.color,
+        stroke,
+        strokeWidth,
+        outline: "none",
+        transition: "all 0.2s ease",
+      },
+      hover: {
+        fill: reg.color,
+        stroke,
+        strokeWidth: reg.hasToheo ? 3 : strokeBaseWidth * 2,
+        outline: "none",
+        filter: "brightness(1.15) drop-shadow(0 3px 8px rgba(0,0,0,0.2))",
+        cursor: isClickable ? "pointer" : "default",
+      },
+      pressed: { fill: reg.color, outline: "none" },
+    };
   };
 
   return (
@@ -62,12 +87,17 @@ export default function RegulationMap() {
         boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
       }}>
         {[
-          { color: "#ef4444", label: "투기과열지구" },
-          { color: "#f97316", label: "조정대상지역" },
-          { color: "#cbd5e1", label: "일반지역" },
+          { color: "#ef4444", label: "투기과열지구", border: null },
+          { color: "#f97316", label: "조정대상지역", border: null },
+          { color: "transparent", label: "토지거래허가구역", border: TOHEO_COLOR },
         ].map((item) => (
           <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, background: item.color, display: "inline-block" }} />
+            <span style={{
+              width: 12, height: 12, borderRadius: 3,
+              background: item.color === "transparent" ? "#f3f0ff" : item.color,
+              display: "inline-block",
+              border: item.border ? `2px solid ${item.border}` : "none",
+            }} />
             <span style={{ color: "#475569" }}>{item.label}</span>
           </div>
         ))}
@@ -91,6 +121,7 @@ export default function RegulationMap() {
           pointerEvents: "none", whiteSpace: "nowrap",
         }}>
           {tooltip.name} · {tooltip.type}
+          {tooltip.hasToheo && " · 토지거래허가구역"}
         </div>
       )}
 
@@ -105,9 +136,7 @@ export default function RegulationMap() {
             {({ geographies }) =>
               geographies.map((geo) => {
                 const name = geo.properties.name ?? "";
-                const reg = getRegulation(name);
                 const isClickable = name === "서울특별시" || name === "경기도";
-
                 return (
                   <Geography
                     key={geo.rsmKey}
@@ -119,24 +148,7 @@ export default function RegulationMap() {
                     onMouseEnter={(e) => handleMouseEnter(name, e)}
                     onMouseMove={(e) => handleMouseMove(name, e)}
                     onMouseLeave={() => setTooltip(null)}
-                    style={{
-                      default: {
-                        fill: reg.color,
-                        stroke: "#ffffff",
-                        strokeWidth: 0.8,
-                        outline: "none",
-                        transition: "all 0.2s ease",
-                      },
-                      hover: {
-                        fill: reg.color,
-                        stroke: "#ffffff",
-                        strokeWidth: 1.5,
-                        outline: "none",
-                        filter: "brightness(1.15) drop-shadow(0 3px 8px rgba(0,0,0,0.2))",
-                        cursor: isClickable ? "pointer" : "default",
-                      },
-                      pressed: { fill: reg.color, outline: "none" },
-                    }}
+                    style={makeStyle(name, "#ffffff", 0.8, isClickable)}
                   />
                 );
               })
@@ -160,8 +172,6 @@ export default function RegulationMap() {
                   geo.properties.NAME_KOR ??
                   geo.properties.name ??
                   "";
-                const reg = getRegulation(name);
-
                 return (
                   <Geography
                     key={geo.rsmKey}
@@ -169,24 +179,7 @@ export default function RegulationMap() {
                     onMouseEnter={(e) => handleMouseEnter(name, e)}
                     onMouseMove={(e) => handleMouseMove(name, e)}
                     onMouseLeave={() => setTooltip(null)}
-                    style={{
-                      default: {
-                        fill: reg.color,
-                        stroke: "#ffffff",
-                        strokeWidth: 0.5,
-                        outline: "none",
-                        transition: "all 0.2s ease",
-                      },
-                      hover: {
-                        fill: reg.color,
-                        stroke: "#ffffff",
-                        strokeWidth: 1,
-                        outline: "none",
-                        filter: "brightness(1.15) drop-shadow(0 3px 8px rgba(0,0,0,0.2))",
-                        cursor: "default",
-                      },
-                      pressed: { fill: reg.color, outline: "none" },
-                    }}
+                    style={makeStyle(name, "#ffffff", 0.5)}
                   />
                 );
               })
@@ -199,23 +192,18 @@ export default function RegulationMap() {
       {view === "gyeonggi" && (
         <ComposableMap
           projection="geoMercator"
-          projectionConfig={{ center: [127.3, 37.6], scale: 20000 }}
+          projectionConfig={{ center: [127.3, 37.61], scale: 20000 }}
           style={{ width: "100%", height: "100%" }}
         >
           <Geographies geography="/gyeonggi-sgg.geojson">
             {({ geographies }) =>
               geographies
                 .filter((geo) => {
-                  // 이 파일은 경기도 code가 31로 시작
                   const code = geo.properties.code ?? "";
                   return String(code).startsWith("31");
                 })
                 .map((geo) => {
-                  // name이 "수원시영통구" 형태라 regulationData의 "수원시 영통구"와 매칭 안됨
-                  // → 공백 없는 버전도 비교하도록 처리
                   const rawName = geo.properties.name ?? "";
-                  const reg = getRegulation(rawName);
-
                   return (
                     <Geography
                       key={geo.rsmKey}
@@ -223,24 +211,7 @@ export default function RegulationMap() {
                       onMouseEnter={(e) => handleMouseEnter(rawName, e)}
                       onMouseMove={(e) => handleMouseMove(rawName, e)}
                       onMouseLeave={() => setTooltip(null)}
-                      style={{
-                        default: {
-                          fill: reg.color,
-                          stroke: "#ffffff",
-                          strokeWidth: 0.5,
-                          outline: "none",
-                          transition: "all 0.2s ease",
-                        },
-                        hover: {
-                          fill: reg.color,
-                          stroke: "#ffffff",
-                          strokeWidth: 1,
-                          outline: "none",
-                          filter: "brightness(1.15) drop-shadow(0 3px 8px rgba(0,0,0,0.2))",
-                          cursor: "default",
-                        },
-                        pressed: { fill: reg.color, outline: "none" },
-                      }}
+                      style={makeStyle(rawName, "#ffffff", 0.5)}
                     />
                   );
                 })

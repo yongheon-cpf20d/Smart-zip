@@ -3,9 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@supabase/supabase-js";
 import RegulationMap from "../components/RegulationMap";
 import RollingWidget from "../components/RollingWidget";
 import { REGULATION_STYLE, groupByType } from "../lib/regulationData";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 // 하드코딩 신고가 (나중에 Supabase 연동으로 교체 예정)
 const todayRecords = [
@@ -16,9 +22,9 @@ const todayRecords = [
 
 // ✅ lib/regulationData.ts 에서 자동 생성 — 그 파일만 수정하면 여기 자동 반영
 const groupedByType = groupByType();
-const regulations = (["투기과열지구", "조정대상지역", "규제없음"] as const).map((type) => {
+const regulations = (["투기과열지구", "조정대상지역", "토지거래허가구역"] as const).map((type) => {
   const style = REGULATION_STYLE[type];
-  const areas = groupedByType[type].map((a) => a.name);
+  const areas = groupedByType[type]?.map((a) => a.name) ?? [];
   return {
     zone: type,
     borderColor: style.borderColor,
@@ -51,21 +57,19 @@ type NewsItem = {
   source: string;
 };
 
-type PolicyItem = {
+type LatestPolicy = {
+  slug: string;
   title: string;
-  link: string;
-  source: string;
-  label: string;
+  tag: string;
+  created_at: string;
 };
 
 export default function Home() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
-  const [policyItems, setPolicyItems] = useState<PolicyItem[]>([]);
-  const [policyLoading, setPolicyLoading] = useState(true);
+  const [latestPolicies, setLatestPolicies] = useState<LatestPolicy[]>([]);
 
   useEffect(() => {
-    // 뉴스 fetch
     fetch("/api/news")
       .then((r) => r.json())
       .then((data) => { if (data.items) setNewsItems(data.items); })
@@ -78,38 +82,27 @@ export default function Home() {
       })
       .finally(() => setNewsLoading(false));
 
-    // 정책발표 fetch
-    fetch("/api/policy")
-      .then((r) => r.json())
-      .then((data) => { if (data.items) setPolicyItems(data.items); })
-      .catch(() => {
-        setPolicyItems([
-          { title: "국토교통부, 기흥·동탄·구리 토지거래허가구역 지정", link: "#", source: "국토교통부", label: "국토부" },
-          { title: "금융위원회, 스트레스 DSR 3단계 시행", link: "#", source: "금융위원회", label: "금융위" },
-        ]);
-      })
-      .finally(() => setPolicyLoading(false));
+    // ✅ 정책발표 최신 3개 — Supabase에서 실시간 조회
+    supabase
+      .from("policies")
+      .select("slug, title, tag, created_at")
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then(({ data }) => {
+        if (data) setLatestPolicies(data);
+      });
   }, []);
 
-  // 신고가 롤링 데이터 변환
   const highItems = todayRecords.map((r) => ({
     text: r.name,
     sub: r.price,
     highlight: r.diff,
   }));
 
-  // 뉴스 롤링 데이터 변환
   const newsRollingItems = newsItems.map((n) => ({
     text: n.title,
     sub: n.source || undefined,
     href: n.link !== "#" ? n.link : undefined,
-  }));
-
-  // 정책발표 롤링 데이터 변환
-  const policyRollingItems = policyItems.map((p) => ({
-    text: p.title,
-    sub: p.label,  // "국토부" or "금융위" 뱃지
-    href: p.link !== "#" ? p.link : undefined,
   }));
 
   return (
@@ -130,20 +123,18 @@ export default function Home() {
           </Link>
         </header>
 
-        {/* ② + ③ + ④ 롤링 위젯 3개 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* ② + ③ 롤링 위젯 2개 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
           {/* ② 오늘의 신고가 — 클릭 시 신고가 페이지로 이동 */}
-          <Link href="/new-high" className="block hover:opacity-90 transition">
-            <RollingWidget
-              items={highItems}
-              badge="오늘의 신고가"
-              badgeStyle="bg-amber-400 text-amber-900"
-              containerStyle="bg-amber-50 border border-amber-200 text-amber-900"
-              displayMs={3500}
-              transitionMs={400}
-            />
-          </Link>
+          <RollingWidget
+            items={highItems.map(i => ({ ...i, href: "/new-high" }))}
+            badge="오늘의 신고가"
+            badgeStyle="bg-amber-400 text-amber-900"
+            containerStyle="bg-amber-50 border border-amber-200 text-amber-900"
+            displayMs={3500}
+            transitionMs={400}
+          />
 
           {/* ③ 부동산 뉴스 */}
           {newsLoading ? (
@@ -161,26 +152,6 @@ export default function Home() {
               badgeStyle="bg-emerald-500 text-white"
               containerStyle="bg-emerald-50 border border-emerald-200 text-emerald-900"
               displayMs={4000}
-              transitionMs={400}
-            />
-          )}
-
-          {/* ④ 공식 정책발표 */}
-          {policyLoading ? (
-            <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4"
-              style={{ height: "56px" }}>
-              <span className="text-[10px] font-bold bg-blue-500 text-white px-2 py-1 rounded shrink-0">
-                정책발표
-              </span>
-              <span className="text-sm text-blue-500 animate-pulse">불러오는 중...</span>
-            </div>
-          ) : (
-            <RollingWidget
-              items={policyRollingItems.length > 0 ? policyRollingItems : [{ text: "정책발표를 불러올 수 없습니다." }]}
-              badge="정책발표"
-              badgeStyle="bg-blue-500 text-white"
-              containerStyle="bg-blue-50 border border-blue-200 text-blue-900"
-              displayMs={4500}
               transitionMs={400}
             />
           )}
@@ -227,7 +198,7 @@ export default function Home() {
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100">
               <h2 className="text-sm font-bold text-slate-700">📋 현행 규제 요약</h2>
-              <p className="text-xs text-slate-400 mt-0.5">2025년 기준 · 강남3구·용산구 투기과열지구 유지</p>
+              <p className="text-xs text-slate-400 mt-0.5">2026년 기준 · 서울 전역 투기과열지구</p>
             </div>
             <div className="p-4 space-y-3 overflow-y-auto h-[460px]">
               {regulations.map((reg) => (
@@ -273,6 +244,34 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* ⑦ 정책발표 박스 — Supabase 최신 3개 자동 반영 */}
+        <Link href="/policy" className="block group">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-300 hover:bg-blue-50 transition-all">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-700">📢 최신 정책발표</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">국토부 · 금융위</span>
+              </div>
+              <span className="text-xs text-slate-400 group-hover:text-blue-500 transition">전체보기 →</span>
+            </div>
+            <div className="space-y-2">
+              {latestPolicies.length === 0 ? (
+                <p className="text-xs text-slate-400 py-2">등록된 정책발표가 없습니다.</p>
+              ) : (
+                latestPolicies.map((item) => (
+                  <div key={item.slug} className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">{item.tag}</span>
+                    <span className="text-xs text-slate-400 shrink-0">
+                      {new Date(item.created_at).toLocaleDateString("ko-KR")}
+                    </span>
+                    <span className="text-sm text-slate-700 truncate">{item.title}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </Link>
       </div>
     </div>
   );

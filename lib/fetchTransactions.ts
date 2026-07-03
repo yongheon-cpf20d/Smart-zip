@@ -12,19 +12,19 @@ const API_BASE_URL =
   "http://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev";
 
 export type RawTransaction = {
-  거래금액: string; // "120,000" 형태 (만원 단위, 콤마 포함)
-  건축년도: string;
-  년: string;
-  월: string;
-  일: string;
-  법정동: string;
-  아파트: string; // 단지명
-  전용면적: string;
-  지번: string;
-  지역코드: string;
-  층: string;
-  해제여부?: string; // "O"면 거래 취소
-  거래유형?: string;
+  dealAmount: string;    // "120,000" 형태 (만원 단위, 콤마 포함)
+  buildYear: string;     // 건축년도
+  dealYear: string;      // 계약년
+  dealMonth: string;     // 계약월
+  dealDay: string;       // 계약일
+  umdNm: string;         // 법정동명
+  aptNm: string;         // 단지명
+  excluUseAr: string;    // 전용면적
+  jibun: string;         // 지번
+  sggCd: string;         // 지역코드
+  floor: string;         // 층
+  cdealType?: string;    // 해제여부 ("O"면 취소)
+  dealingGbn?: string;   // 거래유형
 };
 
 export type ParsedTransaction = {
@@ -83,23 +83,23 @@ export async function fetchTransactionsForRegion(
 }
 
 function parseRawTransaction(item: RawTransaction, regionInfo?: RegionCode): ParsedTransaction {
-  const priceWon = Number(String(item.거래금액).replace(/,/g, "").trim()) * 10000; // 만원 -> 원
-  const year = Number(item.년);
-  const month = Number(item.월);
-  const day = Number(item.일);
+  const priceWon = Number(String(item.dealAmount).replace(/,/g, "").trim()) * 10000;
+  const year = Number(item.dealYear);
+  const month = Number(item.dealMonth);
+  const day = Number(item.dealDay);
   const dealDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
   return {
-    regionName: regionInfo?.name ?? item.지역코드,
-    regionCode: item.지역코드,
-    dong: item.법정동?.trim() ?? "",
-    complexName: item.아파트?.trim() ?? "",
-    area: Number(item.전용면적),
-    floor: Number(item.층),
+    regionName: regionInfo?.name ?? item.sggCd,
+    regionCode: item.sggCd,
+    dong: item.umdNm?.trim() ?? "",
+    complexName: item.aptNm?.trim() ?? "",
+    area: Number(item.excluUseAr),
+    floor: Number(item.floor),
     price: priceWon,
     dealDate,
-    buildYear: Number(item.건축년도),
-    isCancelled: item.해제여부 === "O",
+    buildYear: Number(item.buildYear),
+    isCancelled: item.cdealType === "O",
   };
 }
 
