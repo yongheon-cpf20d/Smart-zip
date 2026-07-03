@@ -1,0 +1,8 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 똑집: 부드러우면서도 단단한 집 외곽선 -->
+  <path d="M50 14 L14 44 V86 C14 88.2 15.8 90 18 90 H82 C84.2 90 86 88.2 86 86 V44 Z" fill="#ebfbf5"/>
+  <path d="M50 14 L14 44 V86 C14 88.2 15.8 90 18 90 H82 C84.2 90 86 88.2 86 86 V44 Z" stroke="#10b981" stroke-width="7.5" stroke-linejoin="round" stroke-linecap="round"/>
+  
+  <!-- 똑! 부러지는 확신의 체크 마크 (살짝 위로 시각적 보정 완료) -->
+  <path d="M31 59 L45 73 L69 49" stroke="#10b981" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
