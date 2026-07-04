@@ -6,11 +6,13 @@ import Image from "next/image";
 import { createClient } from "@supabase/supabase-js";
 import {
   Landmark, BarChart3, Home as HomeIcon, Building2, TrendingUp,
-  ShieldCheck, Gift, Calculator, Trophy, ArrowLeftRight, LineChart,
+  ShieldCheck, Gift, Calculator, Trophy, ArrowLeftRight, LineChart, Crown,
   MapPin, FileText, Megaphone, MessageSquare, ThumbsUp, ChevronRight,
 } from "lucide-react";
 import RegulationMap from "../components/RegulationMap";
 import RollingWidget from "../components/RollingWidget";
+import VisitorStats from "../components/VisitorStats";
+import { useVisitorTracking } from "../hooks/useVisitorTracking";
 import { REGULATION_STYLE, groupByType } from "../lib/regulationData";
 
 const supabase = createClient(
@@ -52,6 +54,7 @@ const navItems = [
   { name: "정책 혜택", href: "/benefits", icon: Gift },
   { name: "총비용 계산", href: "/total-cost", icon: Calculator },
   { name: "실거래 신고가", href: "/new-high", icon: Trophy },
+  { name: "대장아파트", href: "/top-apt", icon: Crown },
   { name: "이사 계획", href: "/switch-sim", icon: ArrowLeftRight },
   { name: "자산 시뮬레이션", href: "/asset-sim", icon: LineChart },
 ];
@@ -70,6 +73,7 @@ type LatestPolicy = {
 };
 
 export default function Home() {
+  useVisitorTracking("/");
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
   const [latestPolicies, setLatestPolicies] = useState<LatestPolicy[]>([]);
@@ -114,8 +118,8 @@ export default function Home() {
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
       <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
 
-        {/* ① 로고 */}
-        <header>
+        {/* ① 로고 + 방문자 통계 */}
+        <header className="flex items-center justify-between flex-wrap gap-2">
           <Link href="/" className="inline-flex items-center gap-0.5 link-press">
             <Image
               src="/logo.svg"
@@ -134,6 +138,7 @@ export default function Home() {
               똑집
             </span>
           </Link>
+          <VisitorStats />
         </header>
 
         {/* ② + ③ 롤링 위젯 2개 */}
@@ -170,8 +175,40 @@ export default function Home() {
           )}
         </div>
 
+        {/* ③.5 정책발표 박스 — Supabase 최신 3개 자동 반영 */}
+        <Link href="/policy" className="block group">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-emerald-300 hover:bg-emerald-50/40 transition-all hover-lift nav-link">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Megaphone size={15} strokeWidth={1.75} className="text-amber-400" />
+                <span className="text-sm font-bold text-slate-700">최신 정책 발표</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-600">국토부 · 금융위</span>
+              </div>
+              <span className="flex items-center gap-0.5 text-xs text-slate-400 group-hover:text-emerald-600 transition">
+                전체 보기
+                <ChevronRight size={13} strokeWidth={1.75} />
+              </span>
+            </div>
+            <div className="space-y-2">
+              {latestPolicies.length === 0 ? (
+                <p className="text-xs text-slate-400 py-2">등록된 정책 발표가 없습니다.</p>
+              ) : (
+                latestPolicies.map((item) => (
+                  <div key={item.slug} className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">{item.tag}</span>
+                    <span className="text-xs text-slate-400 shrink-0">
+                      {new Date(item.display_date).toLocaleDateString("ko-KR")}
+                    </span>
+                    <span className="text-sm text-slate-700 truncate">{item.title}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </Link>
+
         {/* ④ 네비게이션 버튼 */}
-        <nav className="grid grid-cols-4 md:grid-cols-11 gap-2">
+        <nav className="grid grid-cols-4 md:grid-cols-6 gap-2">
           {navItems.map((m) => {
             const Icon = m.icon;
             return (
@@ -209,10 +246,13 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
           {/* ⑤ 규제 지도 */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-4 py-3.5 border-b border-slate-100 flex items-center gap-2">
               <MapPin size={15} strokeWidth={1.75} className="text-rose-400" />
-              <h2 className="text-sm font-bold text-slate-700">규제지역 현황 지도</h2>
+              <div>
+                <h2 className="text-sm font-bold text-slate-700">규제지역 현황 지도</h2>
+                <p className="text-[11px] text-slate-400 mt-0.5">전국 시도 · 클릭하여 시군구 확대</p>
+              </div>
             </div>
             <div className="h-[460px]">
               <RegulationMap />
@@ -220,7 +260,7 @@ export default function Home() {
           </div>
 
           {/* ⑥ 규제 요약 */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
             <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
               <FileText size={15} strokeWidth={1.75} className="text-orange-400" />
               <div>
@@ -263,38 +303,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {/* ⑦ 정책발표 박스 — Supabase 최신 3개 자동 반영 */}
-        <Link href="/policy" className="block group">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-emerald-300 hover:bg-emerald-50/40 transition-all hover-lift nav-link">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Megaphone size={15} strokeWidth={1.75} className="text-amber-400" />
-                <span className="text-sm font-bold text-slate-700">최신 정책 발표</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-600">국토부 · 금융위</span>
-              </div>
-              <span className="flex items-center gap-0.5 text-xs text-slate-400 group-hover:text-emerald-600 transition">
-                전체 보기
-                <ChevronRight size={13} strokeWidth={1.75} />
-              </span>
-            </div>
-            <div className="space-y-2">
-              {latestPolicies.length === 0 ? (
-                <p className="text-xs text-slate-400 py-2">등록된 정책 발표가 없습니다.</p>
-              ) : (
-                latestPolicies.map((item) => (
-                  <div key={item.slug} className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">{item.tag}</span>
-                    <span className="text-xs text-slate-400 shrink-0">
-                      {new Date(item.display_date).toLocaleDateString("ko-KR")}
-                    </span>
-                    <span className="text-sm text-slate-700 truncate">{item.title}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </Link>
       </div>
     </div>
   );

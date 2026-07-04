@@ -68,20 +68,61 @@ const CHILDBIRTH_REDUCTION_CAP = 5_000_000;
 
 // ── 농어촌특별세: 농어촌특별세법 제5조 ──────────────────────────
 // 85㎡ 이하 국민주택규모: 비과세 (농어촌특별세법 제4조제11호)
-// 85㎡ 초과: 취득세 과세표준 × 0.2%
-// 과세표준: 매매=실거래가, 증여=시가인정액, 상속=공시가격 (유저가 입력한 값 그대로 사용)
-// ※ 감면 전 취득세의 과세표준(=입력가액)을 기준으로 함
-function calcRuralTax(price: number, standardRate: number, areaSqm: number): number {
+// 85㎡ 초과 시 세율은 "취득세율에 비례"가 아니라 "구간별 고정값":
+//   - 일반세율(1~3%) 적용: 0.2% 고정
+//   - 다주택 중과 8% 적용: 0.6% 고정
+//   - 다주택 중과 12% 적용: 1.0% 고정
+//   - 증여·상속·원시취득: 0.2% 고정
+// 출처: 「주택과 세금」(일간NTN), 주택플러스 웹진 2021.8 Vol.13
+function calcRuralTax(
+  price: number,
+  areaSqm: number,
+  appliedRate: number,
+  isMultiHouseApplied: boolean
+): number {
   const isRuralTaxable = areaSqm === 0 || areaSqm > 85;
-  return isRuralTaxable ? price * standardRate * 0.1 : 0;
+  if (!isRuralTaxable) return 0;
+
+  if (isMultiHouseApplied) {
+    // 다주택/법인 중과: 8%→0.6%, 12%→1.0%
+    if (appliedRate >= 0.12) return price * 0.01;
+    if (appliedRate >= 0.08) return price * 0.006;
+  }
+  // 일반세율(1~3%), 증여(3.5%), 상속(2.8%) 등은 모두 0.2% 고정
+  return price * 0.002;
 }
 
 // ── 지방교육세: 지방세법 제151조제1항제1호 ──────────────────────
-// 주택 유상취득: 취득세액 × 50% × 20% = 취득세액 × 10%
-// 감면이 있는 경우: 감면 후 취득세액 × 10% (감면분도 함께 경감됨)
-// ※ 출처: 지방세법 제151조제1항제1호 다목1) — 감면율 적용 후 남은 금액
-function calcEduTax(acquisitionTaxAfterReduction: number): number {
-  return acquisitionTaxAfterReduction * 0.1;
+// 두 갈래 공식이 있음:
+//  (A) 주택 유상취득(매매, 제11조제1항제8호): 세율×50%×20% = 세율×10%
+//      다주택 중과(8%,12%)는 표준세율 4% 기준으로 0.4% 고정
+//  (B) 그 외 취득(증여·상속 등, 제1호~7호): (세율-2%)×20%
+//      → 증여(3.5%): (3.5%-2%)×20%=0.3% / 상속(2.8%): (2.8%-2%)×20%=0.16%
+// 감면 시 감면비율만큼 함께 차감
+// 출처: 지방세법 제151조, 부동산위키 「지방교육세」
+function calcEduTax(
+  price: number,
+  appliedRate: number,
+  dealType: DealType,
+  isMultiHouseApplied: boolean,
+  reductionAmount: number
+): number {
+  let baseEduRate: number;
+
+  if (dealType === "purchase") {
+    baseEduRate = isMultiHouseApplied ? 0.004 : appliedRate * 0.1;
+  } else {
+    // 증여, 상속: (세율 - 2%) × 20%
+    baseEduRate = Math.max(appliedRate - 0.02, 0) * 0.2;
+  }
+
+  const eduTaxBefore = price * baseEduRate;
+
+  // 취득세 감면 시 지방교육세도 동일 비율로 차감
+  const acqTaxBefore = price * appliedRate;
+  const reductionRatio = acqTaxBefore > 0 ? reductionAmount / acqTaxBefore : 0;
+
+  return eduTaxBefore * (1 - reductionRatio);
 }
 
 // ── 거래유형별 입력 가액 레이블 ──────────────────────────────
@@ -211,11 +252,11 @@ export default function TaxAcqPage() {
 
     const acquisitionTax = acquisitionTaxBeforeReduction - reductionAmount;
 
-    // ── 농어촌특별세: 감면 전 표준세율 기준 ──────────────────
-    const ruralTax = calcRuralTax(price, standardRate, areaNum);
+    // ── 농어촌특별세: 일반 0.2% / 8%중과 0.6% / 12%중과 1.0% 고정 ──
+    const ruralTax = calcRuralTax(price, areaNum, appliedRate, isMultiHouseApplied);
 
-    // ── 지방교육세: 감면 후 취득세 × 10% ──────────────────
-    const eduTax = calcEduTax(acquisitionTax);
+    // ── 지방교육세: 거래유형별 공식 반영(매매 vs 증여·상속) ──
+    const eduTax = calcEduTax(price, appliedRate, dealType, isMultiHouseApplied, reductionAmount);
 
     const total = acquisitionTax + ruralTax + eduTax;
     const effectiveRate = price > 0 ? total / price : 0;
@@ -278,9 +319,16 @@ export default function TaxAcqPage() {
           </div>
 
           {dealType === "gift" && (
-            <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              증여는 취득세 3.5% 고정세율이 적용됩니다. 증여세는 별도입니다.
-            </p>
+            <div className="space-y-1.5">
+              <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                증여는 취득세 3.5% 고정세율이 적용됩니다. 증여세는 별도입니다.
+              </p>
+              <p className="text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                ※ 조정대상지역 내 공시가격 3억원 이상 주택을 다주택자로부터 증여받는 경우
+                취득세율이 12%로 중과될 수 있습니다(수증자의 주택수 무관). 본 계산기는 이 경우를
+                반영하지 않으므로, 해당 시 세무사 상담을 권장합니다.
+              </p>
+            </div>
           )}
           {dealType === "inherit" && (
             <p className="text-[11px] text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">

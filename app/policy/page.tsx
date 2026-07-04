@@ -11,7 +11,7 @@ export const metadata = {
   title: "정책발표 | 똑집 DDokzip",
 };
 
-export const revalidate = 1800; // 30분 캐싱
+export const revalidate = 60; // 1분마다 갱신 — 관리자가 글 올리면 빠르게 반영
 
 type Policy = {
   id: number;

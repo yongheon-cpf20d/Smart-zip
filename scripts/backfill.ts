@@ -19,7 +19,7 @@ import {
 
 // ⚠️ 공공데이터포털 활용신청 단계(보통 1,000회/일)에 맞춰 보수적으로 설정.
 // 승인 후 트래픽 한도가 더 높다면 이 값을 늘려도 됨.
-const DAILY_CALL_LIMIT = 900;
+const DAILY_CALL_LIMIT = 4500;
 
 // API 서버 부담을 줄이기 위한 호출 간 딜레이(ms)
 const CALL_DELAY_MS = 200;

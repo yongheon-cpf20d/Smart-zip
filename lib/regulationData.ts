@@ -62,11 +62,10 @@ export const REGULATION_STYLE: Record<RegulationType, {
     textColor: "#4c1d95",
     dotColor: "#7c3aed",
     rules: [
-      "매매 계약 체결 전 관할 지자체장 사전 허가 필수",
-      "매수 후 최소 2년 실거주 의무 (신규 갭투자 절대 불가)",
-      "기존 세입자 거주 주택 매수 시 실거주 한시 유예 (무주택자 한정)",
-      "무허가 및 부정 허가 시 2년 이하 징역 또는 30% 이하 벌금",
-      "실거주 의무 위반 시 매년 취득가액 최대 10% 이행강제금 부과",
+      "실거주 목적 외 주택 취득 원칙적 금지",
+      "구청장 허가 없이 매매·증여·임대차 계약 불가",
+      "허가 없이 계약 시 계약 무효 및 형사처벌",
+      "투기과열지구·조정대상지역 규제 중복 적용",
     ],
   },
 };
@@ -103,59 +102,17 @@ export const REGULATION_AREAS: RegulationArea[] = [
   { name: "강북구", sido: "서울", type: "투기과열지구" },
   { name: "도봉구", sido: "서울", type: "투기과열지구" },
 
-  // 서울 (조정대상지역)
-  { name: "강남구", sido: "서울", type: "조정대상지역" },
-  { name: "서초구", sido: "서울", type: "조정대상지역" },
-  { name: "송파구", sido: "서울", type: "조정대상지역" },
-  { name: "용산구", sido: "서울", type: "조정대상지역" },
-  { name: "성동구", sido: "서울", type: "조정대상지역" },
-  { name: "마포구", sido: "서울", type: "조정대상지역" },
-  { name: "강동구", sido: "서울", type: "조정대상지역" },
-  { name: "영등포구", sido: "서울", type: "조정대상지역" },
-  { name: "양천구", sido: "서울", type: "조정대상지역" },
-  { name: "동작구", sido: "서울", type: "조정대상지역" },
-  { name: "광진구", sido: "서울", type: "조정대상지역" },
-  { name: "중구", sido: "서울", type: "조정대상지역" },
-  { name: "종로구", sido: "서울", type: "조정대상지역" },
-  { name: "서대문구", sido: "서울", type: "조정대상지역" },
-  { name: "강서구", sido: "서울", type: "조정대상지역" },
-  { name: "노원구", sido: "서울", type: "조정대상지역" },
-  { name: "성북구", sido: "서울", type: "조정대상지역" },
-  { name: "구로구", sido: "서울", type: "조정대상지역" },
-  { name: "동대문구", sido: "서울", type: "조정대상지역" },
-  { name: "관악구", sido: "서울", type: "조정대상지역" },
-  { name: "은평구", sido: "서울", type: "조정대상지역" },
-  { name: "중랑구", sido: "서울", type: "조정대상지역" },
-  { name: "금천구", sido: "서울", type: "조정대상지역" },
-  { name: "강북구", sido: "서울", type: "조정대상지역" },
-  { name: "도봉구", sido: "서울", type: "조정대상지역" },
-
   // 서울 토지거래허가구역
   { name: "강남구", sido: "서울", type: "토지거래허가구역" },
   { name: "서초구", sido: "서울", type: "토지거래허가구역" },
   { name: "송파구", sido: "서울", type: "토지거래허가구역" },
   { name: "용산구", sido: "서울", type: "토지거래허가구역" },
   { name: "성동구", sido: "서울", type: "토지거래허가구역" },
-  { name: "마포구", sido: "서울", type: "토지거래허가구역" },
-  { name: "강동구", sido: "서울", type: "토지거래허가구역" },
+  { name: "광진구", sido: "서울", type: "토지거래허가구역" },
   { name: "영등포구", sido: "서울", type: "토지거래허가구역" },
   { name: "양천구", sido: "서울", type: "토지거래허가구역" },
-  { name: "동작구", sido: "서울", type: "토지거래허가구역" },
-  { name: "광진구", sido: "서울", type: "토지거래허가구역" },
-  { name: "중구", sido: "서울", type: "토지거래허가구역" },
-  { name: "종로구", sido: "서울", type: "토지거래허가구역" },
-  { name: "서대문구", sido: "서울", type: "토지거래허가구역" },
-  { name: "강서구", sido: "서울", type: "토지거래허가구역" },
-  { name: "노원구", sido: "서울", type: "토지거래허가구역" },
-  { name: "성북구", sido: "서울", type: "토지거래허가구역" },
-  { name: "구로구", sido: "서울", type: "토지거래허가구역" },
-  { name: "동대문구", sido: "서울", type: "토지거래허가구역" },
-  { name: "관악구", sido: "서울", type: "토지거래허가구역" },
-  { name: "은평구", sido: "서울", type: "토지거래허가구역" },
-  { name: "중랑구", sido: "서울", type: "토지거래허가구역" },
-  { name: "금천구", sido: "서울", type: "토지거래허가구역" },
-  { name: "강북구", sido: "서울", type: "토지거래허가구역" },
-  { name: "도봉구", sido: "서울", type: "토지거래허가구역" },
+  { name: "강동구", sido: "서울", type: "토지거래허가구역" },
+  { name: "마포구", sido: "서울", type: "토지거래허가구역" },
 
   // 경기 투기과열지구
   { name: "수원시 장안구", sido: "경기", type: "투기과열지구" },
@@ -174,38 +131,9 @@ export const REGULATION_AREAS: RegulationArea[] = [
   { name: "의왕시", sido: "경기", type: "투기과열지구" },
   { name: "화성시", sido: "경기", type: "투기과열지구" },
 
-  // 경기 조정대상지역
-  { name: "수원시 장안구", sido: "경기", type: "조정대상지역" },
-  { name: "수원시 팔달구", sido: "경기", type: "조정대상지역" },
-  { name: "수원시 영통구", sido: "경기", type: "조정대상지역" },
-  { name: "성남시 수정구", sido: "경기", type: "조정대상지역" },
-  { name: "성남시 중원구", sido: "경기", type: "조정대상지역" },
-  { name: "성남시 분당구", sido: "경기", type: "조정대상지역" },
-  { name: "안양시 동안구", sido: "경기", type: "조정대상지역" },
-  { name: "용인시 수지구", sido: "경기", type: "조정대상지역" },
-  { name: "용인시 기흥구", sido: "경기", type: "조정대상지역" },
-  { name: "구리시", sido: "경기", type: "조정대상지역" },
-  { name: "하남시", sido: "경기", type: "조정대상지역" },
-  { name: "광명시", sido: "경기", type: "조정대상지역" },
-  { name: "과천시", sido: "경기", type: "조정대상지역" },
-  { name: "의왕시", sido: "경기", type: "조정대상지역" },
-  { name: "화성시", sido: "경기", type: "조정대상지역" },
-
   // 경기 토지거래허가구역
-  { name: "수원시 장안구", sido: "경기", type: "토지거래허가구역" },
-  { name: "수원시 팔달구", sido: "경기", type: "토지거래허가구역" },
-  { name: "수원시 영통구", sido: "경기", type: "토지거래허가구역" },
-  { name: "성남시 수정구", sido: "경기", type: "토지거래허가구역" },
-  { name: "성남시 중원구", sido: "경기", type: "토지거래허가구역" },
-  { name: "성남시 분당구", sido: "경기", type: "토지거래허가구역" },
-  { name: "안양시 동안구", sido: "경기", type: "토지거래허가구역" },
-  { name: "용인시 수지구", sido: "경기", type: "토지거래허가구역" },
-  { name: "용인시 기흥구", sido: "경기", type: "토지거래허가구역" },
   { name: "구리시", sido: "경기", type: "토지거래허가구역" },
   { name: "하남시", sido: "경기", type: "토지거래허가구역" },
-  { name: "광명시", sido: "경기", type: "토지거래허가구역" },
-  { name: "과천시", sido: "경기", type: "토지거래허가구역" },
-  { name: "의왕시", sido: "경기", type: "토지거래허가구역" },
   { name: "화성시", sido: "경기", type: "토지거래허가구역" },
 ];
 
@@ -231,7 +159,7 @@ export function getRegulationByName(name: string): {
     areas.find((a) => a.type === "투기과열지구") ??
     areas.find((a) => a.type === "조정대상지역");
 
-  if (!fill) return { type: "규제없음", color: "#cbd5e1", hasToheo };
+  if (!fill) return { type: "규제없음", color: "#e8ecf1", hasToheo };
   return { type: fill.type, color: REGULATION_STYLE[fill.type].color, hasToheo };
 }
 
