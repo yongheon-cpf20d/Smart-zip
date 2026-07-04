@@ -35,8 +35,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // ✅ 디버깅: 환경변수 존재 여부 우선 확인
+  const envCheck = {
+    hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    hasRtmsKey: !!process.env.RTMS_API_KEY,
+  };
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+  if (!supabaseUrl || !supabaseServiceKey || !process.env.RTMS_API_KEY) {
+    return NextResponse.json({ error: "환경변수 누락", envCheck }, { status: 500 });
+  }
+
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   const months = getRecentTwoMonths();
@@ -44,6 +56,18 @@ export async function GET(request: NextRequest) {
   let totalChecked = 0;
   let errors = 0;
   const log: string[] = [];
+  const errorDetails: string[] = [];
+
+  console.log(`[cron] 시작 — 대상 지역 ${ALL_REGIONS.length}개, 대상 월 ${months.join(",")}`);
+
+  // ✅ 디버깅: ALL_REGIONS가 비어있으면 즉시 원인 알 수 있게 반환
+  if (!ALL_REGIONS || ALL_REGIONS.length === 0) {
+    return NextResponse.json({
+      error: "ALL_REGIONS 로드 실패 — 배열이 비어있음",
+      regionsLength: ALL_REGIONS?.length ?? "undefined",
+      envCheck,
+    }, { status: 500 });
+  }
 
   for (const yearMonth of months) {
     const year = yearMonth.slice(0, 4);
@@ -63,6 +87,7 @@ export async function GET(request: NextRequest) {
 
         if (fetchErr) {
           errors++;
+          errorDetails.push(`[기존조회실패] ${region.name} ${yearMonth}: ${fetchErr.message}`);
           continue;
         }
 
@@ -101,33 +126,44 @@ export async function GET(request: NextRequest) {
           const { error: insertErr } = await supabase.from("apt_transactions").insert(newRows);
           if (insertErr) {
             errors++;
+            errorDetails.push(`[저장실패] ${region.name} ${yearMonth}: ${insertErr.message}`);
           } else {
             totalNew += newRows.length;
             log.push(`${region.name} ${yearMonth}: 신규 ${newRows.length}건`);
           }
         }
 
-        // Vercel 함수 5분 제한 안에 끝내기 위해 딜레이 최소화
         await new Promise((resolve) => setTimeout(resolve, 100));
-      } catch (err) {
+      } catch (err: any) {
         errors++;
+        errorDetails.push(`[예외] ${region.name} ${yearMonth}: ${err?.message ?? String(err)}`);
       }
     }
   }
 
+  console.log(`[cron] 종료 — 확인 ${totalChecked}건, 신규 ${totalNew}건, 에러 ${errors}건`);
+  if (errorDetails.length > 0) {
+    console.error(`[cron] 에러 상세:`, errorDetails.slice(0, 5));
+  }
+
   // ✅ 뷰 갱신
   let refreshOk = true;
+  let refreshErrorMsg = "";
   const { error: refreshError } = await supabase.rpc("refresh_all_views");
   if (refreshError) {
     refreshOk = false;
+    refreshErrorMsg = refreshError.message;
   }
 
   return NextResponse.json({
     success: true,
+    envCheck,
     totalChecked,
     totalNew,
     errors,
+    errorDetails: errorDetails.slice(0, 10), // 상위 10개만
     refreshOk,
+    refreshErrorMsg,
     details: log,
     timestamp: new Date().toISOString(),
   });
