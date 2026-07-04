@@ -144,6 +144,15 @@ async function main() {
   } else {
     console.log(`\n🎉 백필이 모두 완료되었습니다!`);
   }
+
+  // ✅ 백필 완료 후 신고가 Materialized View 자동 갱신
+  console.log("\n[백필] 신고가 뷰(new_high_view) 갱신 중...");
+  const { error: refreshError } = await supabase.rpc("refresh_all_views");
+  if (refreshError) {
+    console.error("[백필] 뷰 갱신 실패:", refreshError.message);
+  } else {
+    console.log("[백필] 신고가 뷰 갱신 완료!");
+  }
 }
 
 main().catch((err) => {

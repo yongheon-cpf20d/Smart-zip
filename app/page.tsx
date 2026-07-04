@@ -20,12 +20,14 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// 하드코딩 신고가 (나중에 Supabase 연동으로 교체 예정)
-const todayRecords = [
-  { name: "반포자이 84㎡", price: "39.5억", diff: "▲ 1.2억" },
-  { name: "잠실 엘스 59㎡", price: "21.0억", diff: "▲ 5천만" },
-  { name: "마포 래미안 푸르지오 84㎡", price: "18.5억", diff: "▲ 3천만" },
-];
+// ✅ new_high_view에서 실시간 조회 (하드코딩 제거)
+// "오늘"은 국토부 API 마지막 실제 수집일 기준 — 주말/공휴일에도 최근 데이터 유지
+type HighRecord = {
+  complex_name: string;
+  area: number;
+  price: number;
+  price_diff: number | null;
+};
 
 // ✅ lib/regulationData.ts 에서 자동 생성 — 그 파일만 수정하면 여기 자동 반영
 const groupedByType = groupByType();
@@ -77,6 +79,8 @@ export default function Home() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
   const [latestPolicies, setLatestPolicies] = useState<LatestPolicy[]>([]);
+  const [highRecords, setHighRecords] = useState<HighRecord[]>([]);
+  const [highLoading, setHighLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/news")
@@ -100,12 +104,32 @@ export default function Home() {
       .then(({ data }) => {
         if (data) setLatestPolicies(data);
       });
+
+    // ✅ 신고가 최신 3개 — new_high_view는 "국토부 API 마지막 수집일" 기준으로 항상 최신 유지
+    supabase
+      .from("new_high_view")
+      .select("complex_name, area, price, price_diff")
+      .order("price_diff", { ascending: false })
+      .limit(3)
+      .then(({ data }) => {
+        if (data) setHighRecords(data as HighRecord[]);
+        setHighLoading(false);
+      });
   }, []);
 
-  const highItems = todayRecords.map((r) => ({
-    text: r.name,
-    sub: r.price,
-    highlight: r.diff,
+  const fmtEok = (won: number): string => {
+    const eok = won / 100_000_000;
+    return eok >= 1 ? `${eok.toFixed(1)}억` : `${Math.round(won / 10_000).toLocaleString()}만`;
+  };
+  const fmtDiff = (won: number): string => {
+    if (won >= 100_000_000) return `▲ ${(won / 100_000_000).toFixed(1)}억`;
+    return `▲ ${Math.round(won / 10_000).toLocaleString()}만`;
+  };
+
+  const highItems = highRecords.map((r) => ({
+    text: `${r.complex_name} ${r.area}㎡`,
+    sub: fmtEok(r.price),
+    highlight: r.price_diff ? fmtDiff(r.price_diff) : undefined,
   }));
 
   const newsRollingItems = newsItems.map((n) => ({
@@ -145,14 +169,28 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
           {/* ② 오늘의 신고가 — 클릭 시 신고가 페이지로 이동 */}
-          <RollingWidget
-            items={highItems.map(i => ({ ...i, href: "/new-high" }))}
-            badge="실거래 신고가"
-            badgeStyle="bg-rose-500 text-white"
-            containerStyle="bg-rose-50 border border-rose-200 text-rose-900"
-            displayMs={3500}
-            transitionMs={400}
-          />
+          {highLoading ? (
+            <div className="flex items-center gap-3 bg-slate-100 border border-slate-200 rounded-xl px-4"
+              style={{ height: "56px" }}>
+              <span className="text-[10px] font-bold bg-slate-500 text-white px-2 py-1 rounded shrink-0">
+                실거래 신고가
+              </span>
+              <span className="text-sm text-slate-400 animate-pulse">불러오는 중</span>
+            </div>
+          ) : (
+            <RollingWidget
+              items={
+                highItems.length > 0
+                  ? highItems.map(i => ({ ...i, href: "/new-high" }))
+                  : [{ text: "최근 신고가 데이터를 준비 중입니다.", href: "/new-high" }]
+              }
+              badge="실거래 신고가"
+              badgeStyle="bg-rose-500 text-white"
+              containerStyle="bg-rose-50 border border-rose-200 text-rose-900"
+              displayMs={3500}
+              transitionMs={400}
+            />
+          )}
 
           {/* ③ 부동산 뉴스 */}
           {newsLoading ? (
