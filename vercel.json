@@ -1,8 +1,12 @@
 {
   "crons": [
     {
-      "path": "/api/cron/daily-update",
+      "path": "/api/cron/daily-update?which=current",
       "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/daily-update?which=prev",
+      "schedule": "30 21 * * *"
     }
   ]
 }
