@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import { Trophy, ArrowUpRight } from "lucide-react";
+import { Trophy, ArrowUpRight, MapPin } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,16 +29,16 @@ type NewHighRecord = {
 // SAMPLE_DATA 제거 — 이제 Supabase new_high_view에서 실시간 조회
 
 const SEOUL_DISTRICTS = [
-  "종로구","중구","용산구","성동구","광진구","동대문구","중랑구","성북구",
-  "강북구","도봉구","노원구","은평구","서대문구","마포구","양천구","강서구",
-  "구로구","금천구","영등포구","동작구","관악구","서초구","강남구","송파구","강동구"
+  "종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구",
+  "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구",
+  "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"
 ];
 
 const GYEONGGI_CITIES = [
-  "수원시","성남시","의정부시","안양시","부천시","광명시","평택시","동두천시",
-  "안산시","고양시","과천시","구리시","남양주시","오산시","시흥시","군포시",
-  "의왕시","하남시","용인시","파주시","이천시","안성시","김포시","화성시",
-  "광주시","양주시","포천시","여주시","연천군","가평군","양평군"
+  "수원시", "성남시", "의정부시", "안양시", "부천시", "광명시", "평택시", "동두천시",
+  "안산시", "고양시", "과천시", "구리시", "남양주시", "오산시", "시흥시", "군포시",
+  "의왕시", "하남시", "용인시", "파주시", "이천시", "안성시", "김포시", "화성시",
+  "광주시", "양주시", "포천시", "여주시", "연천군", "가평군", "양평군"
 ];
 
 const fmtPriceFull = (n: number): string => {
@@ -76,6 +76,7 @@ function PosterCard({ record }: { record: NewHighRecord }) {
   const download = useCallback(async () => {
     if (!cardRef.current || downloading) return;
     setDownloading(true);
+
     try {
       const html2canvas = (await import("html2canvas-pro")).default;
       const canvas = await html2canvas(cardRef.current, {
@@ -84,6 +85,10 @@ function PosterCard({ record }: { record: NewHighRecord }) {
         useCORS: true,
         logging: false,
         allowTaint: true,
+        onclone: (clonedDoc, clonedElement) => {
+          const badgeText = clonedElement.querySelector(".badge-text") as HTMLElement | null;
+          if (badgeText) badgeText.style.top = "3px";
+        },
       });
       const link = document.createElement("a");
       link.download = `똑집_신고가_${record.complexName}_${record.dealDate}.png`;
@@ -117,18 +122,23 @@ function PosterCard({ record }: { record: NewHighRecord }) {
       >
         {/* 배경 장식 (은은하게) */}
         <div style={{ position: "absolute", top: -50, right: -50, width: 160, height: 160, borderRadius: "50%", background: "rgba(16,185,129,0.05)", pointerEvents: "none" }} />
-
         {/* 헤더: 뱃지 + 날짜 */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 5,
-            background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
-            borderRadius: 999, padding: "3px 10px",
+            /* ✅ 투명도 없는 완전 불투명한 6자리 헥스코드 적용 */
+            background: "#ffffff", // 연한 핑크색 등 원하는 색
+            border: "1px solid #000000", // 테두리 색
+            borderRadius: 999, padding: "0 10px",
+            height: 20,
           }}>
-            <Trophy size={12} strokeWidth={2} color="#dc2626" />
-            <span style={{ color: "#dc2626", fontWeight: 800, fontSize: 10, letterSpacing: "0.05em" }}>신고가</span>
+            <span className="badge-text" style={{
+              color: "#000000", fontWeight: 800, fontSize: 10, letterSpacing: "0.05em",
+              position: "relative",
+              top: 0,
+            }}>신고가</span>
           </div>
-          <span style={{ color: "#94a3b8", fontSize: 9 }}>{record.dealDate}</span>
+          <span style={{ color: "#000000", fontSize: 10 }}>{record.dealDate}</span>
         </div>
 
         {/* 지역 */}
@@ -152,7 +162,7 @@ function PosterCard({ record }: { record: NewHighRecord }) {
 
         {/* 신고가 (빨간색) */}
         <div style={{ marginBottom: 12 }}>
-          <p style={{ color: "#94a3b8", fontSize: 9, marginBottom: 3, letterSpacing: "0.1em" }}>신 고 가</p>
+          <p style={{ color: "#000000", fontSize: 10, marginBottom: 3, letterSpacing: "0.1em" }}>실거래가</p>
           <p style={{ color: "#ef4444", fontWeight: 900, fontSize: 26, lineHeight: 1 }}>
             {fmtPriceFull(record.price)}
           </p>
@@ -241,6 +251,17 @@ export default function NewHighPage() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [records, setRecords] = useState<NewHighRecord[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // ✅ "수도권 외 지역 구현중" 안내 토스트 — 페이지 진입 후 잠깐 나타났다가 자동으로 사라짐
+  const [showRegionToast, setShowRegionToast] = useState(false);
+  useEffect(() => {
+    const showTimer = setTimeout(() => setShowRegionToast(true), 600); // 0.6초 후 등장
+    const hideTimer = setTimeout(() => setShowRegionToast(false), 4000); // 4초간 노출 후 사라짐
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
 
   // ✅ Supabase new_high_view에서 조회 — 백필 진행 중에도 현재까지 쌓인 데이터로 작동
   useEffect(() => {
@@ -424,6 +445,33 @@ export default function NewHighPage() {
           실제 거래일과 공개일 사이에 차이가 있을 수 있습니다.
         </p>
 
+      </div>
+
+      {/* ✅ 수도권 외 지역 구현중 안내 토스트 — 잠깐 나타났다가 자동으로 사라짐 */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: showRegionToast ? 24 : -80,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 50,
+          background: "#1e293b",
+          color: "#f1f5f9",
+          padding: "10px 18px",
+          borderRadius: 999,
+          fontSize: 12,
+          fontWeight: 500,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+          opacity: showRegionToast ? 1 : 0,
+          transition: "bottom 0.4s ease, opacity 0.4s ease",
+          whiteSpace: "nowrap",
+          pointerEvents: "none",
+        }}
+      >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <MapPin size={13} strokeWidth={2} />
+          전 지역 서비스를 빠른 시간 내에 제공할 예정입니다.
+        </span>
       </div>
     </div>
   );
