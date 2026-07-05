@@ -62,12 +62,15 @@ function PosterCard({ record }: { record: NewHighRecord }) {
     ? ((record.priceDiff / record.previousHighPrice) * 100).toFixed(1)
     : null;
 
-  const naverLandUrl = `https://land.naver.com/search/result/${encodeURIComponent(record.complexName)}`;
+  // ✅ 네이버부동산은 단지별 고유ID가 있어야 정확한 페이지 진입 가능해서
+  //    단지명만으로 직접 URL 조합이 불안정함. 대신 네이버 통합검색으로 연결하면
+  //    네이버가 자동으로 해당 단지의 부동산 정보를 보여줌 (훨씬 안정적)
+  const naverSearchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(record.complexName + " 아파트")}`;
 
   const handleCardClick = (e: React.MouseEvent) => {
     // 다운로드 버튼 클릭 시에는 카드 이동 막기
     if ((e.target as HTMLElement).closest("button")) return;
-    window.open(naverLandUrl, "_blank", "noopener,noreferrer");
+    window.open(naverSearchUrl, "_blank", "noopener,noreferrer");
   };
 
   const download = useCallback(async () => {
@@ -279,6 +282,10 @@ export default function NewHighPage() {
     }, 300);
   };
 
+  // ✅ "성남시"(버튼 목록) vs "성남 분당구"(실제 DB) 처럼 "시/군" 접미사 유무가 달라도
+  //    매칭되도록, 비교 전에 접미사를 제거해서 핵심 지역명만 비교
+  const normalizeCity = (s: string) => s.replace(/(시|군|구)$/, "");
+
   const filteredData = records.filter(d => {
     if (regionView === "top") return true;
     // ✅ 실제 DB region_name 형식이 지역마다 다를 수 있어(예: "가평군" vs "서울 강남구"),
@@ -291,7 +298,11 @@ export default function NewHighPage() {
     }
     if (regionView === "gyeonggi") {
       if (isSeoulRegion) return false;
-      if (selectedDistrict) return d.regionName.includes(selectedDistrict);
+      if (selectedDistrict) {
+        // "성남시" 선택 시 실제 DB의 "성남 분당구", "성남 수정구" 등도 모두 매칭되도록
+        // 접미사를 뗀 핵심 지역명("성남")이 포함되는지로 비교
+        return d.regionName.includes(normalizeCity(selectedDistrict));
+      }
       return true;
     }
     return true;

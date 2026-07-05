@@ -163,25 +163,43 @@ export default function TaxSellPage() {
     const gainAfterLTCG = gainBeforeLTCG - ltcgAmount;
     const taxableGain = Math.max(gainAfterLTCG - BASIC_DEDUCTION, 0);
 
-    // 세율 결정
+    // ── 세율 결정 및 비교과세 적용 ──────────────────────────────
+    // ✅ 소득세법 제104조제1항: "하나의 자산이 둘 이상의 세율에 해당할 때는
+    //    각각 계산한 산출세액 중 큰 것을 그 세액으로 한다" (비교과세)
+    //    → 단기보유(2년 미만) + 다주택 중과가 동시에 해당하면
+    //      [단기세율 세액] vs [기본세율+중과 세액] 중 큰 금액을 적용해야 함
+    //    출처: 국가법령정보센터 소득세법 제104조제1항, 국세청 「양도소득세 세율」 안내
     const shortTermRate = getShortTermRate(years);
-    const isShortTerm = shortTermRate !== null;
-
+    const isShortTermHolding = shortTermRate !== null;
     let appliedRate = 0;
-    let tax = 0;
     let surchargeRate = 0;
 
-    if (isShortTerm) {
-      appliedRate = shortTermRate!;
-      tax = taxableGain * appliedRate;
-    } else {
-      // 2년 이상 보유 → 기본세율 + 다주택 중과(있는 경우)
-      tax = getBasicTaxRate(taxableGain);
-      if (applyMultiHouseTax) {
-        surchargeRate = getMultiHouseSurcharge(houseCount, isAdjustedArea);
-        tax += taxableGain * surchargeRate;
+    // 1. 기본세율(+다주택 중과) 산출세액
+    let basicTax = getBasicTaxRate(taxableGain);
+    let basicAppliedRate = 0;
+    if (applyMultiHouseTax) {
+      surchargeRate = getMultiHouseSurcharge(houseCount, isAdjustedArea);
+      basicTax += taxableGain * surchargeRate;
+    }
+    basicAppliedRate = basicTax / (taxableGain || 1);
+
+    let tax = 0;
+    let isShortTermApplied = false; // 실제로 단기세율 쪽이 더 커서 적용됐는지 여부
+
+    if (isShortTermHolding) {
+      const shortTermTax = taxableGain * shortTermRate!;
+      // 비교과세: 둘 중 큰 금액을 채택
+      if (shortTermTax > basicTax) {
+        tax = shortTermTax;
+        appliedRate = shortTermRate!;
+        isShortTermApplied = true;
+      } else {
+        tax = basicTax;
+        appliedRate = basicAppliedRate;
       }
-      appliedRate = tax / (taxableGain || 1);
+    } else {
+      tax = basicTax;
+      appliedRate = basicAppliedRate;
     }
 
     // 지방소득세 (양도세의 10%)
@@ -194,8 +212,8 @@ export default function TaxSellPage() {
       ltcgAmount,
       taxableGain,
       appliedRate,
-      isShortTerm,
-      surchargeRate,
+      isShortTerm: isShortTermApplied, // 비교과세 결과 실제로 단기세율이 "승리"했을 때만 true
+      surchargeRate: isShortTermApplied ? 0 : surchargeRate, // 단기세율 적용시엔 중과 표시 숨김
       tax,
       localTax,
       totalTax,
