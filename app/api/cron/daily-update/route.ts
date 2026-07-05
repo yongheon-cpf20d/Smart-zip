@@ -138,10 +138,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // ✅ 뷰 갱신은 "이번달(current)" 처리 때만 실행 (지난달 처리 때는 생략해서 시간 절약)
+  // ✅ 뷰 갱신은 "지난달(prev)" 처리 때 실행
+  //    (지난달은 이미 수집된 데이터가 많아 신규 건수가 적고 처리시간이 짧아,
+  //     뷰 갱신까지 5분 안에 끝낼 여유시간이 더 많음)
   let refreshOk = true;
   let refreshErrorMsg = "";
-  if (which === "current") {
+  if (which === "prev") {
     const { error: refreshError } = await supabase.rpc("refresh_all_views");
     if (refreshError) {
       refreshOk = false;

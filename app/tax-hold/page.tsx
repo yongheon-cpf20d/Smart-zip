@@ -156,8 +156,10 @@ export default function TaxHoldPage() {
     const propBase = price * fairRatio;
 
     const canUseOneHouseTaxRate =
-      isOneHouse && !isCorporation && price <= 900_000_000 &&
-      (ownerType === "sole" || ownerType === "joint-special");
+      isOneHouse && !isCorporation && price <= 900_000_000;
+      // ✅ 재산세 1세대1주택 특례(지방세법 제111조의2)는 세대 기준 1주택 여부만 따짐.
+      //    종부세 공동명의 특례 신청 여부(ownerType)와는 무관한 별개 제도이므로
+      //    ownerType 조건을 제거함 (제미나이 피드백 반영).
 
     const propTax = canUseOneHouseTaxRate
       ? getPropertyTaxOneHouse(propBase)
@@ -167,34 +169,44 @@ export default function TaxHoldPage() {
     const urbanTax = isUrban ? propBase * 0.0014 : 0; // 도시지역분: 과세표준×0.14%
 
     // ── 종부세 계산 ────────────────────────────────────────────
+    // ✅ 종합부동산세법 제8조제1항: 기본공제는 9억(1세대1주택 12억), 단 법인은 0원
+    //    출처: 국세청 「종합부동산세 세액계산 흐름도」 — "9억 원(1세대1주택자 12억원, 법인 0원)"
     let csvBase = 0;
     let csvRaw = 0;
     let csvDeductRate = 0;
     let csvDeductAmt = 0;
     let csvFinal = 0;
     let eachCSV = 0;
+    let csvPropDeductAmt = 0;
 
     if (ownerType === "joint-no-special") {
-      // 공동명의 특례 미신청: 본인 지분만큼만 보유로 보고 각자 9억 공제
+      // 공동명의 특례 미신청: 본인 지분만큼만 보유로 보고 각자 공제
+      // ✅ 법인은 공제 0원 (기존엔 무조건 9억 공제하던 버그 수정)
+      const deduction = isCorporation ? 0 : 900_000_000;
       const myPrice = price * shareRatio;
-      csvBase = Math.max(myPrice - 900_000_000, 0) * 0.6;
+      csvBase = Math.max(myPrice - deduction, 0) * 0.6;
       csvRaw = isCorporation ? calcCSVCorporation(csvBase, is3Plus) : calcCSVRaw(csvBase, is3Plus);
-      // 세액공제 없음
-      csvFinal = csvRaw;
+
+      // ✅ 공동명의 미신청이라도 이중과세 방지를 위한 재산세 중복분 공제는 필수
+      //    (기존엔 이 케이스만 공제가 누락되어 세금이 과다 계산되던 버그 수정)
+      csvPropDeductAmt = csvBase * fairRatio * getMarginalRate(propBase);
+      csvFinal = Math.max(csvRaw - csvPropDeductAmt, 0); // 세액공제(고령자·장기보유)는 미적용
       eachCSV = csvFinal; // 본인 납부액
     } else {
       // 단독명의 or 공동명의특례신청: 전체 공시가격 기준
-      const deduction = (isOneHouse && !isCorporation) ? 1_200_000_000 : 900_000_000;
+      // ✅ 법인은 무조건 공제 0원 (기존엔 isOneHouse가 false면 9억 공제받던 버그 수정)
+      let deduction = 0;
+      if (!isCorporation) {
+        deduction = isOneHouse ? 1_200_000_000 : 900_000_000;
+      }
       csvBase = Math.max(price - deduction, 0) * 0.6;
       csvRaw = isCorporation
         ? calcCSVCorporation(csvBase, is3Plus)
         : calcCSVRaw(csvBase, is3Plus);
 
       // ✅ 재산세 중복분 공제 (종합부동산세법 제9조제3항, 시행령 제4조의3)
-      // 공식: 종부세과세표준 × 재산세공정시장가액비율 × 재산세표준세율(한계세율)
-      // 이중과세를 막기 위해 재산세로 이미 납부한 금액 중 종부세 과세분에 해당하는 부분을 공제
-      const propDeductAmt = csvBase * fairRatio * getMarginalRate(propBase);
-      const csvAfterPropDeduct = Math.max(csvRaw - propDeductAmt, 0);
+      csvPropDeductAmt = csvBase * fairRatio * getMarginalRate(propBase);
+      const csvAfterPropDeduct = Math.max(csvRaw - csvPropDeductAmt, 0);
 
       // 고령자/장기보유 세액공제
       if (applyDeduction && canApplyDeduction) {
@@ -230,7 +242,7 @@ export default function TaxHoldPage() {
       csvRaw,
       csvDeductRate,
       csvDeductAmt,
-      csvPropDeductAmt: ownerType !== "joint-no-special" ? csvBase * fairRatio * getMarginalRate(propBase) : 0,
+      csvPropDeductAmt: csvPropDeductAmt,
       csvFinal,
       ruralTax,
       total,

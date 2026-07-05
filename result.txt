@@ -1,0 +1,1 @@
+{"success":true,"which":"current","yearMonth":"202607","envCheck":{"hasSupabaseUrl":true,"hasServiceKey":true,"hasRtmsKey":true},"totalChecked":408,"totalNew":0,"errors":0,"errorDetails":[],"refreshOk":false,"refreshErrorMsg":"upstream request timeout","details":[],"timestamp":"2026-07-05T02:01:25.347Z"}
