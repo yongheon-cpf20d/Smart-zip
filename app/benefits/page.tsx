@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Gift } from "lucide-react";
 
 // ✅ 정보 출처: 한국주택금융공사(HF) 디딤돌/보금자리론 상품안내(2026.06.22 기준 고시),
 //    주택도시기금 포털, 주택공급에 관한 규칙, LH청약플러스, 뉴:홈, 지방세법 제36조의3·제36조의5
@@ -184,9 +185,12 @@ export default function BenefitsPage() {
         </Link>
 
         <div>
-          <h1 className="text-xl font-bold text-slate-800">🎁 생애최초 · 신혼부부 혜택 모아보기</h1>
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <Gift size={20} strokeWidth={1.75} className="text-emerald-600" />
+            정책 지원
+          </h1>
           <p className="text-xs text-slate-400 mt-1">
-            2026.06 기준 정리 · 대출 · 세금 · 청약 혜택을 한눈에
+            2026 기준 정책 지원을 한눈에
           </p>
         </div>
 
