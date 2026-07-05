@@ -53,7 +53,10 @@ export const metadata: Metadata = {
       },
     ],
   },
-
+ verification: {
+    google: "qOCvRyWAOJ_nPuNcX8pMWlNNueT3fUdRT8yWBTON6rY",
+  },
+  
   // 트위터/X
   twitter: {
     card: "summary_large_image",
