@@ -47,18 +47,18 @@ const regulations = (["투기과열지구", "조정대상지역", "토지거래�
 
 // ✅ 네비게이션 — 이모지 대신 lucide-react 라인 아이콘, 라벨은 명확한 명사형으로 통일
 const navItems = [
-  { name: "주담대 계산", href: "/loan", icon: Landmark },
-  { name: "DSR 계산", href: "/dsr", icon: BarChart3 },
-  { name: "취득세 계산", href: "/tax-acq", icon: HomeIcon },
-  { name: "보유세 계산", href: "/tax-hold", icon: Building2 },
-  { name: "양도세 계산", href: "/tax-sell", icon: TrendingUp },
+  { name: "총비용 계산기", href: "/total-cost", icon: Calculator },
+  { name: "주담대 계산기", href: "/loan", icon: Landmark },
+  { name: "DSR 계산기", href: "/dsr", icon: BarChart3 },
+  { name: "취득세 계산기", href: "/tax-acq", icon: HomeIcon },
+  { name: "보유세 계산기", href: "/tax-hold", icon: Building2 },
+  { name: "양도세 계산기", href: "/tax-sell", icon: TrendingUp },
+  { name: "갈아타기 계산기", href: "/switch-sim", icon: ArrowLeftRight },
+  { name: "순이익 계산기", href: "/asset-sim", icon: LineChart },
+  { name: "오늘의 신고가", href: "/new-high", icon: Trophy },
+  { name: "대장 아파트", href: "/top-apt", icon: Crown },
   { name: "규제 현황", href: "/regulation", icon: ShieldCheck },
-  { name: "정책 혜택", href: "/benefits", icon: Gift },
-  { name: "총비용 계산", href: "/total-cost", icon: Calculator },
-  { name: "실거래 신고가", href: "/new-high", icon: Trophy },
-  { name: "대장아파트", href: "/top-apt", icon: Crown },
-  { name: "이사 계획", href: "/switch-sim", icon: ArrowLeftRight },
-  { name: "자산 시뮬레이션", href: "/asset-sim", icon: LineChart },
+  { name: "정책 지원", href: "/benefits", icon: Gift },
 ];
 
 type NewsItem = {
@@ -289,7 +289,7 @@ export default function Home() {
               <MapPin size={15} strokeWidth={1.75} className="text-rose-400" />
               <div>
                 <h2 className="text-sm font-bold text-slate-700">규제지역 현황 지도</h2>
-                <p className="text-[11px] text-slate-400 mt-0.5">전국 시도 · 클릭하여 시군구 확대</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">수도권 기본 표시 · 전국 보기 전환 가능</p>
               </div>
             </div>
             <div className="h-[460px]">

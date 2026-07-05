@@ -22,7 +22,7 @@ export const REGULATION_STYLE: Record<RegulationType, {
   rules: string[];
 }> = {
   "투기과열지구": {
-    color: "#ef4444",
+    color: "#fca5a5",
     borderColor: "#fca5a5",
     bgColor: "#fef2f2",
     textColor: "#991b1b",
@@ -55,12 +55,12 @@ export const REGULATION_STYLE: Record<RegulationType, {
   },
   "토지거래허가구역": {
     color: "transparent",    // 채우기 없음 (투과지/조정대상 색 위에 테두리만)
-    strokeColor: "#7c3aed",  // 보라색 테두리
+    strokeColor: "#dc2626",  // 진한 빨강 테두리 (투기과열지구 파스텔과 구분)
     strokeWidth: 2.5,
-    borderColor: "#c4b5fd",
-    bgColor: "#f5f3ff",
-    textColor: "#4c1d95",
-    dotColor: "#7c3aed",
+    borderColor: "#dc2626",
+    bgColor: "#fef2f2",
+    textColor: "#7f1d1d",
+    dotColor: "#dc2626",
     rules: [
       "실거주 목적 외 주택 취득 원칙적 금지",
       "구청장 허가 없이 매매·증여·임대차 계약 불가",
@@ -75,7 +75,7 @@ export const REGULATION_AREAS: RegulationArea[] = [
   // 시도 단위
   { name: "서울특별시", sido: "기타", type: "투기과열지구" },
 
-  // 서울 (투기과열지구)
+ // 서울 (투기과열지구)
   { name: "강남구", sido: "서울", type: "투기과열지구" },
   { name: "서초구", sido: "서울", type: "투기과열지구" },
   { name: "송파구", sido: "서울", type: "투기과열지구" },
@@ -102,17 +102,59 @@ export const REGULATION_AREAS: RegulationArea[] = [
   { name: "강북구", sido: "서울", type: "투기과열지구" },
   { name: "도봉구", sido: "서울", type: "투기과열지구" },
 
+  // 서울 (조정대상지역)
+  { name: "강남구", sido: "서울", type: "조정대상지역" },
+  { name: "서초구", sido: "서울", type: "조정대상지역" },
+  { name: "송파구", sido: "서울", type: "조정대상지역" },
+  { name: "용산구", sido: "서울", type: "조정대상지역" },
+  { name: "성동구", sido: "서울", type: "조정대상지역" },
+  { name: "마포구", sido: "서울", type: "조정대상지역" },
+  { name: "강동구", sido: "서울", type: "조정대상지역" },
+  { name: "영등포구", sido: "서울", type: "조정대상지역" },
+  { name: "양천구", sido: "서울", type: "조정대상지역" },
+  { name: "동작구", sido: "서울", type: "조정대상지역" },
+  { name: "광진구", sido: "서울", type: "조정대상지역" },
+  { name: "중구", sido: "서울", type: "조정대상지역" },
+  { name: "종로구", sido: "서울", type: "조정대상지역" },
+  { name: "서대문구", sido: "서울", type: "조정대상지역" },
+  { name: "강서구", sido: "서울", type: "조정대상지역" },
+  { name: "노원구", sido: "서울", type: "조정대상지역" },
+  { name: "성북구", sido: "서울", type: "조정대상지역" },
+  { name: "구로구", sido: "서울", type: "조정대상지역" },
+  { name: "동대문구", sido: "서울", type: "조정대상지역" },
+  { name: "관악구", sido: "서울", type: "조정대상지역" },
+  { name: "은평구", sido: "서울", type: "조정대상지역" },
+  { name: "중랑구", sido: "서울", type: "조정대상지역" },
+  { name: "금천구", sido: "서울", type: "조정대상지역" },
+  { name: "강북구", sido: "서울", type: "조정대상지역" },
+  { name: "도봉구", sido: "서울", type: "조정대상지역" },
+
   // 서울 토지거래허가구역
   { name: "강남구", sido: "서울", type: "토지거래허가구역" },
   { name: "서초구", sido: "서울", type: "토지거래허가구역" },
   { name: "송파구", sido: "서울", type: "토지거래허가구역" },
   { name: "용산구", sido: "서울", type: "토지거래허가구역" },
   { name: "성동구", sido: "서울", type: "토지거래허가구역" },
-  { name: "광진구", sido: "서울", type: "토지거래허가구역" },
+  { name: "마포구", sido: "서울", type: "토지거래허가구역" },
+  { name: "강동구", sido: "서울", type: "토지거래허가구역" },
   { name: "영등포구", sido: "서울", type: "토지거래허가구역" },
   { name: "양천구", sido: "서울", type: "토지거래허가구역" },
-  { name: "강동구", sido: "서울", type: "토지거래허가구역" },
-  { name: "마포구", sido: "서울", type: "토지거래허가구역" },
+  { name: "동작구", sido: "서울", type: "토지거래허가구역" },
+  { name: "광진구", sido: "서울", type: "토지거래허가구역" },
+  { name: "중구", sido: "서울", type: "토지거래허가구역" },
+  { name: "종로구", sido: "서울", type: "토지거래허가구역" },
+  { name: "서대문구", sido: "서울", type: "토지거래허가구역" },
+  { name: "강서구", sido: "서울", type: "토지거래허가구역" },
+  { name: "노원구", sido: "서울", type: "토지거래허가구역" },
+  { name: "성북구", sido: "서울", type: "토지거래허가구역" },
+  { name: "구로구", sido: "서울", type: "토지거래허가구역" },
+  { name: "동대문구", sido: "서울", type: "토지거래허가구역" },
+  { name: "관악구", sido: "서울", type: "토지거래허가구역" },
+  { name: "은평구", sido: "서울", type: "토지거래허가구역" },
+  { name: "중랑구", sido: "서울", type: "토지거래허가구역" },
+  { name: "금천구", sido: "서울", type: "토지거래허가구역" },
+  { name: "강북구", sido: "서울", type: "토지거래허가구역" },
+  { name: "도봉구", sido: "서울", type: "토지거래허가구역" },
 
   // 경기 투기과열지구
   { name: "수원시 장안구", sido: "경기", type: "투기과열지구" },
@@ -131,15 +173,59 @@ export const REGULATION_AREAS: RegulationArea[] = [
   { name: "의왕시", sido: "경기", type: "투기과열지구" },
   { name: "화성시", sido: "경기", type: "투기과열지구" },
 
+  // 경기 조정대상지역
+  { name: "수원시 장안구", sido: "경기", type: "조정대상지역" },
+  { name: "수원시 팔달구", sido: "경기", type: "조정대상지역" },
+  { name: "수원시 영통구", sido: "경기", type: "조정대상지역" },
+  { name: "성남시 수정구", sido: "경기", type: "조정대상지역" },
+  { name: "성남시 중원구", sido: "경기", type: "조정대상지역" },
+  { name: "성남시 분당구", sido: "경기", type: "조정대상지역" },
+  { name: "안양시 동안구", sido: "경기", type: "조정대상지역" },
+  { name: "용인시 수지구", sido: "경기", type: "조정대상지역" },
+  { name: "용인시 기흥구", sido: "경기", type: "조정대상지역" },
+  { name: "구리시", sido: "경기", type: "조정대상지역" },
+  { name: "하남시", sido: "경기", type: "조정대상지역" },
+  { name: "광명시", sido: "경기", type: "조정대상지역" },
+  { name: "과천시", sido: "경기", type: "조정대상지역" },
+  { name: "의왕시", sido: "경기", type: "조정대상지역" },
+  { name: "화성시", sido: "경기", type: "조정대상지역" },
+
   // 경기 토지거래허가구역
+  { name: "수원시 장안구", sido: "경기", type: "토지거래허가구역" },
+  { name: "수원시 팔달구", sido: "경기", type: "토지거래허가구역" },
+  { name: "수원시 영통구", sido: "경기", type: "토지거래허가구역" },
+  { name: "성남시 수정구", sido: "경기", type: "토지거래허가구역" },
+  { name: "성남시 중원구", sido: "경기", type: "토지거래허가구역" },
+  { name: "성남시 분당구", sido: "경기", type: "토지거래허가구역" },
+  { name: "안양시 동안구", sido: "경기", type: "토지거래허가구역" },
+  { name: "용인시 수지구", sido: "경기", type: "토지거래허가구역" },
+  { name: "용인시 기흥구", sido: "경기", type: "토지거래허가구역" },
   { name: "구리시", sido: "경기", type: "토지거래허가구역" },
   { name: "하남시", sido: "경기", type: "토지거래허가구역" },
+  { name: "광명시", sido: "경기", type: "토지거래허가구역" },
+  { name: "과천시", sido: "경기", type: "토지거래허가구역" },
+  { name: "의왕시", sido: "경기", type: "토지거래허가구역" },
   { name: "화성시", sido: "경기", type: "토지거래허가구역" },
 ];
 
 // ── 헬퍼: 지역명으로 규제 전체 목록 조회 (중복 허용 — 지도에서 사용) ──
 export function getRegulationsByName(name: string): RegulationArea[] {
   const normalized = name.replace(/\s/g, "");
+
+  // ✅ "서울특별시" 통합 조회 시: 시도 단위 등록(투기과열지구)뿐 아니라
+  //    서울 25개 구 중 하나라도 토지거래허가구역이면 "서울 전체가 토허제"로 판단
+  //    (수도권 지도에서 서울을 하나로 뭉쳐 보여줄 때, 구별로만 등록된 토허제 정보가
+  //     서울시 단위 조회에서는 안 잡히던 문제 수정)
+  if (name === "서울특별시" || normalized === "서울특별시") {
+    const cityLevel = REGULATION_AREAS.filter((a) => a.name === name || a.name.replace(/\s/g, "") === normalized);
+    const seoulDistricts = REGULATION_AREAS.filter((a) => a.sido === "서울");
+    const seoulHasToheo = seoulDistricts.some((a) => a.type === "토지거래허가구역");
+    if (seoulHasToheo && !cityLevel.some((a) => a.type === "토지거래허가구역")) {
+      return [...cityLevel, { name: "서울특별시", sido: "기타", type: "토지거래허가구역" }];
+    }
+    return cityLevel;
+  }
+
   return REGULATION_AREAS.filter((a) =>
     a.name === name || a.name.replace(/\s/g, "") === normalized
   );
