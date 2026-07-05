@@ -54,7 +54,7 @@ const navItems = [
   { name: "보유세 계산기", href: "/tax-hold", icon: Building2 },
   { name: "양도세 계산기", href: "/tax-sell", icon: TrendingUp },
   { name: "갈아타기 계산기", href: "/switch-sim", icon: ArrowLeftRight },
-  { name: "순이익 계산기", href: "/asset-sim", icon: LineChart },
+  { name: "순수익 계산기", href: "/asset-sim", icon: LineChart },
   { name: "오늘의 신고가", href: "/new-high", icon: Trophy },
   { name: "대장 아파트", href: "/top-apt", icon: Crown },
   { name: "규제 현황", href: "/regulation", icon: ShieldCheck },
