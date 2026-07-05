@@ -583,7 +583,7 @@ export default function DSRPage() {
 
         {result && (
           <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-1 result-enter">
-            <h2 className="text-sm font-bold text-slate-600 mb-2">계산 결과</h2>
+            <h2 className="text-sm font-bold text-slate-600 mb-2">DSR 심사 계산 결과</h2>
 
             <div className="flex justify-between items-baseline py-2.5 border-b border-slate-100">
               <span className="text-sm text-slate-500">장래소득 미반영 DSR</span>

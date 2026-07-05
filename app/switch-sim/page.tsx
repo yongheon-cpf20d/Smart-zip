@@ -296,7 +296,7 @@ export default function SwitchSimPage() {
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
             <ArrowLeftRight size={20} strokeWidth={1.75} className="text-emerald-600" />
-            이사 계획 시뮬레이터
+            갈아타기 비용 계산기
           </h1>
           <p className="text-xs text-slate-400 mt-1">현재 집 매도 → 새 집 매수 시 추가 필요 자기자본을 계산합니다</p>
         </div>

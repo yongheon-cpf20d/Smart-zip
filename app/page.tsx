@@ -13,7 +13,7 @@ import RegulationMap from "../components/RegulationMap";
 import RollingWidget from "../components/RollingWidget";
 import VisitorStats from "../components/VisitorStats";
 import { useVisitorTracking } from "../hooks/useVisitorTracking";
-import { REGULATION_STYLE, groupByType } from "../lib/regulationData";
+import { REGULATION_STYLE, groupByType, NATIONAL_POLICY_CARDS } from "../lib/regulationData";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -332,6 +332,40 @@ export default function Home() {
                   </ul>
                 </div>
               ))}
+
+              {/* 구분선 — 지역별 규제(지도 연동)와 전국 공통 대출규제(지역 무관)를 구분 */}
+              <div className="flex items-center gap-2 py-1">
+                <div className="flex-1 border-t border-slate-100" />
+                <span className="text-[10px] text-slate-400 font-semibold">전국 공통 대출규제</span>
+                <div className="flex-1 border-t border-slate-100" />
+              </div>
+
+              {NATIONAL_POLICY_CARDS.map((card) => (
+                <div key={card.title} style={{
+                  background: card.bgColor,
+                  border: `1px solid ${card.borderColor}`,
+                  borderRadius: "12px",
+                  padding: "16px",
+                }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span style={{
+                      width: 10, height: 10, borderRadius: "50%",
+                      background: card.dotColor, display: "inline-block", flexShrink: 0,
+                    }} />
+                    <span style={{ color: card.textColor, fontWeight: 700, fontSize: 14 }}>
+                      {card.title}
+                    </span>
+                  </div>
+                  <ul className="space-y-1">
+                    {card.rules.map((r) => (
+                      <li key={r} style={{ color: card.textColor, fontSize: 12, display: "flex", gap: 6 }}>
+                        <span>·</span>{r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+
               <div className="text-center pt-2">
                 <Link href="/regulation" className="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold hover:underline link-press">
                   전체 규제 내역 보기

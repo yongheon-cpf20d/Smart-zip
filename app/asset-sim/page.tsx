@@ -102,9 +102,9 @@ function calcTax(
 // 재미 멘트
 function getWitComment(netProfit: number): { text: string; emoji: string } {
   if (netProfit <= 0) return { text: "앗... 본전치기 또는 마이너스입니다. 부동산은 버티기가 답일 수 있습니다!", emoji: "😭" };
-  if (netProfit <= 50_000_000) return { text: "축하합니다! 대기업 연봉만큼의 순수익을 세후로 안전하게 챙기셨습니다.", emoji: "💸" };
-  if (netProfit <= 300_000_000) return { text: "와우! 집이 아주 든든한 효자네요. 서울 아파트 평당 분양가만큼 주머니를 채우셨습니다.", emoji: "🥳" };
-  return { text: "이 구역의 거대 주주님! 강남 아파트 전세금 혹은 치킨 1만 5천 마리를 드실 수 있는 자산가 반열에 오르셨습니다!", emoji: "👑" };
+  if (netProfit <= 50_000_000) return { text: "축하합니다! 연봉만큼의 순수익을 세후로 안전하게 챙기셨습니다.", emoji: "💸" };
+  if (netProfit <= 300_000_000) return { text: "와우! 집이 아주 든든한 효자네요. 제네시스 신차 한대는 벌었어요! .", emoji: "🥳" };
+  return { text: "이 구역 부동산 투자의 신! 실례가 안된다면... 아이스크림 하나...!", emoji: "👑" };
 }
 
 export default function AssetSimPage() {
@@ -112,6 +112,7 @@ export default function AssetSimPage() {
   const [isOneHouse, setIsOneHouse] = useState(true);
   const [holdY, setHoldY] = useState(10);
   const [sellMultiple, setSellMultiple] = useState(1.5); // 취득가의 몇 배
+  const [sellPriceInput, setSellPriceInput] = useState(""); // 매도가 직접입력 (만원)
 
   const acqPrice = Number(acqInput) * 10000;
   const maxSellPrice = acqPrice * 3;
@@ -143,7 +144,7 @@ export default function AssetSimPage() {
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
             <LineChart size={20} strokeWidth={1.75} className="text-emerald-600" />
-            자산 시뮬레이션
+            순수익 계산기
           </h1>
           <p className="text-xs text-slate-400 mt-1">집값이 오르면 세금 내고 실제로 얼마 남을까?</p>
         </div>
@@ -179,19 +180,45 @@ export default function AssetSimPage() {
             </button>
           </div>
 
-          {/* 미래 가격 슬라이더 */}
+          {/* 미래 가격 슬라이더 + 직접 입력 */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs text-slate-400">미래 예상 매도가</label>
               <span className="text-sm font-black text-slate-800">{fmtWon(sellPrice)}</span>
             </div>
+
+            {/* ✅ 직접 입력칸 — 슬라이더는 큰 범위를 훑기엔 좋지만 미세한 가격 조정이 어려워서 추가.
+                입력한 금액(만원)을 취득가 기준 배수로 역산해서 sellMultiple에 반영,
+                슬라이더와 항상 동기화되도록 처리 */}
+            <div className="flex items-center gap-2 mb-3">
+              <input
+                type="number"
+                value={sellPriceInput}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setSellPriceInput(raw);
+                  const won = Number(raw) * 10000;
+                  if (won > 0 && acqPrice > 0) {
+                    const multiple = won / acqPrice;
+                    setSellMultiple(Math.min(Math.max(multiple, 1.0), 3.0));
+                  }
+                }}
+                placeholder="직접 입력 (만원)"
+                className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
+              />
+              <span className="text-xs text-slate-400 shrink-0">만원</span>
+            </div>
+
             <input
               type="range"
               min={1.0}
               max={3.0}
               step={0.05}
               value={sellMultiple}
-              onChange={e => setSellMultiple(Number(e.target.value))}
+              onChange={e => {
+                setSellMultiple(Number(e.target.value));
+                setSellPriceInput(""); // 슬라이더 조작 시 직접입력 필드는 비워서 슬라이더 값이 우선하도록
+              }}
               className="w-full accent-emerald-500"
             />
             <div className="flex justify-between text-[10px] text-slate-400 mt-1">

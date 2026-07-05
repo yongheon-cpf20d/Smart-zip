@@ -28,12 +28,7 @@ export const REGULATION_STYLE: Record<RegulationType, {
     textColor: "#991b1b",
     dotColor: "#ef4444",
     rules: [
-      "무주택자 LTV 40%(6억 한도)",
-      "유주택자 구입목적 주담대 금지 (LTV 0%)",
-      "1주택 비과세 요건: 2년 보유 + 2년 실거주",
-      "다주택자 양도세 중과 & 장특공제 배제",
-      "다주택자 취득세 중과 (2주택 8%, 3주택 12%)",
-      "재당첨 제한 10년",
+      "주택구입 LTV 40%(6억 한도), 생애최초 LTV 70%",
       "주택 구입시 6개월 내 전입 의무",
     ],
   },
@@ -44,28 +39,20 @@ export const REGULATION_STYLE: Record<RegulationType, {
     textColor: "#92400e",
     dotColor: "#f59e0b",
     rules: [
-      "무주택자 LTV 40%(6억 한도)",
-      "유주택자 구입목적 주담대 금지 (LTV 0%)",
-      "1주택 비과세 요건: 2년 보유 + 2년 실거주",
-      "다주택자 양도세 중과 & 장특공제 배제",
-      "다주택자 취득세 중과 (2주택 8%, 3주택 12%)",
-      "재당첨 제한 7년",
-      "주택 구입시 6개월 내 전입 의무",
+      "현재 투기과열지구와 동시지정으로 무관"
     ],
   },
   "토지거래허가구역": {
     color: "transparent",    // 채우기 없음 (투과지/조정대상 색 위에 테두리만)
     strokeColor: "#dc2626",  // 진한 빨강 테두리 (투기과열지구 파스텔과 구분)
-    strokeWidth: 2.5,
-    borderColor: "#dc2626",
-    bgColor: "#fef2f2",
-    textColor: "#7f1d1d",
-    dotColor: "#dc2626",
+    strokeWidth: 2.5,  // 테두리 두께 → 2.5px
+    borderColor: "#F87171", // 규제요약 카드의 테두리 색 → 진한 빨강 (지도 테두리와 통일)
+    bgColor: "#ffffff",  // 규제요약 카드의 배경색 → 아주 연한 빨강(거의 흰색에 가까운 핑크)
+    textColor: "#7f1d1d",  // 규제요약 카드 안의 글자색 → 진한 적갈색
+    dotColor: "#dc2626",  // 카드 제목 앞의 작은 동그라미(●) 색 → 진한 빨강
     rules: [
       "실거주 목적 외 주택 취득 원칙적 금지",
       "구청장 허가 없이 매매·증여·임대차 계약 불가",
-      "허가 없이 계약 시 계약 무효 및 형사처벌",
-      "투기과열지구·조정대상지역 규제 중복 적용",
     ],
   },
 };
@@ -129,7 +116,7 @@ export const REGULATION_AREAS: RegulationArea[] = [
   { name: "강북구", sido: "서울", type: "조정대상지역" },
   { name: "도봉구", sido: "서울", type: "조정대상지역" },
 
-  // 서울 토지거래허가구역
+   // 서울 토지거래허가구역
   { name: "강남구", sido: "서울", type: "토지거래허가구역" },
   { name: "서초구", sido: "서울", type: "토지거래허가구역" },
   { name: "송파구", sido: "서울", type: "토지거래허가구역" },
@@ -206,6 +193,7 @@ export const REGULATION_AREAS: RegulationArea[] = [
   { name: "과천시", sido: "경기", type: "토지거래허가구역" },
   { name: "의왕시", sido: "경기", type: "토지거래허가구역" },
   { name: "화성시", sido: "경기", type: "토지거래허가구역" },
+
 ];
 
 // ── 헬퍼: 지역명으로 규제 전체 목록 조회 (중복 허용 — 지도에서 사용) ──
@@ -278,3 +266,45 @@ export function groupBySido(): Record<string, RegulationArea[]> {
   }
   return grouped;
 }
+
+// ─────────────────────────────────────────────────────────────────
+// ✅ 전국 공통 대출규제 카드 (지역별 지도 색칠과는 무관한 전국 공통 제도)
+//    메인페이지 규제요약에서 투기과열지구/조정대상지역/토지거래허가구역
+//    3개 카드 옆에 추가로 표시되는 섹션. 지도 연동이 필요 없어서
+//    REGULATION_AREAS/REGULATION_STYLE과는 완전히 독립된 별도 배열로 관리.
+//    출처: 금융위원회 「3단계 스트레스 DSR 시행방안」(2025.5.20),
+//          금융위원회 「'26년 상반기 스트레스 DSR 운영방안」(2025.12.10)
+// ─────────────────────────────────────────────────────────────────
+export type PolicyCard = {
+  title: string;
+  borderColor: string;
+  bgColor: string;
+  textColor: string;
+  dotColor: string;
+  rules: string[];
+};
+
+export const NATIONAL_POLICY_CARDS: PolicyCard[] = [
+  {
+    title: "스트레스 DSR (3단계)",
+    borderColor: "#c7d2fe",
+    bgColor: "#eef2ff",
+    textColor: "#3730a3",
+    dotColor: "#6366f1",
+    rules: [
+      "스트레스금리 수도권·규제지역 주담대 3.0%, 그 외 1.5%",
+      "지방(서울·경기·인천 제외) 주담대는 0.75% 한시 적용",
+    ],
+  },
+  {
+    title: "주담대 한도 상한액 적용",
+    borderColor: "#bbf7d0",
+    bgColor: "#f0fdf4",
+    textColor: "#166534",
+    dotColor: "#22c55e",
+    rules: [
+      "규제지역 LTV 40~50%, 비규제지역 LTV 70%",
+      "규제지역 주담대 6억원 한도 (2025.10.15 대책)",
+    ],
+  },
+];

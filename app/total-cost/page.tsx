@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { Calculator, AlertTriangle, Info } from "lucide-react";
+import { Calculator, AlertTriangle, Info, ChevronRight } from "lucide-react";
 import PriceInput from "@/components/PriceInput";
 
 // ✅ 법령 출처
@@ -261,6 +261,12 @@ export default function TotalCostPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-800 font-sans">
+      <style jsx>{`
+        @keyframes loanLinkBreath {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
 
         <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
@@ -284,11 +290,10 @@ export default function TotalCostPage() {
             <div className="grid grid-cols-4 gap-2">
               {(["1", "2", "3", "4+"] as HouseCount[]).map((h) => (
                 <button key={h} onClick={() => setHouseCount(h)}
-                  className={`py-2.5 rounded-xl text-sm font-bold border transition ${
-                    houseCount === h
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}>
+                  className={`py-2.5 rounded-xl text-sm font-bold border transition ${houseCount === h
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}>
                   {h}주택
                 </button>
               ))}
@@ -303,11 +308,10 @@ export default function TotalCostPage() {
                 { key: "non-adjusted", label: "비조정대상지역" },
               ].map((r) => (
                 <button key={r.key} onClick={() => setRegion(r.key as RegionType)}
-                  className={`py-2.5 rounded-xl text-sm font-bold border transition ${
-                    region === r.key
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}>
+                  className={`py-2.5 rounded-xl text-sm font-bold border transition ${region === r.key
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}>
                   {r.label}
                 </button>
               ))}
@@ -323,11 +327,10 @@ export default function TotalCostPage() {
                 { key: "childbirth", label: "출산·양육" },
               ].map((r) => (
                 <button key={r.key} onClick={() => setReductionType(r.key as ReductionType)}
-                  className={`py-2.5 rounded-xl text-sm font-bold border transition ${
-                    reductionType === r.key
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}>
+                  className={`py-2.5 rounded-xl text-sm font-bold border transition ${reductionType === r.key
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}>
                   {r.label}
                 </button>
               ))}
@@ -343,11 +346,10 @@ export default function TotalCostPage() {
                   { v: false, label: "지방 (3억 이하 소형 300만)" },
                 ].map((m) => (
                   <button key={String(m.v)} onClick={() => setIsMetro(m.v)}
-                    className={`py-2 rounded-lg text-xs font-bold border transition ${
-                      isMetro === m.v
-                        ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                        : "bg-white border-slate-200 text-slate-500"
-                    }`}>
+                    className={`py-2 rounded-lg text-xs font-bold border transition ${isMetro === m.v
+                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                      : "bg-white border-slate-200 text-slate-500"
+                      }`}>
                     {m.label}
                   </button>
                 ))}
@@ -364,11 +366,10 @@ export default function TotalCostPage() {
             <div className="grid grid-cols-2 gap-2">
               {(Object.entries(POLICY_LOAN_INFO) as [PolicyLoanType, typeof POLICY_LOAN_INFO[PolicyLoanType]][]).map(([key, info]) => (
                 <button key={key} onClick={() => setPolicyLoan(key)}
-                  className={`py-2.5 px-3 rounded-xl border transition text-left ${
-                    policyLoan === key
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}>
+                  className={`py-2.5 px-3 rounded-xl border transition text-left ${policyLoan === key
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}>
                   <p className="text-xs font-bold">{info ? info.label : "일반 대출"}</p>
                   {info && <p className="text-[10px] opacity-70 mt-0.5">최대 {fmtHundred(info.maxLoan)} / {fmtHundred(info.maxHousePrice)} 이하</p>}
                 </button>
@@ -414,11 +415,10 @@ export default function TotalCostPage() {
             <div className="flex gap-2">
               {AREA_QUICK.map((btn) => (
                 <button key={btn.label} onClick={() => setAreaInput(btn.value)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    areaInput === btn.value
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${areaInput === btn.value
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}>
                   {btn.label}
                 </button>
               ))}
@@ -498,13 +498,26 @@ export default function TotalCostPage() {
                   <span className="font-bold text-blue-600">-{fmtWon(result.loanLimit)}</span>
                 </div>
 
+                {/* 주담대 계산기로 연결 — 대출한도 금액을 쿼리파라미터로 전달 */}
+                {result.loanLimit > 0 && (
+                  <div className="text-right pb-2">
+                    <Link
+                      href={`/loan?amount=${Math.round(result.loanLimit / 10000)}`}
+                      /* ✅ text-emerald-* 대신 파스텔 빨간색 느낌의 text-rose-500 적용 */
+                      className="inline-flex items-center gap-1 text-xs font-bold text-rose-500 hover:text-rose-600 transition animate-pulse"
+                    >
+                      월 원리금이 궁금하신가요?
+                      <ChevronRight size={13} strokeWidth={2.5} />
+                    </Link>
+                  </div>
+                )}
+
                 {/* 정책대출/전입의무 안내 */}
                 {result.policyNote && (
-                  <div className={`flex items-start gap-1.5 rounded-lg px-3 py-2.5 text-[11px] leading-relaxed ${
-                    result.policyNote.startsWith("[주의]")
-                      ? "bg-red-50 border border-red-200 text-red-700"
-                      : "bg-blue-50 border border-blue-200 text-blue-700"
-                  }`}>
+                  <div className={`flex items-start gap-1.5 rounded-lg px-3 py-2.5 text-[11px] leading-relaxed ${result.policyNote.startsWith("[주의]")
+                    ? "bg-red-50 border border-red-200 text-red-700"
+                    : "bg-blue-50 border border-blue-200 text-blue-700"
+                    }`}>
                     {result.policyNote.startsWith("[주의]")
                       ? <AlertTriangle size={14} strokeWidth={1.75} className="shrink-0 mt-0.5" />
                       : <Info size={14} strokeWidth={1.75} className="shrink-0 mt-0.5" />}

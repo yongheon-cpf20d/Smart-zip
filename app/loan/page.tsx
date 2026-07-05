@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Landmark } from "lucide-react";
 import {
   BarChart,
@@ -37,13 +38,25 @@ const REPAYMENT_OPTIONS: { key: RepaymentType; label: string }[] = [
 
 const QUICK_YEARS = [30, 40, 50];
 
-export default function LoanPage() {
+function LoanPageContent() {
+  const searchParams = useSearchParams();
   const [repaymentType, setRepaymentType] = useState<RepaymentType>("equal-pi");
   const [loanAmountInput, setLoanAmountInput] = useState("");
   const [loanYears, setLoanYears] = useState("");
   const [interestRate, setInterestRate] = useState("");
   const [result, setResult] = useState<CalcResult | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  // ✅ 총비용 계산기에서 "?amount=5000" (만원 단위) 형태로 넘어오면 자동 입력
+  //    이 경우 남은 입력(금리·기간)을 채우도록 유도하는 강조 표시(highlightRemaining)를 켬
+  const [highlightRemaining, setHighlightRemaining] = useState(false);
+  useEffect(() => {
+    const amountFromUrl = searchParams.get("amount");
+    if (amountFromUrl) {
+      setLoanAmountInput(amountFromUrl);
+      setHighlightRemaining(true);
+    }
+  }, [searchParams]);
 
   const calculate = () => {
     const principalTotal = Number(loanAmountInput) * 10000;
@@ -171,6 +184,12 @@ export default function LoanPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-800 font-sans">
+      <style jsx>{`
+        @keyframes loanInputBreath {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.35); }
+          50% { box-shadow: 0 0 0 5px rgba(16,185,129,0); }
+        }
+      `}</style>
       <div className="max-w-4xl mx-auto px-4 py-4 space-y-5">
 
         <Link
@@ -212,6 +231,12 @@ export default function LoanPage() {
         <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
           <h2 className="text-sm font-bold text-slate-600">대출정보 입력</h2>
 
+          {highlightRemaining && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-xs text-emerald-700">
+              총비용 계산기에서 대출한도가 자동으로 입력됐어요. 대출기간과 금리만 입력하면 월 원리금이 바로 계산돼요!
+            </div>
+          )}
+
           <PriceInput
             label="대출금액 (만원)"
             value={loanAmountInput}
@@ -224,15 +249,16 @@ export default function LoanPage() {
             <input
               type="number"
               value={loanYears}
-              onChange={(e) => setLoanYears(e.target.value)}
+              onChange={(e) => { setLoanYears(e.target.value); setHighlightRemaining(false); }}
               placeholder="예: 30"
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 mb-2"
+              style={highlightRemaining && !loanYears ? { animation: "loanInputBreath 1.4s ease-in-out infinite", borderColor: "#10b981" } : undefined}
             />
             <div className="flex gap-2">
               {QUICK_YEARS.map((y) => (
                 <button
                   key={y}
-                  onClick={() => setLoanYears(String(y))}
+                  onClick={() => { setLoanYears(String(y)); setHighlightRemaining(false); }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                     loanYears === String(y)
                       ? "bg-emerald-100 border-emerald-400 text-emerald-700"
@@ -251,9 +277,10 @@ export default function LoanPage() {
               type="number"
               step="0.01"
               value={interestRate}
-              onChange={(e) => setInterestRate(e.target.value)}
+              onChange={(e) => { setInterestRate(e.target.value); setHighlightRemaining(false); }}
               placeholder="예: 4.2"
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+              style={highlightRemaining && !interestRate ? { animation: "loanInputBreath 1.4s ease-in-out infinite", borderColor: "#10b981" } : undefined}
             />
           </div>
 
@@ -307,8 +334,8 @@ export default function LoanPage() {
                     }
                     wrapperStyle={{ fontSize: 12 }}
                   />
-                  <Bar dataKey="principal" stackId="a" fill="#10b981" name="principal" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="interest" stackId="a" fill="#cbd5e1" name="interest" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="principal" stackId="a" fill="#10b981" name="원금" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="interest" stackId="a" fill="#cbd5e1" name="이자" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -317,5 +344,14 @@ export default function LoanPage() {
 
       </div>
     </div>
+  );
+}
+
+// ✅ useSearchParams는 Next.js App Router에서 Suspense 경계 안에서 사용해야 함
+export default function LoanPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoanPageContent />
+    </Suspense>
   );
 }
