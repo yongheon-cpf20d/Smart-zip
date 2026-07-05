@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import AdminVisitorStats from "@/components/AdminVisitorStats";
 import {
   Lock, RefreshCw, MessageSquare, ClipboardList, Lightbulb, Bug,
   MessageCircle, Trash2, Mail, Sparkles, PencilLine,
@@ -252,6 +253,9 @@ export default function AdminFeedbackPage() {
             </button>
           </div>
         </div>
+
+        {/* 방문자 통계 — 관리자만 확인 가능 */}
+        <AdminVisitorStats />
 
         {/* 탭 */}
         <div className="flex gap-2">

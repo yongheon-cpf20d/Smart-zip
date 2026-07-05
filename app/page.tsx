@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import RegulationMap from "../components/RegulationMap";
 import RollingWidget from "../components/RollingWidget";
-import VisitorStats from "../components/VisitorStats";
 import { useVisitorTracking } from "../hooks/useVisitorTracking";
 import { REGULATION_STYLE, groupByType, NATIONAL_POLICY_CARDS } from "../lib/regulationData";
 
@@ -142,8 +141,8 @@ export default function Home() {
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
       <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
 
-        {/* ① 로고 + 방문자 통계 */}
-        <header className="flex items-center justify-between flex-wrap gap-2">
+        {/* ① 로고 */}
+        <header className="flex items-center gap-2">
           <Link href="/" className="inline-flex items-center gap-0.5 link-press">
             <Image
               src="/logo.svg"
@@ -162,7 +161,6 @@ export default function Home() {
               똑집
             </span>
           </Link>
-          <VisitorStats />
         </header>
 
         {/* ② + ③ 롤링 위젯 2개 */}
@@ -333,12 +331,7 @@ export default function Home() {
                 </div>
               ))}
 
-              {/* 구분선 — 지역별 규제(지도 연동)와 전국 공통 대출규제(지역 무관)를 구분 */}
-              <div className="flex items-center gap-2 py-1">
-                <div className="flex-1 border-t border-slate-100" />
-                <span className="text-[10px] text-slate-400 font-semibold">전국 공통 대출규제</span>
-                <div className="flex-1 border-t border-slate-100" />
-              </div>
+             
 
               {NATIONAL_POLICY_CARDS.map((card) => (
                 <div key={card.title} style={{

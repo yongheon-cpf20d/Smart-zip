@@ -23,10 +23,10 @@ export const REGULATION_STYLE: Record<RegulationType, {
 }> = {
   "투기과열지구": {
     color: "#fca5a5",
-    borderColor: "#fca5a5",
-    bgColor: "#fef2f2",
-    textColor: "#991b1b",
-    dotColor: "#ef4444",
+    borderColor: "#FF3000",
+    bgColor: "#ffffff",
+    textColor: "#BF2400",
+    dotColor: "#FF3000",
     rules: [
       "주택구입 LTV 40%(6억 한도), 생애최초 LTV 70%",
       "주택 구입시 6개월 내 전입 의무",
@@ -34,22 +34,22 @@ export const REGULATION_STYLE: Record<RegulationType, {
   },
   "조정대상지역": {
     color: "#f97316",
-    borderColor: "#fcd34d",
-    bgColor: "#fffbeb",
-    textColor: "#92400e",
-    dotColor: "#f59e0b",
+    borderColor: "#FF5D00",
+    bgColor: "#ffffff",
+    textColor: "#BF4400",
+    dotColor: "#FF5D00",
     rules: [
-      "현재 투기과열지구와 동시지정으로 무관"
+      "현재 상위 규제인 투기과열지구와 동시지정으로 영향없음"
     ],
   },
   "토지거래허가구역": {
     color: "transparent",    // 채우기 없음 (투과지/조정대상 색 위에 테두리만)
     strokeColor: "#dc2626",  // 진한 빨강 테두리 (투기과열지구 파스텔과 구분)
     strokeWidth: 2.5,  // 테두리 두께 → 2.5px
-    borderColor: "#F87171", // 규제요약 카드의 테두리 색 → 진한 빨강 (지도 테두리와 통일)
+    borderColor: "#FF9500", // 규제요약 카드의 테두리 색 → 진한 빨강 (지도 테두리와 통일)
     bgColor: "#ffffff",  // 규제요약 카드의 배경색 → 아주 연한 빨강(거의 흰색에 가까운 핑크)
-    textColor: "#7f1d1d",  // 규제요약 카드 안의 글자색 → 진한 적갈색
-    dotColor: "#dc2626",  // 카드 제목 앞의 작은 동그라미(●) 색 → 진한 빨강
+    textColor: "#D17900",  // 규제요약 카드 안의 글자색 → 진한 적갈색
+    dotColor: "#FF9500",  // 카드 제목 앞의 작은 동그라미(●) 색 → 진한 빨강
     rules: [
       "실거주 목적 외 주택 취득 원칙적 금지",
       "구청장 허가 없이 매매·증여·임대차 계약 불가",
@@ -288,7 +288,7 @@ export const NATIONAL_POLICY_CARDS: PolicyCard[] = [
   {
     title: "스트레스 DSR (3단계)",
     borderColor: "#c7d2fe",
-    bgColor: "#eef2ff",
+    bgColor: "#ffffff",
     textColor: "#3730a3",
     dotColor: "#6366f1",
     rules: [
@@ -299,7 +299,7 @@ export const NATIONAL_POLICY_CARDS: PolicyCard[] = [
   {
     title: "주담대 한도 상한액 적용",
     borderColor: "#bbf7d0",
-    bgColor: "#f0fdf4",
+    bgColor: "#ffffff",
     textColor: "#166534",
     dotColor: "#22c55e",
     rules: [
