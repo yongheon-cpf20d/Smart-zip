@@ -30,6 +30,11 @@ const TAG_STYLE: Record<string, { bg: string; text: string }> = {
   "기타": { bg: "bg-slate-100", text: "text-slate-600" },
 };
 
+// ✅ 리치텍스트(HTML)로 저장된 content에서 태그를 제거하고 순수 텍스트만 추출 (목록 미리보기용)
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 async function getPolicies(): Promise<Policy[]> {
   const { data, error } = await supabase
     .from("policies")
@@ -83,7 +88,7 @@ export default async function PolicyPage() {
                   </div>
                   <h2 className="text-sm font-bold text-slate-800 mb-1.5">{p.title}</h2>
                   <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                    {p.content}
+                    {stripHtml(p.content)}
                   </p>
                 </Link>
               );

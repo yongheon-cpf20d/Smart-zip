@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Lock, Megaphone, MessageSquare, PencilLine } from "lucide-react";
+import RichTextEditor from "@/components/RichTextEditor";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,6 +32,11 @@ function generateSlug(): string {
   const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const rand = Math.random().toString(36).slice(2, 7);
   return `${date}-${rand}`;
+}
+
+// ✅ 리치텍스트(HTML)로 저장된 content에서 태그를 제거하고 순수 텍스트만 추출 (목록 미리보기용)
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 const TAG_OPTIONS = [
@@ -247,13 +253,7 @@ export default function AdminPolicyPage() {
 
           <div>
             <label className="text-xs text-slate-400 mb-1 block">내용 (원문 요약)</label>
-            <textarea
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="정책 내용을 요약해서 작성해주세요."
-              rows={6}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 resize-none"
-            />
+            <RichTextEditor content={content} onChange={setContent} />
           </div>
 
           <div>
@@ -292,7 +292,7 @@ export default function AdminPolicyPage() {
                     </span>
                   </div>
                   <p className="text-sm font-bold text-slate-800">{p.title}</p>
-                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{p.content}</p>
+                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{stripHtml(p.content)}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => startEdit(p)} className="text-xs text-blue-500 hover:text-blue-700 transition">수정</button>
