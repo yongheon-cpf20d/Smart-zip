@@ -174,9 +174,17 @@ export default function AssetSimPage() {
             </div>
             <button
               onClick={() => setIsOneHouse(!isOneHouse)}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${isOneHouse ? "bg-emerald-500" : "bg-slate-300"}`}
+              style={{
+                position: "relative", width: 44, height: 24, borderRadius: 999,
+                background: isOneHouse ? "#10b981" : "#cbd5e1", border: "none", cursor: "pointer",
+                transition: "background 0.2s", flexShrink: 0,
+              }}
             >
-              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isOneHouse ? "translate-x-6" : "translate-x-0.5"}`} />
+              <span style={{
+                position: "absolute", top: 2, left: isOneHouse ? 22 : 2,
+                width: 20, height: 20, borderRadius: "50%", background: "white",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 0.2s",
+              }} />
             </button>
           </div>
 
