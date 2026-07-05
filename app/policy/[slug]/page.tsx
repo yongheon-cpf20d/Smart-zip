@@ -78,15 +78,6 @@ export default async function PolicyDetailPage({ params }: { params: Promise<{ s
           />
         </div>
 
-        {/* ✅ 관리자 에디터(RichTextEditor)에서 작성된 굵게/리스트 서식이 그대로 보이도록 스타일 보정 */}
-        <style jsx global>{`
-          .policy-content p { margin: 0 0 8px 0; }
-          .policy-content strong { font-weight: 700; }
-          .policy-content ul { list-style: disc; padding-left: 20px; margin: 4px 0 8px 0; }
-          .policy-content ol { list-style: decimal; padding-left: 20px; margin: 4px 0 8px 0; }
-          .policy-content li { margin-bottom: 2px; }
-        `}</style>
-
         {policy.source_url && (
           <a
             href={policy.source_url}

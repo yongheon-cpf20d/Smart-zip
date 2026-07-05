@@ -151,3 +151,12 @@ body {
 .font-brand {
   font-family: "Cafe24Ssurround-v2.0", sans-serif;
 }
+
+/* ✅ 정책 상세페이지 리치텍스트(policy-content) 서식 보정
+   관리자 에디터(RichTextEditor)에서 작성된 굵게/리스트가 그대로 보이도록 함
+   app/globals.css 맨 아래에 이어붙이기 */
+.policy-content p { margin: 0 0 8px 0; }
+.policy-content strong { font-weight: 700; }
+.policy-content ul { list-style: disc; padding-left: 20px; margin: 4px 0 8px 0; }
+.policy-content ol { list-style: decimal; padding-left: 20px; margin: 4px 0 8px 0; }
+.policy-content li { margin-bottom: 2px; }
