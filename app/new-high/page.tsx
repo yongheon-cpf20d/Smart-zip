@@ -20,6 +20,7 @@ type NewHighRecord = {
   area: number;
   floor: number;
   price: number;
+  buildYear: number | null;
   previousHighPrice: number | null;
   priceDiff: number | null;
   dealDate: string;
@@ -57,9 +58,17 @@ function PosterCard({ record }: { record: NewHighRecord }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
-  const diffPct = record.previousHighPrice && record.priceDiff
+  const diffPct = record.previousHighPrice && record.priceDiff !== null
     ? ((record.priceDiff / record.previousHighPrice) * 100).toFixed(1)
     : null;
+
+  const naverLandUrl = `https://land.naver.com/search/result/${encodeURIComponent(record.complexName)}`;
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // 다운로드 버튼 클릭 시에는 카드 이동 막기
+    if ((e.target as HTMLElement).closest("button")) return;
+    window.open(naverLandUrl, "_blank", "noopener,noreferrer");
+  };
 
   const download = useCallback(async () => {
     if (!cardRef.current || downloading) return;
@@ -86,7 +95,7 @@ function PosterCard({ record }: { record: NewHighRecord }) {
   }, [record, downloading]);
 
   return (
-    <div className="relative group hover-lift">
+    <div className="relative group hover-lift" onClick={handleCardClick} style={{ cursor: "pointer" }} title="네이버부동산에서 검색하기">
       {/* 포스터 본체 (캡처 대상) */}
       <div
         ref={cardRef}
@@ -98,6 +107,9 @@ function PosterCard({ record }: { record: NewHighRecord }) {
           position: "relative",
           overflow: "hidden",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+          minHeight: 320,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         {/* 배경 장식 (은은하게) */}
@@ -126,9 +138,10 @@ function PosterCard({ record }: { record: NewHighRecord }) {
           {record.complexName}
         </p>
 
-        {/* 면적/층 (검은색 계열) */}
+        {/* 면적/층/준공년도 (검은색 계열) */}
         <p style={{ color: "#334155", fontSize: 10, marginBottom: 18 }}>
           전용 {record.area}㎡ (약 {toPyeong(record.area)}평) · {record.floor}층
+          {record.buildYear && ` · ${record.buildYear}년 준공`}
         </p>
 
         {/* 구분선 */}
@@ -181,7 +194,8 @@ function PosterCard({ record }: { record: NewHighRecord }) {
         {/* 푸터: 로고 + 슬로건 */}
         <div style={{
           borderTop: "1px solid #f1f5f9", paddingTop: 12,
-          display: "flex", alignItems: "center", justifyContent: "space-between"
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          marginTop: "auto",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             {/* SVG 로고 이미지 */}
@@ -244,6 +258,7 @@ export default function NewHighPage() {
           area: d.area,
           floor: d.floor,
           price: d.price,
+          buildYear: d.build_year ?? null,
           previousHighPrice: d.previous_high_price,
           priceDiff: d.price_diff,
           dealDate: d.deal_date,
@@ -266,13 +281,16 @@ export default function NewHighPage() {
 
   const filteredData = records.filter(d => {
     if (regionView === "top") return true;
+    // ✅ 실제 DB region_name 형식이 지역마다 다를 수 있어(예: "가평군" vs "서울 강남구"),
+    //    "서울로 시작하는지"만으로 서울/경기를 구분 (대장아파트 페이지와 동일 패턴)
+    const isSeoulRegion = d.regionName.startsWith("서울");
     if (regionView === "seoul") {
-      if (!d.regionName.startsWith("서울")) return false;
+      if (!isSeoulRegion) return false;
       if (selectedDistrict) return d.regionName.includes(selectedDistrict);
       return true;
     }
     if (regionView === "gyeonggi") {
-      if (!d.regionName.startsWith("경기")) return false;
+      if (isSeoulRegion) return false;
       if (selectedDistrict) return d.regionName.includes(selectedDistrict);
       return true;
     }
@@ -308,14 +326,14 @@ export default function NewHighPage() {
             {regionView === "top" && (
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => switchView("seoul")}
-                  className="py-3.5 rounded-xl border-2 border-emerald-200 bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 hover:border-emerald-400 transition-all">
+                  className="py-3.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all">
                   서울
-                  <span className="block text-[11px] font-normal text-emerald-500 mt-0.5">25개 자치구</span>
+                  <span className="block text-[11px] font-normal text-slate-400 mt-0.5">25개 자치구</span>
                 </button>
                 <button onClick={() => switchView("gyeonggi")}
-                  className="py-3.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 hover:border-slate-400 transition-all">
+                  className="py-3.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all">
                   경기도
-                  <span className="block text-[11px] font-normal text-slate-500 mt-0.5">31개 시군</span>
+                  <span className="block text-[11px] font-normal text-slate-400 mt-0.5">31개 시군</span>
                 </button>
               </div>
             )}
