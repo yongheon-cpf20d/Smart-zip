@@ -27,7 +27,7 @@ export default function ShareButton({ title, description, params }: ShareButtonP
     script.onload = () => {
       // 스크립트가 다 불러와지면 아까 .env.local에 넣은 키로 엔진에 시동을 겁니다!
       if (window.Kakao && !window.Kakao.isInitialized()) {
-        window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_APP_KEY);
+        window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY);
       }
     };
   }, []);
@@ -49,7 +49,7 @@ export default function ShareButton({ title, description, params }: ShareButtonP
         title: title,
         description: description,
         // 🚀 아까 코드로 만든 썸네일 주소 연결 (배포 후엔 실제 도메인으로 바꿔야 완벽히 뜹니다)
-        imageUrl: "https://cdn-icons-png.flaticon.com/512/3128/3128219.png", 
+        imageUrl: `${window.location.origin}/opengraph-image.png`,
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,
