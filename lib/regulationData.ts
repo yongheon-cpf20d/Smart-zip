@@ -28,8 +28,7 @@ export const REGULATION_STYLE: Record<RegulationType, {
     textColor: "#BF2400",
     dotColor: "#FF3000",
     rules: [
-      "주택구입 LTV 40%(6억 한도), 생애최초 LTV 70%",
-      "주택 구입시 6개월 내 전입 의무",
+      "주택구입 LTV 40%, 생애최초 LTV 70%",
     ],
   },
   "조정대상지역": {
@@ -39,7 +38,7 @@ export const REGULATION_STYLE: Record<RegulationType, {
     textColor: "#BF4400",
     dotColor: "#FF5D00",
     rules: [
-      "현재 상위 규제인 투기과열지구와 동시지정으로 영향없음"
+      "투기과열지구 하위 규제로 현재는 의미 없음"
     ],
   },
   "토지거래허가구역": {
@@ -51,7 +50,7 @@ export const REGULATION_STYLE: Record<RegulationType, {
     textColor: "#D17900",  // 규제요약 카드 안의 글자색 → 진한 적갈색
     dotColor: "#FF9500",  // 카드 제목 앞의 작은 동그라미(●) 색 → 진한 빨강
     rules: [
-      "실거주 목적 외 주택 취득 원칙적 금지",
+      "실거주 목적 외 주택 취득 금지",
       "구청장 허가 없이 매매·증여·임대차 계약 불가",
     ],
   },
@@ -293,7 +292,7 @@ export const NATIONAL_POLICY_CARDS: PolicyCard[] = [
     dotColor: "#6366f1",
     rules: [
       "스트레스금리 수도권·규제지역 주담대 3.0%, 그 외 1.5%",
-      "지방(서울·경기·인천 제외) 주담대는 0.75% 한시 적용",
+      "지방은 0.75% 한시 적용(~2026 말)",
     ],
   },
   {
@@ -303,8 +302,7 @@ export const NATIONAL_POLICY_CARDS: PolicyCard[] = [
     textColor: "#166534",
     dotColor: "#22c55e",
     rules: [
-      "규제지역 LTV 40~50%, 비규제지역 LTV 70%",
-      "규제지역 주담대 6억원 한도 (2025.10.15 대책)",
+      "주택담보대출 상한액 지정 : 6억 (15억 이하) / 4억 (15~25억) / 2억 (25억 초과)",
     ],
   },
 ];
