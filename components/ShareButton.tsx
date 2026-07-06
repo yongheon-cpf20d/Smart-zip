@@ -1,60 +1,55 @@
-// components/ShareButton.tsx
-// ✅ 계산 결과 공유 버튼 — 카카오톡 공유 + 링크 복사
-// 사용법: <ShareButton title="DSR 계산 결과" description="DSR 45.2%" params={{income: "8000", age: "35"}} />
 "use client";
 
-import { useState } from "react";
-import { Share2, Link2, Check } from "lucide-react";
+import { useEffect } from "react";
+import { MessageCircle, Link as LinkIcon } from "lucide-react";
 
+// TypeScript에서 window.Kakao를 에러 없이 쓰기 위한 선언
 declare global {
   interface Window {
     Kakao: any;
   }
 }
 
-type Props = {
-  title: string;        // 카카오톡 공유 카드 제목 (예: "DSR 계산 결과")
-  description: string;  // 카카오톡 공유 카드 설명 (예: "DSR 45.2% · 월 상환액 250만원")
-  params: Record<string, string>; // 현재 입력값들 (URL 쿼리파라미터로 인코딩됨)
+type ShareButtonProps = {
+  title: string;
+  description: string;
+  params: Record<string, string>;
 };
 
-let kakaoInitialized = false;
+export default function ShareButton({ title, description, params }: ShareButtonProps) {
+  // 1. 카카오 SDK 스크립트를 화면이 켜질 때 동적으로 몰래 불러옵니다.
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://developers.kakao.com/sdk/js/kakao.min.js";
+    script.async = true;
+    document.head.appendChild(script);
 
-export default function ShareButton({ title, description, params }: Props) {
-  const [copied, setCopied] = useState(false);
-
-  const buildShareUrl = () => {
-    const url = new URL(window.location.href);
-    url.search = ""; // 기존 쿼리 초기화
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) url.searchParams.set(key, value);
-    });
-    return url.toString();
-  };
-
-  const handleCopyLink = async () => {
-    const shareUrl = buildShareUrl();
-    await navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+    script.onload = () => {
+      // 스크립트가 다 불러와지면 아까 .env.local에 넣은 키로 엔진에 시동을 겁니다!
+      if (window.Kakao && !window.Kakao.isInitialized()) {
+        window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_APP_KEY);
+      }
+    };
+  }, []);
 
   const handleKakaoShare = () => {
-    if (!window.Kakao) return;
-
-    if (!kakaoInitialized) {
-      window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY);
-      kakaoInitialized = true;
+    if (!window.Kakao || !window.Kakao.isInitialized()) {
+      alert("카카오톡 공유 기능을 불러오는 중입니다. 1~2초 뒤에 다시 눌러주세요.");
+      return;
     }
 
-    const shareUrl = buildShareUrl();
+    // 2. 현재 주소 + 계산기에 입력된 값들(params)을 완벽한 URL로 조합합니다.
+    const queryString = new URLSearchParams(params).toString();
+    const shareUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
 
+    // 3. 카카오톡 공유 API를 호출해서 팝업을 띄웁니다!
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title,
-        description,
-        imageUrl: `${window.location.origin}/logo-share.png`,
+        title: title,
+        description: description,
+        // 🚀 아까 코드로 만든 썸네일 주소 연결 (배포 후엔 실제 도메인으로 바꿔야 완벽히 뜹니다)
+        imageUrl: "https://cdn-icons-png.flaticon.com/512/3128/3128219.png", 
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,
@@ -62,7 +57,7 @@ export default function ShareButton({ title, description, params }: Props) {
       },
       buttons: [
         {
-          title: "결과 보러가기",
+          title: "계산 결과 확인하기",
           link: {
             mobileWebUrl: shareUrl,
             webUrl: shareUrl,
@@ -72,21 +67,34 @@ export default function ShareButton({ title, description, params }: Props) {
     });
   };
 
+  const handleCopyLink = async () => {
+    const queryString = new URLSearchParams(params).toString();
+    const shareUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert("링크가 복사되었습니다! 원하는 곳에 붙여넣기 하세요.");
+    } catch (e) {
+      alert("링크 복사에 실패했습니다.");
+    }
+  };
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex gap-2">
+      {/* 카카오톡 공유 버튼 (카카오 공식 노란색 적용) */}
       <button
         onClick={handleKakaoShare}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-[#FEE500] text-[#191919] hover:brightness-95 transition"
+        className="flex items-center gap-1.5 px-4 py-2.5 bg-[#FEE500] text-[#191919] text-xs font-bold rounded-xl hover:bg-[#FEE500]/90 transition shadow-sm btn-press"
       >
-        <Share2 size={13} strokeWidth={2} />
-        카카오톡 공유
+        <MessageCircle size={16} fill="#191919" className="text-[#FEE500]" /> 카카오톡 공유
       </button>
+      
+      {/* 일반 링크 복사 버튼 */}
       <button
         onClick={handleCopyLink}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition"
+        className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-200 transition shadow-sm btn-press"
       >
-        {copied ? <Check size={13} strokeWidth={2} /> : <Link2 size={13} strokeWidth={2} />}
-        {copied ? "복사됨!" : "링크 복사"}
+        <LinkIcon size={14} /> 링크 복사
       </button>
     </div>
   );
