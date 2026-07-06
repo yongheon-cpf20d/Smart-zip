@@ -62,17 +62,6 @@ function PosterCard({ record }: { record: NewHighRecord }) {
     ? ((record.priceDiff / record.previousHighPrice) * 100).toFixed(1)
     : null;
 
-  // ✅ 네이버부동산은 단지별 고유ID가 있어야 정확한 페이지 진입 가능해서
-  //    단지명만으로 직접 URL 조합이 불안정함. 대신 네이버 통합검색으로 연결하면
-  //    네이버가 자동으로 해당 단지의 부동산 정보를 보여줌 (훨씬 안정적)
-  const naverSearchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(record.complexName + " 아파트")}`;
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    // 다운로드 버튼 클릭 시에는 카드 이동 막기
-    if ((e.target as HTMLElement).closest("button")) return;
-    window.open(naverSearchUrl, "_blank", "noopener,noreferrer");
-  };
-
   const download = useCallback(async () => {
     if (!cardRef.current || downloading) return;
     setDownloading(true);
@@ -102,8 +91,16 @@ function PosterCard({ record }: { record: NewHighRecord }) {
     }
   }, [record, downloading]);
 
+  // ✅ 카드 클릭 시 이미지 다운로드 여부를 confirm으로 물어봄 (기존 네이버 자동이동은 불편해서 제거)
+  const handleCardClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button")) return;
+    if (confirm("이 신고가 카드를 이미지로 저장하시겠습니까?")) {
+      download();
+    }
+  };
+
   return (
-    <div className="relative group hover-lift" onClick={handleCardClick} style={{ cursor: "pointer" }} title="네이버부동산에서 검색하기">
+    <div className="relative group hover-lift" onClick={handleCardClick} style={{ cursor: "pointer" }} title="클릭하면 이미지로 저장할 수 있습니다">
       {/* 포스터 본체 (캡처 대상) */}
       <div
         ref={cardRef}
@@ -211,13 +208,15 @@ function PosterCard({ record }: { record: NewHighRecord }) {
           marginTop: "auto",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {/* SVG 로고 이미지 */}
-            <img
-              src="/logo.svg"
-              alt="똑집 DDokzip"
-              style={{ height: 18, width: "auto", objectFit: "contain" }}
-              crossOrigin="anonymous"
-            />
+            {/* ✅ 로고를 <img src="/logo.svg">가 아닌 인라인 SVG로 직접 삽입.
+                html2canvas가 외부 이미지 파일 로딩을 기다리지 못하고 캡처해버려서
+                다운로드한 이미지에서 로고만 사라지는 문제가 있었음. 인라인으로 넣으면
+                이미지 로딩 자체가 필요 없어서 항상 안정적으로 캡처됨. */}
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ height: 18, width: 18 }}>
+              <path d="M50 14 L14 44 V86 C14 88.2 15.8 90 18 90 H82 C84.2 90 86 88.2 86 86 V44 Z" fill="#ebfbf5" />
+              <path d="M50 14 L14 44 V86 C14 88.2 15.8 90 18 90 H82 C84.2 90 86 88.2 86 86 V44 Z" stroke="#10b981" strokeWidth="7.5" strokeLinejoin="round" strokeLinecap="round" />
+              <path d="M31 59 L45 73 L69 49" stroke="#10b981" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             <span style={{ color: "#334155", fontSize: 9, fontWeight: 700 }}>
               똑집<span style={{ color: "#94a3b8", fontWeight: 400 }}>, 똑똑한 부동산 길잡이</span>
             </span>
