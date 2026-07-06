@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "../components/Footer";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -96,6 +97,12 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Script
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
+          strategy="beforeInteractive"
+          integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtcfe70V9gVXjXtaC12ojr55Uv/2j0LxUwWjaHrX3+j80"
+          crossOrigin="anonymous"
+        />
         {children}
         <Footer />
       </body>

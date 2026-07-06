@@ -293,6 +293,7 @@ export default function NewHighPage() {
     fetchNewHighs();
   }, []);
 
+
   const switchView = (view: RegionView) => {
     setIsAnimating(true);
     setSelectedDistrict(null);

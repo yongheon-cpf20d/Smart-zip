@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Building2, FileCheck, CheckCircle2 } from "lucide-react";
 import PriceInput from "@/components/PriceInput";
+import ShareButton from "@/components/ShareButton"; // ✅ 1. 공유 버튼 컴포넌트 임포트
 
 // ✅ 법령 출처
 // 재산세: 지방세법 제110조(과세표준), 제111조(세율), 제111조의2(1세대1주택 특례),
@@ -14,17 +16,13 @@ import PriceInput from "@/components/PriceInput";
 
 const fmtWon = (n: number) => Math.round(n).toLocaleString("ko-KR") + "원";
 
-// ── 재산세 공정시장가액비율 (2026년 기준, 지방세법 시행령 제109조) ──
-// 1세대1주택: 3억 이하 43%, 6억 이하 44%, 6억 초과 45% (9억 초과도 45% 적용)
-// 다주택/법인: 60%
 function getFairRatio(price: number, isOneHouse: boolean): number {
   if (!isOneHouse) return 0.60;
   if (price <= 300_000_000) return 0.43;
   if (price <= 600_000_000) return 0.44;
-  return 0.45; // 6억 초과 전체 (9억 초과 포함)
+  return 0.45; 
 }
 
-// 재산세 한계세율 (중복분 계산용): 과세표준 구간별 최고 적용세율
 function getMarginalRate(base: number): number {
   if (base <= 60_000_000) return 0.001;
   if (base <= 150_000_000) return 0.0015;
@@ -32,15 +30,13 @@ function getMarginalRate(base: number): number {
   return 0.004;
 }
 
-// ── 재산세 세율 ───────────────────────────────────────────────
-// 1세대1주택 특례 (지방세법 제111조의2): 공시가격 9억 이하만 적용
 function getPropertyTaxOneHouse(base: number): number {
   if (base <= 60_000_000) return base * 0.0005;
   if (base <= 150_000_000) return 30_000 + (base - 60_000_000) * 0.001;
   if (base <= 300_000_000) return 120_000 + (base - 150_000_000) * 0.002;
   return 420_000 + (base - 300_000_000) * 0.0035;
 }
-// 일반세율 (지방세법 제111조제1항제3호나목)
+
 function getPropertyTaxStandard(base: number): number {
   if (base <= 60_000_000) return base * 0.001;
   if (base <= 150_000_000) return 60_000 + (base - 60_000_000) * 0.0015;
@@ -48,7 +44,6 @@ function getPropertyTaxStandard(base: number): number {
   return 570_000 + (base - 300_000_000) * 0.004;
 }
 
-// ── 종부세 세율 (종합부동산세법 제9조제1항) ───────────────────
 function calcCSVRaw(base: number, is3Plus: boolean): number {
   if (!is3Plus) {
     if (base <= 300_000_000) return base * 0.005;
@@ -69,12 +64,10 @@ function calcCSVRaw(base: number, is3Plus: boolean): number {
   }
 }
 
-// 법인 종부세: 공제 없이 단일세율 (제9조제2항)
 function calcCSVCorporation(base: number, is3Plus: boolean): number {
   return base * (is3Plus ? 0.05 : 0.027);
 }
 
-// 1세대1주택 고령자/장기보유 세액공제 (제9조제5~7항), 최대 80%
 function getAgeDeductionRate(age: number): number {
   if (age >= 70) return 0.4;
   if (age >= 65) return 0.3;
@@ -89,9 +82,6 @@ function getHoldingDeductionRate(years: number): number {
 }
 
 type OwnerType = "sole" | "joint-no-special" | "joint-special";
-// sole: 단독명의
-// joint-no-special: 공동명의(특례 미신청) — 각자 9억 공제, 세액공제 없음
-// joint-special: 공동명의(특례 신청) — 전체 12억 공제, 세액공제 있음
 type HouseCount = "1" | "2" | "3+";
 
 const OWNER_TYPE_OPTIONS: { key: OwnerType; label: string; desc: string }[] = [
@@ -100,41 +90,38 @@ const OWNER_TYPE_OPTIONS: { key: OwnerType; label: string; desc: string }[] = [
   { key: "joint-special", label: "공동명의\n(특례 신청)", desc: "12억 공제·세액공제" },
 ];
 
-export default function TaxHoldPage() {
+function TaxHoldPageContent() {
   const resultRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
   const [priceInput, setPriceInput] = useState("");
   const [ownerType, setOwnerType] = useState<OwnerType>("sole");
-  const [jointShare, setJointShare] = useState("50"); // 공동명의 시 본인 지분율(%)
+  const [jointShare, setJointShare] = useState("50");
   const [isCorporation, setIsCorporation] = useState(false);
   const [isOneHouse, setIsOneHouse] = useState(true);
   const [houseCount, setHouseCount] = useState<HouseCount>("1");
-  const [isUrban, setIsUrban] = useState(true); // 도시지역분
+  const [isUrban, setIsUrban] = useState(true);
 
-  // 고령자/장기보유 공제 (1세대1주택 + 단독 or 공동명의특례신청 시만)
   const [applyDeduction, setApplyDeduction] = useState(false);
   const [age, setAge] = useState("");
   const [holdingYears, setHoldingYears] = useState("");
 
   const [result, setResult] = useState<{
-    // 재산세 관련
     propTaxBase: number;
     propTax: number;
     eduTax: number;
     urbanTax: number;
-    // 종부세 관련
     csvBase: number;
     csvRaw: number;
     csvDeductRate: number;
     csvDeductAmt: number;
-    csvPropDeductAmt: number; // 재산세 중복분 공제액
+    csvPropDeductAmt: number;
     csvFinal: number;
     ruralTax: number;
-    // 합계
     total: number;
-    isCSVTarget: boolean; // 종부세 과세 대상 여부
-    // 공동명의 특례 미신청 시 각자 계산
+    isCSVTarget: boolean;
     isJointNoSpecial: boolean;
-    eachTotal?: number; // 각자 납부액
+    eachTotal?: number;
   } | null>(null);
 
   const isJoint = ownerType !== "sole";
@@ -142,35 +129,91 @@ export default function TaxHoldPage() {
     isOneHouse && !isCorporation &&
     (ownerType === "sole" || ownerType === "joint-special");
 
-  const calculate = () => {
-    const price = Number(priceInput) * 10000;
+  // ✅ 2. URL 쿼리 파라미터로 상태값 복원 (Hydration)
+  useEffect(() => {
+    const spPrice = searchParams.get("price");
+    if (spPrice) {
+      setPriceInput(spPrice);
+      if (searchParams.get("ownerType")) setOwnerType(searchParams.get("ownerType") as OwnerType);
+      if (searchParams.get("jointShare")) setJointShare(searchParams.get("jointShare")!);
+      if (searchParams.get("isCorporation")) setIsCorporation(searchParams.get("isCorporation") === "true");
+      if (searchParams.get("isOneHouse")) setIsOneHouse(searchParams.get("isOneHouse") === "true");
+      if (searchParams.get("houseCount")) setHouseCount(searchParams.get("houseCount") as HouseCount);
+      if (searchParams.get("isUrban")) setIsUrban(searchParams.get("isUrban") === "true");
+      if (searchParams.get("applyDeduction")) setApplyDeduction(searchParams.get("applyDeduction") === "true");
+      if (searchParams.get("age")) setAge(searchParams.get("age")!);
+      if (searchParams.get("holdingYears")) setHoldingYears(searchParams.get("holdingYears")!);
+    }
+  }, [searchParams]);
+
+  // ✅ 3. 필수 입력값(공시가격)이 링크에 있으면 즉시 계산 (Auto-Run)
+  useEffect(() => {
+    const spPrice = searchParams.get("price");
+    if (spPrice) {
+      const t = setTimeout(() => {
+        calculate({
+          price: spPrice,
+          ownerType: (searchParams.get("ownerType") as OwnerType) || "sole",
+          jointShare: searchParams.get("jointShare") || "50",
+          isCorporation: searchParams.get("isCorporation") === "true",
+          isOneHouse: searchParams.get("isOneHouse") !== "false", // 기본값 true
+          houseCount: (searchParams.get("houseCount") as HouseCount) || "1",
+          isUrban: searchParams.get("isUrban") !== "false", // 기본값 true
+          applyDeduction: searchParams.get("applyDeduction") === "true",
+          age: searchParams.get("age") || "",
+          holdingYears: searchParams.get("holdingYears") || "",
+        });
+      }, 300);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ✅ 4. 계산 함수 (URL 강제 주입용 overrideParams 허용)
+  const calculate = (overrideParams?: {
+    price: string;
+    ownerType: OwnerType;
+    jointShare: string;
+    isCorporation: boolean;
+    isOneHouse: boolean;
+    houseCount: HouseCount;
+    isUrban: boolean;
+    applyDeduction: boolean;
+    age: string;
+    holdingYears: string;
+  }) => {
+    const tPrice = overrideParams ? overrideParams.price : priceInput;
+    const tOwnerType = overrideParams ? overrideParams.ownerType : ownerType;
+    const tJointShare = overrideParams ? overrideParams.jointShare : jointShare;
+    const tIsCorporation = overrideParams ? overrideParams.isCorporation : isCorporation;
+    const tIsOneHouse = overrideParams ? overrideParams.isOneHouse : isOneHouse;
+    const tHouseCount = overrideParams ? overrideParams.houseCount : houseCount;
+    const tIsUrban = overrideParams ? overrideParams.isUrban : isUrban;
+    const tApplyDeduction = overrideParams ? overrideParams.applyDeduction : applyDeduction;
+    const tAge = overrideParams ? overrideParams.age : age;
+    const tHoldingYears = overrideParams ? overrideParams.holdingYears : holdingYears;
+
+    const price = Number(tPrice) * 10000;
     if (!price) { alert("공시가격을 입력해주세요."); return; }
 
-    const is3Plus = houseCount === "3+";
-    const shareRatio = isJoint ? Number(jointShare) / 100 : 1;
+    const is3Plus = tHouseCount === "3+";
+    const isJointCase = tOwnerType !== "sole";
+    const shareRatio = isJointCase ? Number(tJointShare) / 100 : 1;
 
     // ── 재산세 계산 ────────────────────────────────────────────
-    // 공정시장가액비율: 1세대1주택은 공시가격 구간별 43~45% (9억 초과도 45%)
-    // 특례세율(0.05% 인하): 공시가격 9억 이하 1세대1주택만 적용 (공정시장가액비율과 별개)
-    const fairRatio = getFairRatio(price, isOneHouse && !isCorporation);
+    const fairRatio = getFairRatio(price, tIsOneHouse && !tIsCorporation);
     const propBase = price * fairRatio;
 
-    const canUseOneHouseTaxRate =
-      isOneHouse && !isCorporation && price <= 900_000_000;
-      // ✅ 재산세 1세대1주택 특례(지방세법 제111조의2)는 세대 기준 1주택 여부만 따짐.
-      //    종부세 공동명의 특례 신청 여부(ownerType)와는 무관한 별개 제도이므로
-      //    ownerType 조건을 제거함 (제미나이 피드백 반영).
+    const canUseOneHouseTaxRate = tIsOneHouse && !tIsCorporation && price <= 900_000_000;
 
     const propTax = canUseOneHouseTaxRate
       ? getPropertyTaxOneHouse(propBase)
       : getPropertyTaxStandard(propBase);
 
-    const eduTax = propTax * 0.2; // 지방교육세: 재산세×20%
-    const urbanTax = isUrban ? propBase * 0.0014 : 0; // 도시지역분: 과세표준×0.14%
+    const eduTax = propTax * 0.2;
+    const urbanTax = tIsUrban ? propBase * 0.0014 : 0;
 
     // ── 종부세 계산 ────────────────────────────────────────────
-    // ✅ 종합부동산세법 제8조제1항: 기본공제는 9억(1세대1주택 12억), 단 법인은 0원
-    //    출처: 국세청 「종합부동산세 세액계산 흐름도」 — "9억 원(1세대1주택자 12억원, 법인 0원)"
     let csvBase = 0;
     let csvRaw = 0;
     let csvDeductRate = 0;
@@ -179,54 +222,46 @@ export default function TaxHoldPage() {
     let eachCSV = 0;
     let csvPropDeductAmt = 0;
 
-    if (ownerType === "joint-no-special") {
-      // 공동명의 특례 미신청: 본인 지분만큼만 보유로 보고 각자 공제
-      // ✅ 법인은 공제 0원 (기존엔 무조건 9억 공제하던 버그 수정)
-      const deduction = isCorporation ? 0 : 900_000_000;
+    const tCanApplyDeduction = tIsOneHouse && !tIsCorporation && (tOwnerType === "sole" || tOwnerType === "joint-special");
+
+    if (tOwnerType === "joint-no-special") {
+      const deduction = tIsCorporation ? 0 : 900_000_000;
       const myPrice = price * shareRatio;
       csvBase = Math.max(myPrice - deduction, 0) * 0.6;
-      csvRaw = isCorporation ? calcCSVCorporation(csvBase, is3Plus) : calcCSVRaw(csvBase, is3Plus);
+      csvRaw = tIsCorporation ? calcCSVCorporation(csvBase, is3Plus) : calcCSVRaw(csvBase, is3Plus);
 
-      // ✅ 공동명의 미신청이라도 이중과세 방지를 위한 재산세 중복분 공제는 필수
-      //    (기존엔 이 케이스만 공제가 누락되어 세금이 과다 계산되던 버그 수정)
       csvPropDeductAmt = csvBase * fairRatio * getMarginalRate(propBase);
-      csvFinal = Math.max(csvRaw - csvPropDeductAmt, 0); // 세액공제(고령자·장기보유)는 미적용
-      eachCSV = csvFinal; // 본인 납부액
+      csvFinal = Math.max(csvRaw - csvPropDeductAmt, 0); 
+      eachCSV = csvFinal;
     } else {
-      // 단독명의 or 공동명의특례신청: 전체 공시가격 기준
-      // ✅ 법인은 무조건 공제 0원 (기존엔 isOneHouse가 false면 9억 공제받던 버그 수정)
       let deduction = 0;
-      if (!isCorporation) {
-        deduction = isOneHouse ? 1_200_000_000 : 900_000_000;
+      if (!tIsCorporation) {
+        deduction = tIsOneHouse ? 1_200_000_000 : 900_000_000;
       }
       csvBase = Math.max(price - deduction, 0) * 0.6;
-      csvRaw = isCorporation
+      csvRaw = tIsCorporation
         ? calcCSVCorporation(csvBase, is3Plus)
         : calcCSVRaw(csvBase, is3Plus);
 
-      // ✅ 재산세 중복분 공제 (종합부동산세법 제9조제3항, 시행령 제4조의3)
       csvPropDeductAmt = csvBase * fairRatio * getMarginalRate(propBase);
       const csvAfterPropDeduct = Math.max(csvRaw - csvPropDeductAmt, 0);
 
-      // 고령자/장기보유 세액공제
-      if (applyDeduction && canApplyDeduction) {
-        const ageRate = getAgeDeductionRate(Number(age));
-        const holdRate = getHoldingDeductionRate(Number(holdingYears));
+      if (tApplyDeduction && tCanApplyDeduction) {
+        const ageRate = getAgeDeductionRate(Number(tAge));
+        const holdRate = getHoldingDeductionRate(Number(tHoldingYears));
         csvDeductRate = Math.min(ageRate + holdRate, 0.8);
         csvDeductAmt = csvAfterPropDeduct * csvDeductRate;
       }
       csvFinal = Math.max(csvAfterPropDeduct - csvDeductAmt, 0);
     }
 
-    const ruralTax = csvFinal * 0.2; // 농어촌특별세: 종부세×20%
+    const ruralTax = csvFinal * 0.2;
     const isCSVTarget = csvBase > 0;
 
-    // ── 총 납부세액 ────────────────────────────────────────────
     const total = propTax + eduTax + urbanTax + csvFinal + ruralTax;
 
-    // 공동명의 특례 미신청: 각자 납부액 계산 (재산세는 지분 비례)
     let eachTotal: number | undefined;
-    if (ownerType === "joint-no-special") {
+    if (tOwnerType === "joint-no-special") {
       const myPropTax = propTax * shareRatio;
       const myEduTax = myPropTax * 0.2;
       const myUrbanTax = urbanTax * shareRatio;
@@ -247,7 +282,7 @@ export default function TaxHoldPage() {
       ruralTax,
       total,
       isCSVTarget,
-      isJointNoSpecial: ownerType === "joint-no-special",
+      isJointNoSpecial: tOwnerType === "joint-no-special",
       eachTotal,
     });
 
@@ -390,7 +425,6 @@ export default function TaxHoldPage() {
             </div>
           </div>
 
-          {/* 도시지역분 */}
           <label className="flex items-center gap-2 text-sm cursor-pointer pt-2 border-t border-slate-100">
             <input type="checkbox" checked={isUrban}
               onChange={(e) => setIsUrban(e.target.checked)}
@@ -399,7 +433,6 @@ export default function TaxHoldPage() {
             <span className="text-[10px] text-slate-400">서울·수도권 아파트는 대부분 해당</span>
           </label>
 
-          {/* 고령자/장기보유 공제 */}
           {canApplyDeduction && (
             <>
               <label className="flex items-center gap-2 text-sm cursor-pointer pt-2 border-t border-slate-100">
@@ -430,7 +463,7 @@ export default function TaxHoldPage() {
           )}
         </div>
 
-        <button onClick={calculate}
+        <button onClick={() => calculate()}
           className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition btn-press">
           계산하기
         </button>
@@ -440,7 +473,6 @@ export default function TaxHoldPage() {
           <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 result-enter">
             <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
 
-            {/* 종부세 과세대상 알림 */}
             {result.isCSVTarget ? (
               <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-700">
                 <FileCheck size={14} strokeWidth={1.75} className="shrink-0" />
@@ -453,7 +485,6 @@ export default function TaxHoldPage() {
               </div>
             )}
 
-            {/* 세목별 내역 */}
             <div className="space-y-0 text-sm">
               <p className="text-[11px] font-bold text-slate-400 mb-1">재산세 관련</p>
               <div className="flex justify-between py-2 border-b border-slate-100">
@@ -500,7 +531,6 @@ export default function TaxHoldPage() {
               </div>
             </div>
 
-            {/* 총 납부세액 */}
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center mt-2">
               <p className="text-xs text-emerald-600 font-semibold mb-1">
                 {result.isJointNoSpecial ? "본인 납부세액 (지분 기준)" : "총 납부세액"}
@@ -515,6 +545,26 @@ export default function TaxHoldPage() {
               )}
             </div>
 
+            {/* ✅ 5. 공유하기 버튼 추가 */}
+            <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+              <ShareButton
+                title="보유세 계산 결과 - 똑집"
+                description={`공시가격 ${fmtWon(Number(priceInput)*10000)} 기준, 예상 납부세액 ${fmtWon(result.isJointNoSpecial && result.eachTotal !== undefined ? result.eachTotal : result.total)}`}
+                params={{
+                  price: priceInput,
+                  ownerType,
+                  jointShare,
+                  isCorporation: String(isCorporation),
+                  isOneHouse: String(isOneHouse),
+                  houseCount,
+                  isUrban: String(isUrban),
+                  applyDeduction: String(applyDeduction),
+                  age,
+                  holdingYears,
+                }}
+              />
+            </div>
+
             <p className="text-[10px] text-slate-400 pt-2 leading-relaxed">
               출처: 지방세법 제110조·제111조·제111조의2(재산세), 제112조(도시지역분), 제151조(지방교육세),
               종합부동산세법 제8조·제9조·제10조의2(공동명의 특례).
@@ -527,5 +577,14 @@ export default function TaxHoldPage() {
 
       </div>
     </div>
+  );
+}
+
+// ✅ 6. Next.js App Router용 안전한 Suspense 컴포넌트 처리
+export default function TaxHoldPage() {
+  return (
+    <Suspense fallback={null}>
+      <TaxHoldPageContent />
+    </Suspense>
   );
 }

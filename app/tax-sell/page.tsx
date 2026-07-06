@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { TrendingUp } from "lucide-react";
 import PriceInput from "@/components/PriceInput";
+import ShareButton from "@/components/ShareButton"; // ✅ 1. 공유 버튼 컴포넌트 임포트
 
 // ✅ 법령 출처: 소득세법 제55조(세율), 제95조(장기보유특별공제), 제103조(기본공제), 제104조(양도소득세 세율)
 // 규제 변경 시 이 파일의 세율표/공제율만 수정하면 전체 반영됨.
@@ -39,11 +41,8 @@ function getMultiHouseSurcharge(houseCount: "1" | "2" | "3+", isAdjusted: boolea
 
 // ── 1세대1주택 장기보유특별공제 (제95조제2항 표2) ──
 function getOneHouseLTCG(holdingYears: number, livingYears: number): number {
-  // 1. 3년 미만 보유 시 전면 배제
   if (holdingYears < 3) return 0;
-  // 2. 거주 2년 미만 → 일반표(연 2%, 최대 30%)로 강등
   if (livingYears < 2) return getGeneralLTCG(holdingYears);
-  // 3. 3년 이상 보유 + 2년 이상 거주 → 보유4%+거주4%, 최대 80%
   const holdingRate = Math.min(Math.floor(holdingYears) * 0.04, 0.4);
   const livingRate = Math.min(Math.floor(livingYears) * 0.04, 0.4);
   return Math.min(holdingRate + livingRate, 0.8);
@@ -56,25 +55,27 @@ function getGeneralLTCG(holdingYears: number): number {
   return rate;
 }
 
-const BASIC_DEDUCTION = 2_500_000; // 양도소득 기본공제 (제103조)
-const ONE_HOUSE_NONTAX_LIMIT = 1_200_000_000; // 1세대1주택 비과세 기준 (제89조제1항제3호) - 실거래가 12억
+const BASIC_DEDUCTION = 2_500_000;
+const ONE_HOUSE_NONTAX_LIMIT = 1_200_000_000;
 
 type HouseCount = "1" | "2" | "3+";
 
-export default function TaxSellPage() {
-  const [salePrice, setSalePrice] = useState(""); // 양도가액, 만원
-  const [purchasePrice, setPurchasePrice] = useState(""); // 취득가액, 만원
-  const [otherExpenses, setOtherExpenses] = useState(""); // 필요경비(중개수수료 등), 만원
+function TaxSellPageContent() {
+  const searchParams = useSearchParams();
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  const [salePrice, setSalePrice] = useState(""); 
+  const [purchasePrice, setPurchasePrice] = useState(""); 
+  const [otherExpenses, setOtherExpenses] = useState(""); 
   const [holdingYears, setHoldingYears] = useState("");
 
   const [isOneHouse, setIsOneHouse] = useState(true);
   const [livingYears, setLivingYears] = useState("");
-  const [meetsNonTaxRequirement, setMeetsNonTaxRequirement] = useState(true); // 2년 보유(조정지역은 거주 포함) 요건 충족 여부
+  const [meetsNonTaxRequirement, setMeetsNonTaxRequirement] = useState(true);
 
   const [applyMultiHouseTax, setApplyMultiHouseTax] = useState(false);
   const [houseCount, setHouseCount] = useState<HouseCount>("2");
   const [isAdjustedArea, setIsAdjustedArea] = useState(false);
-  const resultRef = useRef<HTMLDivElement>(null);
 
   const [result, setResult] = useState<{
     gainBeforeLTCG: number;
@@ -91,11 +92,76 @@ export default function TaxSellPage() {
     nonTaxableNote: string;
   } | null>(null);
 
-  const calculate = () => {
-    const sale = Number(salePrice) * 10000;
-    const purchase = Number(purchasePrice) * 10000;
-    const expenses = Number(otherExpenses) * 10000;
-    const years = Number(holdingYears);
+  // ✅ 2. URL 쿼리 파라미터로 상태값 복원 (Hydration)
+  useEffect(() => {
+    const spSale = searchParams.get("sale");
+    if (spSale) {
+      setSalePrice(spSale);
+      if (searchParams.get("purchase")) setPurchasePrice(searchParams.get("purchase")!);
+      if (searchParams.get("expenses")) setOtherExpenses(searchParams.get("expenses")!);
+      if (searchParams.get("holdingYears")) setHoldingYears(searchParams.get("holdingYears")!);
+      if (searchParams.get("isOneHouse")) setIsOneHouse(searchParams.get("isOneHouse") === "true");
+      if (searchParams.get("livingYears")) setLivingYears(searchParams.get("livingYears")!);
+      if (searchParams.get("meetsNonTaxRequirement")) setMeetsNonTaxRequirement(searchParams.get("meetsNonTaxRequirement") === "true");
+      if (searchParams.get("applyMultiHouseTax")) setApplyMultiHouseTax(searchParams.get("applyMultiHouseTax") === "true");
+      if (searchParams.get("houseCount")) setHouseCount(searchParams.get("houseCount") as HouseCount);
+      if (searchParams.get("isAdjustedArea")) setIsAdjustedArea(searchParams.get("isAdjustedArea") === "true");
+    }
+  }, [searchParams]);
+
+  // ✅ 3. 필수 입력값(양도/취득가액)이 링크에 있으면 즉시 계산 (Auto-Run)
+  useEffect(() => {
+    const spSale = searchParams.get("sale");
+    const spPurchase = searchParams.get("purchase");
+
+    if (spSale && spPurchase) {
+      const t = setTimeout(() => {
+        calculate({
+          sale: spSale,
+          purchase: spPurchase,
+          expenses: searchParams.get("expenses") || "",
+          holdingYears: searchParams.get("holdingYears") || "",
+          isOneHouse: searchParams.get("isOneHouse") !== "false", // 기본값 true
+          livingYears: searchParams.get("livingYears") || "",
+          meetsNonTaxRequirement: searchParams.get("meetsNonTaxRequirement") !== "false", // 기본값 true
+          applyMultiHouseTax: searchParams.get("applyMultiHouseTax") === "true",
+          houseCount: (searchParams.get("houseCount") as HouseCount) || "2", // 기본값 2
+          isAdjustedArea: searchParams.get("isAdjustedArea") === "true",
+        });
+      }, 300);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ✅ 4. 계산 함수 (URL 강제 주입용 overrideParams 허용)
+  const calculate = (overrideParams?: {
+    sale: string;
+    purchase: string;
+    expenses: string;
+    holdingYears: string;
+    isOneHouse: boolean;
+    livingYears: string;
+    meetsNonTaxRequirement: boolean;
+    applyMultiHouseTax: boolean;
+    houseCount: HouseCount;
+    isAdjustedArea: boolean;
+  }) => {
+    const tSale = overrideParams ? overrideParams.sale : salePrice;
+    const tPurchase = overrideParams ? overrideParams.purchase : purchasePrice;
+    const tExpenses = overrideParams ? overrideParams.expenses : otherExpenses;
+    const tHoldingYears = overrideParams ? overrideParams.holdingYears : holdingYears;
+    const tIsOneHouse = overrideParams ? overrideParams.isOneHouse : isOneHouse;
+    const tLivingYears = overrideParams ? overrideParams.livingYears : livingYears;
+    const tMeetsNonTaxReq = overrideParams ? overrideParams.meetsNonTaxRequirement : meetsNonTaxRequirement;
+    const tApplyMulti = overrideParams ? overrideParams.applyMultiHouseTax : applyMultiHouseTax;
+    const tHouseCount = overrideParams ? overrideParams.houseCount : houseCount;
+    const tIsAdjusted = overrideParams ? overrideParams.isAdjustedArea : isAdjustedArea;
+
+    const sale = Number(tSale) * 10000;
+    const purchase = Number(tPurchase) * 10000;
+    const expenses = Number(tExpenses) * 10000;
+    const years = Number(tHoldingYears);
 
     if (!sale || !purchase) {
       alert("양도가액과 취득가액을 입력해주세요.");
@@ -104,21 +170,16 @@ export default function TaxSellPage() {
 
     const gainBeforeLTCGRaw = Math.max(sale - purchase - expenses, 0);
 
-    // ✅ 1세대1주택 비과세 판정 (소득세법 제89조제1항제3호)
-    // - 실거래가 12억원 이하: 전액 비과세
-    // - 12억원 초과(고가주택): (양도차익 - 비과세 해당분)만 과세
-    //   비과세 해당분 = 전체 양도차익 × (12억원 / 양도가액)
     let isNonTaxable = false;
     let nonTaxableNote = "";
     let gainBeforeLTCG = gainBeforeLTCGRaw;
 
-    if (isOneHouse && meetsNonTaxRequirement) {
+    if (tIsOneHouse && tMeetsNonTaxReq) {
       if (sale <= ONE_HOUSE_NONTAX_LIMIT) {
         isNonTaxable = true;
         nonTaxableNote = "양도가액이 12억원 이하로 전액 비과세 대상입니다.";
         gainBeforeLTCG = 0;
       } else {
-        // 고가주택: 과세대상 양도차익만 추출
         const taxablePortion = (sale - ONE_HOUSE_NONTAX_LIMIT) / sale;
         gainBeforeLTCG = gainBeforeLTCGRaw * taxablePortion;
         nonTaxableNote = `고가주택(12억원 초과)으로 과세대상 양도차익만 계산되었습니다. (전체 차익의 ${(taxablePortion * 100).toFixed(1)}%만 과세)`;
@@ -140,21 +201,17 @@ export default function TaxSellPage() {
         isNonTaxable: true,
         nonTaxableNote,
       });
+      setTimeout(() => { resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100);
       return;
     }
 
-    // 장기보유특별공제
-    // ✅ 소득세법 제95조②항: 다주택자 중과 적용 시 장특공제 전면 배제
-    // 단, 중과 유예기간(2022.5.10~2026.5.9) 중 양도분은 장특공제 적용 가능했으나
-    // 2026.5.10 이후 유예 종료 → 현재는 중과 적용 시 장특공제 배제
-    const isMultiHouseSurchargeApplied = applyMultiHouseTax &&
-      getMultiHouseSurcharge(houseCount, isAdjustedArea) > 0;
+    const isMultiHouseSurchargeApplied = tApplyMulti && getMultiHouseSurcharge(tHouseCount, tIsAdjusted) > 0;
 
     let ltcgRate = 0;
     if (isMultiHouseSurchargeApplied) {
-      ltcgRate = 0; // 중과 적용 시 장특공제 배제
-    } else if (isOneHouse) {
-      ltcgRate = getOneHouseLTCG(years, Number(livingYears));
+      ltcgRate = 0; 
+    } else if (tIsOneHouse) {
+      ltcgRate = getOneHouseLTCG(years, Number(tLivingYears));
     } else {
       ltcgRate = getGeneralLTCG(years);
     }
@@ -163,32 +220,24 @@ export default function TaxSellPage() {
     const gainAfterLTCG = gainBeforeLTCG - ltcgAmount;
     const taxableGain = Math.max(gainAfterLTCG - BASIC_DEDUCTION, 0);
 
-    // ── 세율 결정 및 비교과세 적용 ──────────────────────────────
-    // ✅ 소득세법 제104조제1항: "하나의 자산이 둘 이상의 세율에 해당할 때는
-    //    각각 계산한 산출세액 중 큰 것을 그 세액으로 한다" (비교과세)
-    //    → 단기보유(2년 미만) + 다주택 중과가 동시에 해당하면
-    //      [단기세율 세액] vs [기본세율+중과 세액] 중 큰 금액을 적용해야 함
-    //    출처: 국가법령정보센터 소득세법 제104조제1항, 국세청 「양도소득세 세율」 안내
     const shortTermRate = getShortTermRate(years);
     const isShortTermHolding = shortTermRate !== null;
     let appliedRate = 0;
     let surchargeRate = 0;
 
-    // 1. 기본세율(+다주택 중과) 산출세액
     let basicTax = getBasicTaxRate(taxableGain);
     let basicAppliedRate = 0;
-    if (applyMultiHouseTax) {
-      surchargeRate = getMultiHouseSurcharge(houseCount, isAdjustedArea);
+    if (tApplyMulti) {
+      surchargeRate = getMultiHouseSurcharge(tHouseCount, tIsAdjusted);
       basicTax += taxableGain * surchargeRate;
     }
     basicAppliedRate = basicTax / (taxableGain || 1);
 
     let tax = 0;
-    let isShortTermApplied = false; // 실제로 단기세율 쪽이 더 커서 적용됐는지 여부
+    let isShortTermApplied = false;
 
     if (isShortTermHolding) {
       const shortTermTax = taxableGain * shortTermRate!;
-      // 비교과세: 둘 중 큰 금액을 채택
       if (shortTermTax > basicTax) {
         tax = shortTermTax;
         appliedRate = shortTermRate!;
@@ -202,7 +251,6 @@ export default function TaxSellPage() {
       appliedRate = basicAppliedRate;
     }
 
-    // 지방소득세 (양도세의 10%)
     const localTax = tax * 0.1;
     const totalTax = tax + localTax;
 
@@ -212,8 +260,8 @@ export default function TaxSellPage() {
       ltcgAmount,
       taxableGain,
       appliedRate,
-      isShortTerm: isShortTermApplied, // 비교과세 결과 실제로 단기세율이 "승리"했을 때만 true
-      surchargeRate: isShortTermApplied ? 0 : surchargeRate, // 단기세율 적용시엔 중과 표시 숨김
+      isShortTerm: isShortTermApplied,
+      surchargeRate: isShortTermApplied ? 0 : surchargeRate,
       tax,
       localTax,
       totalTax,
@@ -383,13 +431,13 @@ export default function TaxSellPage() {
         </div>
 
         <button
-          onClick={calculate}
+          onClick={() => calculate()}
           className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition btn-press"
         >
           계산하기
         </button>
 
-        {/* 결과 */}
+        {/* 결과 - 비과세일 때 */}
         {result && result.isNonTaxable && (
           <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 result-enter">
             <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
@@ -398,7 +446,21 @@ export default function TaxSellPage() {
               <p className="text-2xl font-black text-emerald-700">0원</p>
               <p className="text-xs text-emerald-600 mt-2">{result.nonTaxableNote}</p>
             </div>
-            <p className="text-[10px] text-slate-400 pt-2 leading-relaxed">
+            
+            {/* ✅ 5-1. 공유하기 버튼 (비과세 결과) */}
+            <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+              <ShareButton
+                title="양도소득세 비과세 확인 - 똑집"
+                description={`양도가액 ${fmtWon(Number(salePrice)*10000)} 기준, 1세대 1주택 비과세 대상 (납부세액 0원)`}
+                params={{
+                  sale: salePrice, purchase: purchasePrice, expenses: otherExpenses, holdingYears,
+                  isOneHouse: String(isOneHouse), livingYears, meetsNonTaxRequirement: String(meetsNonTaxRequirement),
+                  applyMultiHouseTax: String(applyMultiHouseTax), houseCount, isAdjustedArea: String(isAdjustedArea),
+                }}
+              />
+            </div>
+
+            <p className="text-[10px] text-slate-400 pt-2 leading-relaxed border-t border-slate-100 mt-4">
               출처: 소득세법 제89조제1항제3호. 2년 이상 보유(조정대상지역 취득 시 2년 이상 거주 포함) 등
               비과세 요건은 사용자가 직접 확인한 것으로 간주하였습니다. 실제 요건 충족 여부는
               세무 전문가 확인이 필요합니다.
@@ -406,6 +468,7 @@ export default function TaxSellPage() {
           </div>
         )}
 
+        {/* 결과 - 과세 대상일 때 */}
         {result && !result.isNonTaxable && (
           <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 result-enter">
             <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
@@ -460,7 +523,20 @@ export default function TaxSellPage() {
               <p className="text-2xl font-black text-emerald-700">{fmtWon(result.totalTax)}</p>
             </div>
 
-            <p className="text-[10px] text-slate-400 pt-2 leading-relaxed">
+            {/* ✅ 5-2. 공유하기 버튼 (과세 결과) */}
+            <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+              <ShareButton
+                title="양도소득세 계산 결과 - 똑집"
+                description={`양도가액 ${fmtWon(Number(salePrice)*10000)} 기준, 예상 납부세액 ${fmtWon(result.totalTax)}`}
+                params={{
+                  sale: salePrice, purchase: purchasePrice, expenses: otherExpenses, holdingYears,
+                  isOneHouse: String(isOneHouse), livingYears, meetsNonTaxRequirement: String(meetsNonTaxRequirement),
+                  applyMultiHouseTax: String(applyMultiHouseTax), houseCount, isAdjustedArea: String(isAdjustedArea),
+                }}
+              />
+            </div>
+
+            <p className="text-[10px] text-slate-400 pt-2 leading-relaxed mt-4">
               출처: 소득세법 제55조(기본세율), 제89조(1세대1주택 비과세), 제95조(장기보유특별공제),
               제103조(양도소득 기본공제), 제104조(세율 및 다주택 중과).
               다주택 중과는 양도하는 주택이 조정대상지역에 있는 경우에만 적용되며, 세대 전체 주택수와
@@ -472,5 +548,14 @@ export default function TaxSellPage() {
 
       </div>
     </div>
+  );
+}
+
+// ✅ 6. Next.js App Router용 안전한 Suspense 컴포넌트 처리
+export default function TaxSellPage() {
+  return (
+    <Suspense fallback={null}>
+      <TaxSellPageContent />
+    </Suspense>
   );
 }

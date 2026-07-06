@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { Crown, ArrowLeft } from "lucide-react";
+import { Crown, ArrowLeft, MapPin, X } from "lucide-react";
+import NaverMap, { MapMarker } from "@/components/NaverMap";
+import ShareButton from "@/components/ShareButton"; // ✅ 1. 공유 버튼 컴포넌트 임포트
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,7 +41,9 @@ const fmtPrice = (won: number): string => {
   return `${man.toLocaleString()}만원`;
 };
 
-export default function TopAptByAreaPage() {
+function TopAptByAreaPageContent() {
+  const searchParams = useSearchParams();
+
   const [allRegions, setAllRegions] = useState<string[]>([]);
   const [regionLoading, setRegionLoading] = useState(true);
 
@@ -48,6 +53,28 @@ export default function TopAptByAreaPage() {
   const [results, setResults] = useState<TopApt[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // ✅ 단지 클릭 시 팝업으로 지도 표시
+  const [mapModalComplex, setMapModalComplex] = useState<TopApt | null>(null);
+  const [mapMarker, setMapMarker] = useState<MapMarker | null>(null);
+  const [mapModalLoading, setMapModalLoading] = useState(false);
+
+  // ✅ 2. 공유 링크로 접근 시 URL에서 지역과 평형대 읽어와서 화면 상태에 세팅 (Hydration)
+  useEffect(() => {
+    const spRegion = searchParams.get("region");
+    const spGroup = searchParams.get("group");
+    
+    if (spRegion) {
+      setSelectedRegion(spRegion);
+      // 서울/경기 탭 자동 전환
+      if (spRegion.startsWith("서울")) setSidoView("seoul");
+      else setSidoView("gyeonggi");
+    }
+    if (spGroup) {
+      setSelectedGroup(spGroup);
+    }
+  }, [searchParams]);
+
+  // 최초 전체 지역 목록 불러오기
   useEffect(() => {
     supabase
       .rpc("get_distinct_regions")
@@ -61,6 +88,7 @@ export default function TopAptByAreaPage() {
   const seoulRegions = allRegions.filter((r) => r.startsWith("서울")).sort();
   const gyeonggiRegions = allRegions.filter((r) => !r.startsWith("서울")).sort();
 
+  // ✅ 3. 선택된 지역과 평형대가 변경되면 (또는 URL 파라미터로 세팅되면) 자동으로 DB 쿼리 실행
   useEffect(() => {
     if (!selectedRegion || !selectedGroup) return;
     setLoading(true);
@@ -76,6 +104,44 @@ export default function TopAptByAreaPage() {
         setLoading(false);
       });
   }, [selectedRegion, selectedGroup]);
+
+  const openMapModal = async (complex: TopApt) => {
+    setMapModalComplex(complex);
+    setMapMarker(null);
+    setMapModalLoading(true);
+
+    try {
+      const res = await fetch("/api/locations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          complexes: [{
+            complexName: complex.complex_name,
+            dong: complex.dong,
+            regionName: complex.region_name,
+          }],
+        }),
+      });
+      const data = await res.json();
+      const loc = data.locations?.[0];
+      if (loc?.latitude && loc?.longitude) {
+        setMapMarker({
+          id: complex.complex_name,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          title: `${complex.complex_name} ${complex.area}㎡`,
+          subtitle: fmtPrice(complex.price),
+        });
+      }
+    } finally {
+      setMapModalLoading(false);
+    }
+  };
+
+  const closeMapModal = () => {
+    setMapModalComplex(null);
+    setMapMarker(null);
+  };
 
   const currentList = sidoView === "seoul" ? seoulRegions : sidoView === "gyeonggi" ? gyeonggiRegions : [];
 
@@ -191,7 +257,8 @@ export default function TopAptByAreaPage() {
               return (
                 <div
                   key={`${r.complex_name}-${r.dong}-${r.area}`}
-                  className={`flex items-center gap-3 rounded-xl p-3.5 border transition ${
+                  onClick={() => openMapModal(r)}
+                  className={`flex items-center gap-3 rounded-xl p-3.5 border transition cursor-pointer ${
                     isTop3 ? "bg-amber-50/50 border-amber-200" : "bg-white border-slate-200"
                   } hover-lift`}
                 >
@@ -209,6 +276,19 @@ export default function TopAptByAreaPage() {
                 </div>
               );
             })}
+
+            {/* ✅ 4. 공유하기 버튼 추가 — 랭킹 리스트 하단 */}
+            <div className="pt-3 mt-4 border-t border-slate-100 flex justify-end">
+              <ShareButton
+                title={`${selectedRegion} 대장아파트 TOP 10 - 똑집`}
+                description={`${selectedRegion} ${selectedGroup} 실거래가 순위입니다. (1위: ${results[0]?.complex_name} ${fmtPrice(results[0]?.price)})`}
+                params={{
+                  region: selectedRegion,
+                  group: selectedGroup,
+                }}
+              />
+            </div>
+
           </div>
         )}
 
@@ -217,6 +297,63 @@ export default function TopAptByAreaPage() {
           평형대는 시장 관행상 통용되는 범위(예: 34평형대=82~86㎡)로 묶은 것이며, 단지별 정확한 전용면적은 목록에 함께 표시됩니다.
         </p>
       </div>
+
+      {/* ✅ 단지 클릭 시 뜨는 지도 팝업 */}
+      {mapModalComplex && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={closeMapModal}
+        >
+          <div
+            className="bg-white rounded-2xl overflow-hidden w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <MapPin size={15} strokeWidth={1.75} className="text-rose-400" />
+                <h3 className="text-sm font-bold text-slate-700">{mapModalComplex.complex_name}</h3>
+              </div>
+              <button onClick={closeMapModal} className="text-slate-400 hover:text-slate-600 transition">
+                <X size={18} strokeWidth={2} />
+              </button>
+            </div>
+
+            {mapModalLoading ? (
+              <div className="h-[300px] bg-slate-100 animate-pulse" />
+            ) : mapMarker ? (
+              <NaverMap markers={[mapMarker]} height={300} />
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-xs text-slate-400 px-6 text-center">
+                위치 정보를 찾을 수 없습니다.
+              </div>
+            )}
+
+            <div className="p-4 space-y-1">
+              <p className="text-xs text-slate-400">
+                {mapModalComplex.dong} · 전용 {mapModalComplex.area}㎡ · {mapModalComplex.floor}층
+              </p>
+              <p className="text-lg font-black text-emerald-600">{fmtPrice(mapModalComplex.price)}</p>
+              <a
+                href={`https://search.naver.com/search.naver?query=${encodeURIComponent(mapModalComplex.complex_name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2 text-xs font-semibold text-emerald-600 hover:underline"
+              >
+                네이버에서 더 알아보기 →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// ✅ 5. Next.js App Router용 안전한 Suspense 컴포넌트 처리
+export default function TopAptByAreaPage() {
+  return (
+    <Suspense fallback={null}>
+      <TopAptByAreaPageContent />
+    </Suspense>
   );
 }

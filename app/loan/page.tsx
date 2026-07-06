@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import PriceInput from "@/components/PriceInput";
+import ShareButton from "@/components/ShareButton";
 
 type RepaymentType = "equal-pi" | "equal-principal" | "graduated";
 
@@ -28,7 +29,7 @@ type CalcResult = {
   firstMonthlyPrincipal: number;
   firstMonthlyInterest: number;
   yearlyData: YearlyData[];
-  lastMonthlyPayment?: number; // 체증식: 마지막 회차 원리금 (증가 확인용)
+  lastMonthlyPayment?: number;
 };
 
 const REPAYMENT_OPTIONS: { key: RepaymentType; label: string }[] = [
@@ -38,8 +39,8 @@ const REPAYMENT_OPTIONS: { key: RepaymentType; label: string }[] = [
 ];
 
 const QUICK_YEARS = [30, 40, 50];
-const GRACE_OPTIONS = [0, 1, 2, 3]; // 거치기간(년) 선택지
-const ESCALATION_OPTIONS = [2, 3, 5]; // 체증식 연간 증가율(%) 선택지
+const GRACE_OPTIONS = [0, 1, 2, 3];
+const ESCALATION_OPTIONS = [2, 3, 5];
 
 function LoanPageContent() {
   const searchParams = useSearchParams();
@@ -47,27 +48,76 @@ function LoanPageContent() {
   const [loanAmountInput, setLoanAmountInput] = useState("");
   const [loanYears, setLoanYears] = useState("");
   const [interestRate, setInterestRate] = useState("");
-  const [graceYears, setGraceYears] = useState(0); // 거치기간(년) — 원리금균등/원금균등에 적용
-  const [escalationRate, setEscalationRate] = useState(3); // 체증식 연간 증가율(%)
+  const [graceYears, setGraceYears] = useState(0);
+  const [escalationRate, setEscalationRate] = useState(3);
   const [result, setResult] = useState<CalcResult | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
-
-  // ✅ 총비용 계산기에서 "?amount=5000" (만원 단위) 형태로 넘어오면 자동 입력
-  //    이 경우 남은 입력(금리·기간)을 채우도록 유도하는 강조 표시(highlightRemaining)를 켬
   const [highlightRemaining, setHighlightRemaining] = useState(false);
+
+  // ✅ 1. URL 쿼리 파라미터로 상태값(입력창) 채워주기
   useEffect(() => {
-    const amountFromUrl = searchParams.get("amount");
-    if (amountFromUrl) {
-      setLoanAmountInput(amountFromUrl);
-      setHighlightRemaining(true);
+    const sharedAmount = searchParams.get("amount");
+    const sharedRepaymentType = searchParams.get("repaymentType");
+    const sharedYears = searchParams.get("years");
+    const sharedRate = searchParams.get("rate");
+    const sharedGrace = searchParams.get("grace");
+    const sharedEscalation = searchParams.get("escalation");
+
+    if (sharedAmount) {
+      setLoanAmountInput(sharedAmount);
+      if (!sharedYears || !sharedRate) setHighlightRemaining(true);
     }
+    if (sharedRepaymentType) setRepaymentType(sharedRepaymentType as RepaymentType);
+    if (sharedYears) setLoanYears(sharedYears);
+    if (sharedRate) setInterestRate(sharedRate);
+    if (sharedGrace) setGraceYears(Number(sharedGrace));
+    if (sharedEscalation) setEscalationRate(Number(sharedEscalation));
   }, [searchParams]);
 
-  const calculate = () => {
-    const principalTotal = Number(loanAmountInput) * 10000;
-    const years = Number(loanYears);
-    const rate = Number(interestRate);
+  // ✅ 2. 공유된 값이 다 채워져 있으면 다이렉트로 즉시 계산 (Stale State 버그 해결)
+  useEffect(() => {
+    const sharedAmount = searchParams.get("amount");
+    const sharedYears = searchParams.get("years");
+    const sharedRate = searchParams.get("rate");
 
+    if (sharedAmount && sharedYears && sharedRate) {
+      const t = setTimeout(() => {
+        // 화면 상태(state)가 업데이트되는 걸 기다리지 않고, URL에서 뽑은 값을 계산기로 직행시킵니다.
+        calculate({
+          amount: sharedAmount,
+          years: sharedYears,
+          rate: sharedRate,
+          repayType: (searchParams.get("repaymentType") as RepaymentType) || "equal-pi",
+          grace: Number(searchParams.get("grace")) || 0,
+          escalation: Number(searchParams.get("escalation")) || 3,
+        });
+      }, 300);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ✅ 3. 계산 함수 (URL에서 넘어온 overrideParams가 있으면 우선 적용, 없으면 화면 입력값 적용)
+  const calculate = (overrideParams?: {
+    amount: string;
+    years: string;
+    rate: string;
+    repayType: RepaymentType;
+    grace: number;
+    escalation: number;
+  }) => {
+    const targetAmount = overrideParams ? overrideParams.amount : loanAmountInput;
+    const targetYears = overrideParams ? overrideParams.years : loanYears;
+    const targetRate = overrideParams ? overrideParams.rate : interestRate;
+    const targetRepayType = overrideParams ? overrideParams.repayType : repaymentType;
+    const targetGrace = overrideParams ? overrideParams.grace : graceYears;
+    const targetEscalation = overrideParams ? overrideParams.escalation : escalationRate;
+
+    const principalTotal = Number(targetAmount) * 10000;
+    const years = Number(targetYears);
+    const rate = Number(targetRate);
+
+    // 이제 빈 값 경고가 잘못 뜨는 일이 없습니다!
     if (!principalTotal || !years || !rate) {
       alert("대출금액, 대출기간, 대출금리를 모두 입력해주세요.");
       return;
@@ -75,7 +125,7 @@ function LoanPageContent() {
 
     const months = years * 12;
     const monthlyRate = rate / 100 / 12;
-    const graceMonths = Math.min(graceYears * 12, months - 1); // 거치기간이 전체기간보다 길 수 없음
+    const graceMonths = Math.min(targetGrace * 12, months - 1);
 
     let firstMonthlyPayment = 0;
     let firstMonthlyPrincipal = 0;
@@ -83,8 +133,7 @@ function LoanPageContent() {
     let lastMonthlyPayment: number | undefined = undefined;
     const yearlyData: YearlyData[] = [];
 
-    if (repaymentType === "equal-pi") {
-      // ✅ 원리금균등상환 + 거치기간(선택) — 거치기간 동안 이자만, 이후 원리금균등
+    if (targetRepayType === "equal-pi") {
       const remainingMonths = months - graceMonths;
       const pmt =
         monthlyRate === 0
@@ -99,7 +148,6 @@ function LoanPageContent() {
         let totalPay = 0;
 
         if (m <= graceMonths) {
-          // 거치기간: 이자만 납부
           totalPay = interestPay;
         } else {
           totalPay = pmt;
@@ -120,8 +168,7 @@ function LoanPageContent() {
         yearlyData[yearIdx].principal += principalPay;
         yearlyData[yearIdx].interest += interestPay;
       }
-    } else if (repaymentType === "equal-principal") {
-      // ✅ 원금균등상환 + 거치기간(선택) — 거치기간 동안 이자만, 이후 고정원금+잔액이자
+    } else if (targetRepayType === "equal-principal") {
       const remainingMonths = months - graceMonths;
       const fixedPrincipal = principalTotal / remainingMonths;
       let balance = principalTotal;
@@ -153,20 +200,11 @@ function LoanPageContent() {
         yearlyData[yearIdx].interest += interestPay;
       }
     } else {
-      // ✅ 체증식상환 — 한국주택금융공사(HF) 방식: "매월 상환하는 원리금(원금+이자) 자체가
-      //    해마다 일정 비율(escalationRate)씩 증가"하는 구조로 재구현.
-      //    출처: 한국주택금융공사 「월별상환원리금」— "체증식 분할상환: 매월 상환하는
-      //    원금과 이자의 합계가 증가"
-      //    ⚠️ 기존 버전은 "거치 후 원리금균등 전환"으로 잘못 구현되어 있었음(수정됨).
-      //    실제 정확한 증가율은 취급 금융기관·상품마다 다르므로, 이 계산은
-      //    단순화된 모의 시뮬레이션이며 실제 상품 조건은 금융기관 확인이 필요함.
-      const g = escalationRate / 100; // 연간 증가율
+      const g = targetEscalation / 100;
       const totalYears = years;
 
-      // 연도별 배수(1년차=1, 2년차=1+g, 3년차=(1+g)^2 ...)
       const yearMultiplier = (yr: number) => Math.pow(1 + g, yr - 1);
 
-      // 연도별 실제 개월수(마지막 해가 12개월 미달일 경우 대비)
       const monthsInYear = (yr: number) => {
         const startMonth = (yr - 1) * 12 + 1;
         const endMonth = Math.min(yr * 12, months);
@@ -187,7 +225,6 @@ function LoanPageContent() {
         return pv;
       };
 
-      // 이분탐색으로 P0(1년차 월 원리금) 구하기: 전체 상환액의 현재가치 합 = 대출원금
       let lo = 1, hi = principalTotal;
       for (let iter = 0; iter < 60; iter++) {
         const mid = (lo + hi) / 2;
@@ -202,7 +239,6 @@ function LoanPageContent() {
         const totalPay = P0 * yearMultiplier(yr);
         const interestPay = balance * monthlyRate;
         let principalPay = totalPay - interestPay;
-        // 마지막 달 반올림 오차로 잔액이 딱 안 맞을 수 있어 보정
         if (m === months) principalPay = balance;
         balance -= principalPay;
 
@@ -286,7 +322,6 @@ function LoanPageContent() {
             </div>
           </div>
 
-          {/* ✅ 거치기간 — 원리금균등/원금균등 선택 시 표시. 이 기간 동안은 이자만 납부 */}
           {(repaymentType === "equal-pi" || repaymentType === "equal-principal") && (
             <div className="border-t border-slate-100 pt-4">
               <label className="text-xs text-slate-400 mb-1.5 block">거치기간 (이 기간 동안은 이자만 납부)</label>
@@ -308,7 +343,6 @@ function LoanPageContent() {
             </div>
           )}
 
-          {/* ✅ 체증식 연간 증가율 — 체증식 선택 시에만 표시 */}
           {repaymentType === "graduated" && (
             <div className="border-t border-slate-100 pt-4">
               <label className="text-xs text-slate-400 mb-1.5 block">연간 원리금 증가율</label>
@@ -393,7 +427,7 @@ function LoanPageContent() {
           </div>
 
           <button
-            onClick={calculate}
+            onClick={() => calculate()}
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition btn-press"
           >
             계산하기
@@ -420,7 +454,7 @@ function LoanPageContent() {
           </div>
         )}
 
-        {/* 4. 시뮬레이션 그래프 */}
+        {/* 4. 시뮬레이션 그래프 및 공유 버튼 */}
         {result && (
           <div className="bg-white border border-slate-200 rounded-2xl p-5 result-enter">
             <h2 className="text-sm font-bold text-slate-600 mb-4">연차별 원금·이자 구성</h2>
@@ -437,7 +471,7 @@ function LoanPageContent() {
                     tickFormatter={(v) => `${Math.round(v / 10000).toLocaleString()}만`}
                     fontSize={11}
                     stroke="#94a3b8"
-                    />
+                  />
                   <Tooltip
                     formatter={(value) => formatWon(Number(value))}
                     labelFormatter={(y) => `${y}년차`}
@@ -454,6 +488,21 @@ function LoanPageContent() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+
+            <div className="pt-4 mt-4 border-t border-slate-100">
+              <ShareButton
+                title="주택담보대출 계산 결과 - 똑집"
+                description={`대출금액 ${formatWon(Number(loanAmountInput) * 10000)}, 월 상환액 ${formatWon(result.firstMonthlyPayment)}`}
+                params={{
+                  repaymentType,
+                  amount: loanAmountInput,
+                  years: loanYears,
+                  rate: interestRate,
+                  grace: String(graceYears),
+                  escalation: String(escalationRate),
+                }}
+              />
+            </div>
           </div>
         )}
 
@@ -462,7 +511,6 @@ function LoanPageContent() {
   );
 }
 
-// ✅ useSearchParams는 Next.js App Router에서 Suspense 경계 안에서 사용해야 함
 export default function LoanPage() {
   return (
     <Suspense fallback={null}>

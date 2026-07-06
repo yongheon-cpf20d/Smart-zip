@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Home as HomeIcon, Lightbulb } from "lucide-react";
 import PriceInput, { formatManwon } from "@/components/PriceInput";
+import ShareButton from "@/components/ShareButton"; // ✅ 1. 공유하기 버튼 임포트
 
 // ✅ 법령 출처: 지방세법 제11조(부동산 취득의 세율), 제13조의2(법인의 주택 취득 등 중과)
 //    지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육)
@@ -19,15 +21,11 @@ type PropertyType = "house" | "officetel-residential" | "officetel-commercial"; 
 const fmtWon = (n: number) => Math.round(n).toLocaleString("ko-KR") + "원";
 
 // ── 거래유형별 고정세율 ──────────────────────────────────────────
-// 증여: 지방세법 제11조제1항제2호 — 3.5%
 const GIFT_RATE = 0.035;
-// 상속: 지방세법 제11조제1항제1호 — 2.8%
 const INHERIT_RATE = 0.028;
-// 오피스텔(업무용): 지방세법 제11조제1항제7호 — 4%
 const OFFICETEL_COMMERCIAL_RATE = 0.04;
 
 // ── 매매(유상거래) 표준세율: 지방세법 제11조제1항제8호 ──────────
-// 6억 이하: 1% / 6억 초과 9억 이하: 1~3% 누진 / 9억 초과: 3%
 function getStandardRate(price: number): number {
   if (price <= 600_000_000) return 0.01;
   if (price <= 900_000_000) {
@@ -67,13 +65,6 @@ function getFirstTimeBuyerCap(price: number, areaSqm: number, isMetro: boolean):
 const CHILDBIRTH_REDUCTION_CAP = 5_000_000;
 
 // ── 농어촌특별세: 농어촌특별세법 제5조 ──────────────────────────
-// 85㎡ 이하 국민주택규모: 비과세 (농어촌특별세법 제4조제11호)
-// 85㎡ 초과 시 세율은 "취득세율에 비례"가 아니라 "구간별 고정값":
-//   - 일반세율(1~3%) 적용: 0.2% 고정
-//   - 다주택 중과 8% 적용: 0.6% 고정
-//   - 다주택 중과 12% 적용: 1.0% 고정
-//   - 증여·상속·원시취득: 0.2% 고정
-// 출처: 「주택과 세금」(일간NTN), 주택플러스 웹진 2021.8 Vol.13
 function calcRuralTax(
   price: number,
   areaSqm: number,
@@ -84,22 +75,13 @@ function calcRuralTax(
   if (!isRuralTaxable) return 0;
 
   if (isMultiHouseApplied) {
-    // 다주택/법인 중과: 8%→0.6%, 12%→1.0%
     if (appliedRate >= 0.12) return price * 0.01;
     if (appliedRate >= 0.08) return price * 0.006;
   }
-  // 일반세율(1~3%), 증여(3.5%), 상속(2.8%) 등은 모두 0.2% 고정
   return price * 0.002;
 }
 
 // ── 지방교육세: 지방세법 제151조제1항제1호 ──────────────────────
-// 두 갈래 공식이 있음:
-//  (A) 주택 유상취득(매매, 제11조제1항제8호): 세율×50%×20% = 세율×10%
-//      다주택 중과(8%,12%)는 표준세율 4% 기준으로 0.4% 고정
-//  (B) 그 외 취득(증여·상속 등, 제1호~7호): (세율-2%)×20%
-//      → 증여(3.5%): (3.5%-2%)×20%=0.3% / 상속(2.8%): (2.8%-2%)×20%=0.16%
-// 감면 시 감면비율만큼 함께 차감
-// 출처: 지방세법 제151조, 부동산위키 「지방교육세」
 function calcEduTax(
   price: number,
   appliedRate: number,
@@ -112,20 +94,16 @@ function calcEduTax(
   if (dealType === "purchase") {
     baseEduRate = isMultiHouseApplied ? 0.004 : appliedRate * 0.1;
   } else {
-    // 증여, 상속: (세율 - 2%) × 20%
     baseEduRate = Math.max(appliedRate - 0.02, 0) * 0.2;
   }
 
   const eduTaxBefore = price * baseEduRate;
-
-  // 취득세 감면 시 지방교육세도 동일 비율로 차감
   const acqTaxBefore = price * appliedRate;
   const reductionRatio = acqTaxBefore > 0 ? reductionAmount / acqTaxBefore : 0;
 
   return eduTaxBefore * (1 - reductionRatio);
 }
 
-// ── 거래유형별 입력 가액 레이블 ──────────────────────────────
 const PRICE_LABEL: Record<DealType, { label: string; placeholder: string; desc: string }> = {
   purchase: {
     label: "매매가격 (만원)",
@@ -162,8 +140,10 @@ const PROPERTY_TYPE_OPTIONS: { key: PropertyType; label: string; desc: string }[
   { key: "officetel-commercial", label: "오피스텔(업무용)", desc: "일반건물 4%" },
 ];
 
-export default function TaxAcqPage() {
+function TaxAcqPageContent() {
   const resultRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
   const [dealType, setDealType] = useState<DealType>("purchase");
   const [propertyType, setPropertyType] = useState<PropertyType>("house");
   const [priceInput, setPriceInput] = useState("");
@@ -188,48 +168,114 @@ export default function TaxAcqPage() {
     eduTax: number;
     total: number;
     isMultiHouseApplied: boolean;
-    effectiveRate: number; // 실효세율 = 총납부세액 / 취득가액
-    price: number; // 실효세율 계산용
+    effectiveRate: number; 
+    price: number;
   } | null>(null);
+
+  // ✅ 2. URL 쿼리 파라미터로 상태값(입력창) 채워주기 (Hydration)
+  useEffect(() => {
+    const spPrice = searchParams.get("price");
+    if (spPrice) {
+      setPriceInput(spPrice);
+      if (searchParams.get("area")) setArea(searchParams.get("area")!);
+      if (searchParams.get("dealType")) setDealType(searchParams.get("dealType") as DealType);
+      if (searchParams.get("propertyType")) setPropertyType(searchParams.get("propertyType") as PropertyType);
+      if (searchParams.get("isCorporation")) setIsCorporation(searchParams.get("isCorporation") === "true");
+      if (searchParams.get("houseCountAfter")) setHouseCountAfter(searchParams.get("houseCountAfter") as HouseCount);
+      if (searchParams.get("region")) setRegion(searchParams.get("region") as RegionType);
+      if (searchParams.get("applyMultiHouseTax")) setApplyMultiHouseTax(searchParams.get("applyMultiHouseTax") === "true");
+      if (searchParams.get("isTemporary2House")) setIsTemporary2House(searchParams.get("isTemporary2House") === "true");
+      if (searchParams.get("reductionType")) setReductionType(searchParams.get("reductionType") as ReductionType);
+      if (searchParams.get("isMetro")) setIsMetro(searchParams.get("isMetro") === "true");
+    }
+  }, [searchParams]);
+
+  // ✅ 3. 취득가액(price)이 전달되었다면 다이렉트로 즉시 계산 (Auto-Run)
+  useEffect(() => {
+    const spPrice = searchParams.get("price");
+    if (spPrice) {
+      const t = setTimeout(() => {
+        calculate({
+          price: spPrice,
+          area: searchParams.get("area") || "",
+          dealType: (searchParams.get("dealType") as DealType) || "purchase",
+          propertyType: (searchParams.get("propertyType") as PropertyType) || "house",
+          isCorporation: searchParams.get("isCorporation") === "true",
+          houseCountAfter: (searchParams.get("houseCountAfter") as HouseCount) || "1",
+          region: (searchParams.get("region") as RegionType) || "non-adjusted",
+          applyMultiHouseTax: searchParams.get("applyMultiHouseTax") === "true",
+          isTemporary2House: searchParams.get("isTemporary2House") === "true",
+          reductionType: (searchParams.get("reductionType") as ReductionType) || "none",
+          isMetro: searchParams.get("isMetro") !== "false", // 기본값 true
+        });
+      }, 300);
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 매매가 아니면 감면/중과 옵션 비활성화 여부
   const isPurchase = dealType === "purchase";
   const isOfficetelCommercial = propertyType === "officetel-commercial";
 
-  const calculate = () => {
-    const price = Number(priceInput) * 10000;
-    const areaNum = Number(area);
+  // ✅ 4. 계산 함수 (URL 값 강제 주입을 위한 overrideParams 허용)
+  const calculate = (overrideParams?: {
+    price: string;
+    area: string;
+    dealType: DealType;
+    propertyType: PropertyType;
+    isCorporation: boolean;
+    houseCountAfter: HouseCount;
+    region: RegionType;
+    applyMultiHouseTax: boolean;
+    isTemporary2House: boolean;
+    reductionType: ReductionType;
+    isMetro: boolean;
+  }) => {
+    const tPriceInput = overrideParams ? overrideParams.price : priceInput;
+    const tArea = overrideParams ? overrideParams.area : area;
+    const tDealType = overrideParams ? overrideParams.dealType : dealType;
+    const tPropertyType = overrideParams ? overrideParams.propertyType : propertyType;
+    const tIsCorporation = overrideParams ? overrideParams.isCorporation : isCorporation;
+    const tHouseCountAfter = overrideParams ? overrideParams.houseCountAfter : houseCountAfter;
+    const tRegion = overrideParams ? overrideParams.region : region;
+    const tApplyMultiHouseTax = overrideParams ? overrideParams.applyMultiHouseTax : applyMultiHouseTax;
+    const tIsTemporary2House = overrideParams ? overrideParams.isTemporary2House : isTemporary2House;
+    const tReductionType = overrideParams ? overrideParams.reductionType : reductionType;
+    const tIsMetro = overrideParams ? overrideParams.isMetro : isMetro;
+
+    const price = Number(tPriceInput) * 10000;
+    const areaNum = Number(tArea);
 
     if (!price) {
       alert("취득가액을 입력해주세요.");
       return;
     }
 
+    const tIsPurchase = tDealType === "purchase";
+    const tIsOfficetelCommercial = tPropertyType === "officetel-commercial";
+
     let appliedRate: number;
     let standardRate: number;
     let isMultiHouseApplied = false;
 
     // ── 세율 결정 ──────────────────────────────────────────
-    if (dealType === "gift") {
-      // 증여: 3.5% 고정 (중과/감면 없음)
+    if (tDealType === "gift") {
       appliedRate = GIFT_RATE;
       standardRate = GIFT_RATE;
-    } else if (dealType === "inherit") {
-      // 상속: 2.8% 고정
+    } else if (tDealType === "inherit") {
       appliedRate = INHERIT_RATE;
       standardRate = INHERIT_RATE;
-    } else if (isOfficetelCommercial) {
-      // 오피스텔(업무용): 4% 고정
+    } else if (tIsOfficetelCommercial) {
       appliedRate = OFFICETEL_COMMERCIAL_RATE;
       standardRate = OFFICETEL_COMMERCIAL_RATE;
     } else {
-      // 매매 (주택 또는 주거용 오피스텔): 표준세율 + 중과 판단
       standardRate = getStandardRate(price);
       appliedRate = standardRate;
 
-      const reductionApplies = reductionType !== "none";
-      if (applyMultiHouseTax && !isTemporary2House && !reductionApplies) {
-        const multiRate = getMultiHouseRate(isCorporation, houseCountAfter, region);
+      const reductionApplies = tReductionType !== "none";
+      if (tApplyMultiHouseTax && !tIsTemporary2House && !reductionApplies) {
+        const multiRate = getMultiHouseRate(tIsCorporation, tHouseCountAfter, tRegion);
         if (multiRate !== null) {
           appliedRate = multiRate;
           isMultiHouseApplied = true;
@@ -241,11 +287,11 @@ export default function TaxAcqPage() {
 
     // ── 감면액 계산 (매매만 적용) ──────────────────────────
     let reductionAmount = 0;
-    if (isPurchase && !isOfficetelCommercial) {
-      if (reductionType === "first-time" && price <= 1_200_000_000) {
-        const cap = getFirstTimeBuyerCap(price, areaNum, isMetro);
+    if (tIsPurchase && !tIsOfficetelCommercial) {
+      if (tReductionType === "first-time" && price <= 1_200_000_000) {
+        const cap = getFirstTimeBuyerCap(price, areaNum, tIsMetro);
         reductionAmount = Math.min(acquisitionTaxBeforeReduction, cap);
-      } else if (reductionType === "childbirth" && price <= 1_200_000_000) {
+      } else if (tReductionType === "childbirth" && price <= 1_200_000_000) {
         reductionAmount = Math.min(acquisitionTaxBeforeReduction, CHILDBIRTH_REDUCTION_CAP);
       }
     }
@@ -256,7 +302,7 @@ export default function TaxAcqPage() {
     const ruralTax = calcRuralTax(price, areaNum, appliedRate, isMultiHouseApplied);
 
     // ── 지방교육세: 거래유형별 공식 반영(매매 vs 증여·상속) ──
-    const eduTax = calcEduTax(price, appliedRate, dealType, isMultiHouseApplied, reductionAmount);
+    const eduTax = calcEduTax(price, appliedRate, tDealType, isMultiHouseApplied, reductionAmount);
 
     const total = acquisitionTax + ruralTax + eduTax;
     const effectiveRate = price > 0 ? total / price : 0;
@@ -565,7 +611,7 @@ export default function TaxAcqPage() {
         )}
 
         <button
-          onClick={calculate}
+          onClick={() => calculate()}
           className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition btn-press"
         >
           계산하기
@@ -697,6 +743,27 @@ export default function TaxAcqPage() {
               </div>
             )}
 
+            {/* ✅ 5. 공유하기 버튼 추가 */}
+            <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+              <ShareButton
+                title="취득세 계산 결과 - 똑집"
+                description={`취득가액 ${fmtWon(Number(priceInput)*10000)} 기준, 총 납부세액 ${fmtWon(result.total)}`}
+                params={{
+                  price: priceInput,
+                  area,
+                  dealType,
+                  propertyType,
+                  isCorporation: String(isCorporation),
+                  houseCountAfter,
+                  region,
+                  applyMultiHouseTax: String(applyMultiHouseTax),
+                  isTemporary2House: String(isTemporary2House),
+                  reductionType,
+                  isMetro: String(isMetro),
+                }}
+              />
+            </div>
+
             <p className="text-[10px] text-slate-400 pt-2 leading-relaxed">
               출처: 지방세법 제11조(취득세율), 제13조의2(다주택·법인 중과), 제151조(지방교육세) /
               지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육) / 농어촌특별세법 제5조.
@@ -708,5 +775,14 @@ export default function TaxAcqPage() {
 
       </div>
     </div>
+  );
+}
+
+// ✅ 6. Next.js App Router용 안전한 Suspense 컴포넌트 처리
+export default function TaxAcqPage() {
+  return (
+    <Suspense fallback={null}>
+      <TaxAcqPageContent />
+    </Suspense>
   );
 }
