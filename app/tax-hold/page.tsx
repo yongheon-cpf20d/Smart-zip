@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Building2, FileCheck, CheckCircle2 } from "lucide-react";
 import PriceInput from "@/components/PriceInput";
 import ShareButton from "@/components/ShareButton"; // ✅ 1. 공유 버튼 컴포넌트 임포트
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ✅ 법령 출처
 // 재산세: 지방세법 제110조(과세표준), 제111조(세율), 제111조의2(1세대1주택 특례),
@@ -20,7 +21,7 @@ function getFairRatio(price: number, isOneHouse: boolean): number {
   if (!isOneHouse) return 0.60;
   if (price <= 300_000_000) return 0.43;
   if (price <= 600_000_000) return 0.44;
-  return 0.45; 
+  return 0.45;
 }
 
 function getMarginalRate(base: number): number {
@@ -231,7 +232,7 @@ function TaxHoldPageContent() {
       csvRaw = tIsCorporation ? calcCSVCorporation(csvBase, is3Plus) : calcCSVRaw(csvBase, is3Plus);
 
       csvPropDeductAmt = csvBase * fairRatio * getMarginalRate(propBase);
-      csvFinal = Math.max(csvRaw - csvPropDeductAmt, 0); 
+      csvFinal = Math.max(csvRaw - csvPropDeductAmt, 0);
       eachCSV = csvFinal;
     } else {
       let deduction = 0;
@@ -292,28 +293,31 @@ function TaxHoldPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
-          ← 메인으로
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
-        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-100">
           <Building2 size={20} strokeWidth={1.75} className="text-emerald-600" />
           보유세 계산기
         </h1>
-        <p className="text-xs text-slate-400 -mt-2">재산세 + 지방교육세 + 도시지역분 + 종합부동산세 + 농어촌특별세</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 -mt-2">재산세 + 지방교육세 + 도시지역분 + 종합부동산세 + 농어촌특별세</p>
 
         {/* ① 공시가격 입력 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-600">주택 공시가격 입력</h2>
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">주택 공시가격 입력</h2>
             <a
               href="https://www.realtyprice.kr/notice/main/mainBody.htm"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-emerald-600 border border-emerald-200 bg-emerald-50 px-2 py-1 rounded-lg hover:bg-emerald-100 transition"
+              className="text-[11px] text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition"
             >
               공시가격 조회 →
             </a>
@@ -323,14 +327,14 @@ function TaxHoldPageContent() {
             onChange={setPriceInput}
             placeholder="예: 100000"
           />
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">
             국토교통부 공동주택가격 공시 기준 (매년 4~5월 발표). 공시가격이 다를 경우 상단 링크에서 조회 후 입력해주세요.
           </p>
         </div>
 
         {/* ② 명의 구분 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-          <h2 className="text-sm font-bold text-slate-600">명의 구분</h2>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">명의 구분</h2>
           <div className="grid grid-cols-3 gap-2">
             {OWNER_TYPE_OPTIONS.map((opt) => (
               <button
@@ -338,8 +342,8 @@ function TaxHoldPageContent() {
                 onClick={() => setOwnerType(opt.key)}
                 className={`py-3 px-2 rounded-xl border transition flex flex-col items-center gap-0.5 ${
                   ownerType === opt.key
-                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                    : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600"
                 }`}
               >
                 <span className="text-xs font-bold whitespace-pre-line text-center leading-tight">{opt.label}</span>
@@ -349,9 +353,9 @@ function TaxHoldPageContent() {
           </div>
 
           {isJoint && (
-            <div className="border-t border-slate-100 pt-3 space-y-2">
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-3 space-y-2">
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">본인 지분율 (%)</label>
+                <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">본인 지분율 (%)</label>
                 <div className="flex gap-2">
                   {["50", "60", "70"].map((v) => (
                     <button
@@ -359,8 +363,8 @@ function TaxHoldPageContent() {
                       onClick={() => setJointShare(v)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                         jointShare === v
-                          ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                          : "bg-white border-slate-200 text-slate-500"
+                          ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                          : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300"
                       }`}
                     >
                       {v}%
@@ -370,18 +374,18 @@ function TaxHoldPageContent() {
                     type="number"
                     value={jointShare}
                     onChange={(e) => setJointShare(e.target.value)}
-                    className="w-20 border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-emerald-400"
+                    className="w-20 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200"
                     placeholder="직접입력"
                   />
                 </div>
               </div>
               {ownerType === "joint-special" && (
-                <p className="text-[11px] text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2">
                   공동명의 1주택 특례 신청 시 지분율이 큰 배우자가 납세의무자가 됩니다. 매년 9.16~9.30 관할세무서에 신청 필요.
                 </p>
               )}
               {ownerType === "joint-no-special" && (
-                <p className="text-[11px] text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                <p className="text-[11px] text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2">
                   특례 미신청 시 각자 지분율만큼 보유한 것으로 보아 각각 9억 공제 후 종부세 계산. 세액공제(고령자·장기보유)는 적용되지 않습니다.
                 </p>
               )}
@@ -390,10 +394,10 @@ function TaxHoldPageContent() {
         </div>
 
         {/* ③ 적용 옵션 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-          <h2 className="text-sm font-bold text-slate-600">적용 옵션</h2>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">적용 옵션</h2>
 
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <label className="flex items-center gap-2 text-sm cursor-pointer dark:text-slate-300">
             <input type="checkbox" checked={isCorporation}
               onChange={(e) => setIsCorporation(e.target.checked)}
               className="w-4 h-4 accent-emerald-500" />
@@ -401,7 +405,7 @@ function TaxHoldPageContent() {
           </label>
 
           {!isCorporation && (
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <label className="flex items-center gap-2 text-sm cursor-pointer dark:text-slate-300">
               <input type="checkbox" checked={isOneHouse}
                 onChange={(e) => setIsOneHouse(e.target.checked)}
                 className="w-4 h-4 accent-emerald-500" />
@@ -410,14 +414,14 @@ function TaxHoldPageContent() {
           )}
 
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">보유 주택수 (종부세 세율 결정)</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">보유 주택수 (종부세 세율 결정)</label>
             <div className="flex gap-2">
               {(["1", "2", "3+"] as HouseCount[]).map((h) => (
                 <button key={h} onClick={() => setHouseCount(h)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                     houseCount === h
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                      : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300"
                   }`}>
                   {h}주택
                 </button>
@@ -425,37 +429,37 @@ function TaxHoldPageContent() {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 text-sm cursor-pointer pt-2 border-t border-slate-100">
+          <label className="flex items-center gap-2 text-sm cursor-pointer pt-2 border-t border-slate-100 dark:border-slate-700 dark:text-slate-300">
             <input type="checkbox" checked={isUrban}
               onChange={(e) => setIsUrban(e.target.checked)}
               className="w-4 h-4 accent-emerald-500" />
             도시지역 내 주택 (재산세 도시지역분 +0.14%)
-            <span className="text-[10px] text-slate-400">서울·수도권 아파트는 대부분 해당</span>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500">서울·수도권 아파트는 대부분 해당</span>
           </label>
 
           {canApplyDeduction && (
             <>
-              <label className="flex items-center gap-2 text-sm cursor-pointer pt-2 border-t border-slate-100">
+              <label className="flex items-center gap-2 text-sm cursor-pointer pt-2 border-t border-slate-100 dark:border-slate-700 dark:text-slate-300">
                 <input type="checkbox" checked={applyDeduction}
                   onChange={(e) => setApplyDeduction(e.target.checked)}
                   className="w-4 h-4 accent-emerald-500" />
                 고령자·장기보유 종부세 세액공제 (1세대1주택만)
               </label>
               {applyDeduction && (
-                <div className="ml-6 grid grid-cols-2 gap-3 border-l-2 border-emerald-100 pl-4">
+                <div className="ml-6 grid grid-cols-2 gap-3 border-l-2 border-emerald-100 dark:border-emerald-900 pl-4">
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">만 나이</label>
+                    <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">만 나이</label>
                     <input type="number" value={age} onChange={(e) => setAge(e.target.value)}
                       placeholder="예: 65"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
-                    <p className="text-[10px] text-slate-400 mt-1">60세 20% / 65세 30% / 70세 40%</p>
+                      className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">60세 20% / 65세 30% / 70세 40%</p>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">보유기간 (년)</label>
+                    <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">보유기간 (년)</label>
                     <input type="number" value={holdingYears} onChange={(e) => setHoldingYears(e.target.value)}
                       placeholder="예: 10"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
-                    <p className="text-[10px] text-slate-400 mt-1">5년 20% / 10년 40% / 15년 50%</p>
+                      className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">5년 20% / 10년 40% / 15년 50%</p>
                   </div>
                 </div>
               )}
@@ -470,83 +474,83 @@ function TaxHoldPageContent() {
 
         {/* 결과 */}
         {result && (
-          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 result-enter">
-            <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
+          <div ref={resultRef} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3 result-enter">
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">계산 결과</h2>
 
             {result.isCSVTarget ? (
-              <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-xs text-amber-700">
+              <div className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2.5 text-xs text-amber-700 dark:text-amber-300">
                 <FileCheck size={14} strokeWidth={1.75} className="shrink-0" />
                 종합부동산세 과세 대상입니다. 매년 12월에 고지서가 발송됩니다.
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-xs text-slate-500">
+              <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2.5 text-xs text-slate-500 dark:text-slate-400">
                 <CheckCircle2 size={14} strokeWidth={1.75} className="shrink-0" />
                 종합부동산세 과세 대상이 아닙니다 (공제액 이하)
               </div>
             )}
 
             <div className="space-y-0 text-sm">
-              <p className="text-[11px] font-bold text-slate-400 mb-1">재산세 관련</p>
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">재산세</span>
+              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 mb-1">재산세 관련</p>
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">재산세</span>
                 <span className="font-bold">{fmtWon(result.propTax)}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">지방교육세 <span className="text-[10px] text-slate-400">(재산세×20%)</span></span>
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">지방교육세 <span className="text-[10px] text-slate-400 dark:text-slate-500">(재산세×20%)</span></span>
                 <span className="font-bold">{fmtWon(result.eduTax)}</span>
               </div>
               {result.urbanTax > 0 && (
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">도시지역분 <span className="text-[10px] text-slate-400">(과세표준×0.14%)</span></span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">도시지역분 <span className="text-[10px] text-slate-400 dark:text-slate-500">(과세표준×0.14%)</span></span>
                   <span className="font-bold">{fmtWon(result.urbanTax)}</span>
                 </div>
               )}
 
-              <p className="text-[11px] font-bold text-slate-400 mt-3 mb-1">종합부동산세 관련</p>
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">종부세 과세표준</span>
+              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 mt-3 mb-1">종합부동산세 관련</p>
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">종부세 과세표준</span>
                 <span className="font-bold">{fmtWon(result.csvBase)}</span>
               </div>
               {result.csvPropDeductAmt > 0 && (
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">재산세 중복분 공제 <span className="text-[10px] text-slate-400">(이중과세 방지)</span></span>
-                  <span className="font-bold text-emerald-600">-{fmtWon(result.csvPropDeductAmt)}</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">재산세 중복분 공제 <span className="text-[10px] text-slate-400 dark:text-slate-500">(이중과세 방지)</span></span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">-{fmtWon(result.csvPropDeductAmt)}</span>
                 </div>
               )}
               {result.csvDeductAmt > 0 && (
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">
-                    세액공제 <span className="text-[10px] text-slate-400">({(result.csvDeductRate * 100).toFixed(0)}%)</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">
+                    세액공제 <span className="text-[10px] text-slate-400 dark:text-slate-500">({(result.csvDeductRate * 100).toFixed(0)}%)</span>
                   </span>
-                  <span className="font-bold text-emerald-600">-{fmtWon(result.csvDeductAmt)}</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">-{fmtWon(result.csvDeductAmt)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">종합부동산세</span>
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">종합부동산세</span>
                 <span className="font-bold">{fmtWon(result.csvFinal)}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">농어촌특별세 <span className="text-[10px] text-slate-400">(종부세×20%)</span></span>
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">농어촌특별세 <span className="text-[10px] text-slate-400 dark:text-slate-500">(종부세×20%)</span></span>
                 <span className="font-bold">{fmtWon(result.ruralTax)}</span>
               </div>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center mt-2">
-              <p className="text-xs text-emerald-600 font-semibold mb-1">
+            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-center mt-2">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mb-1">
                 {result.isJointNoSpecial ? "본인 납부세액 (지분 기준)" : "총 납부세액"}
               </p>
-              <p className="text-2xl font-black text-emerald-700">
+              <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300">
                 {fmtWon(result.isJointNoSpecial && result.eachTotal !== undefined ? result.eachTotal : result.total)}
               </p>
               {result.isJointNoSpecial && result.eachTotal !== undefined && (
-                <p className="text-[11px] text-emerald-600 mt-1">
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">
                   배우자 포함 합산 약 {fmtWon(result.eachTotal * 2)} (지분 동일 가정)
                 </p>
               )}
             </div>
 
             {/* ✅ 5. 공유하기 버튼 추가 */}
-            <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
               <ShareButton
                 title="보유세 계산 결과 - 똑집"
                 description={`공시가격 ${fmtWon(Number(priceInput)*10000)} 기준, 예상 납부세액 ${fmtWon(result.isJointNoSpecial && result.eachTotal !== undefined ? result.eachTotal : result.total)}`}
@@ -565,7 +569,7 @@ function TaxHoldPageContent() {
               />
             </div>
 
-            <p className="text-[10px] text-slate-400 pt-2 leading-relaxed">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-2 leading-relaxed">
               출처: 지방세법 제110조·제111조·제111조의2(재산세), 제112조(도시지역분), 제151조(지방교육세),
               종합부동산세법 제8조·제9조·제10조의2(공동명의 특례).
               재산세 세부담상한(지방세법 제122조) 및 종부세 재산세 공제(종부세법 제9조제3항)는

@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeftRight, Wallet, CalendarClock, Lightbulb, CheckCircle2 } from "lucide-react";
 import PriceInput from "@/components/PriceInput";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ✅ 법령 출처
 // 양도세: 소득세법 제89조(비과세), 제95조(장특공제), 제103조(기본공제), 제104조(세율·중과)
@@ -286,25 +287,28 @@ export default function SwitchSimPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
-          ← 메인으로
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-100">
             <ArrowLeftRight size={20} strokeWidth={1.75} className="text-emerald-600" />
             갈아타기 비용 계산기
           </h1>
-          <p className="text-xs text-slate-400 mt-1">현재 집 매도 → 새 집 매수 시 추가 필요 자기자본을 계산합니다</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">현재 집 매도 → 새 집 매수 시 추가 필요 자기자본을 계산합니다</p>
         </div>
 
         {/* ═══ 매도 섹션 ═══ */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-          <h2 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-            <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded">SELL</span>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <span className="bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-300 text-xs font-bold px-2 py-0.5 rounded">SELL</span>
             현재 집 매도 정보
           </h2>
 
@@ -331,14 +335,14 @@ export default function SwitchSimPage() {
               placeholder="예: 500"
             />
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">보유기간 (년)</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">보유기간 (년)</label>
               <input type="number" value={holdYears} onChange={e => setHoldYears(e.target.value)}
-                placeholder="예: 8" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                placeholder="예: 8" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
             </div>
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">거주기간 (년)</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">거주기간 (년)</label>
               <input type="number" value={liveYears} onChange={e => setLiveYears(e.target.value)}
-                placeholder="예: 8" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                placeholder="예: 8" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
             </div>
           </div>
 
@@ -349,35 +353,35 @@ export default function SwitchSimPage() {
               onChange={setExistingLoanInput}
               placeholder="없으면 0 또는 비워두세요"
             />
-            <p className="text-[10px] text-slate-400 mt-1">매도 시 상환되는 기존 대출 잔액 (실수령액에서 차감)</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">매도 시 상환되는 기존 대출 잔액 (실수령액에서 차감)</p>
           </div>
 
           {/* 기존 대출 조건 (월부담 비교용) */}
           {Number(existingLoanInput) > 0 && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">기존 대출 금리 (%)</label>
+                <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">기존 대출 금리 (%)</label>
                 <input type="number" step="0.1" value={existingRate} onChange={e => setExistingRate(e.target.value)}
-                  placeholder="예: 4.0" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                  placeholder="예: 4.0" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">기존 대출 잔여기간 (년)</label>
+                <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">기존 대출 잔여기간 (년)</label>
                 <input type="number" value={existingRemainYears} onChange={e => setExistingRemainYears(e.target.value)}
-                  placeholder="예: 25" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                  placeholder="예: 25" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
               </div>
             </div>
           )}
 
           {/* 양도세 옵션 */}
-          <div className="border-t border-slate-100 pt-3 space-y-3">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <div className="border-t border-slate-100 dark:border-slate-700 pt-3 space-y-3">
+            <label className="flex items-center gap-2 text-sm cursor-pointer dark:text-slate-300">
               <input type="checkbox" checked={isOneHouse} onChange={e => setIsOneHouse(e.target.checked)}
                 className="w-4 h-4 accent-emerald-500" />
               1세대 1주택 (비과세 검토)
             </label>
 
             {isOneHouse && (
-              <label className="flex items-center gap-2 text-sm cursor-pointer ml-5">
+              <label className="flex items-center gap-2 text-sm cursor-pointer ml-5 dark:text-slate-300">
                 <input type="checkbox" checked={meetsNonTax} onChange={e => setMeetsNonTax(e.target.checked)}
                   className="w-4 h-4 accent-emerald-500" />
                 비과세 요건 충족 (2년 이상 보유·거주)
@@ -387,17 +391,19 @@ export default function SwitchSimPage() {
             {!isOneHouse && (
               <div className="space-y-2 ml-1">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">보유 주택수</label>
+                  <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">보유 주택수</label>
                   <div className="flex gap-2">
                     {(["1", "2", "3+"] as HouseCount[]).map(h => (
                       <button key={h} onClick={() => setSellHouseCount(h)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                          sellHouseCount === h ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"
+                          sellHouseCount === h
+                            ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                            : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300"
                         }`}>{h}주택</button>
                     ))}
                   </div>
                 </div>
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <label className="flex items-center gap-2 text-sm cursor-pointer dark:text-slate-300">
                   <input type="checkbox" checked={sellIsAdjusted} onChange={e => setSellIsAdjusted(e.target.checked)}
                     className="w-4 h-4 accent-emerald-500" />
                   조정대상지역 소재 (다주택 중과 적용)
@@ -408,9 +414,9 @@ export default function SwitchSimPage() {
         </div>
 
         {/* ═══ 매수 섹션 ═══ */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-          <h2 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded">BUY</span>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <span className="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2 py-0.5 rounded">BUY</span>
             새 집 매수 정보
           </h2>
 
@@ -428,19 +434,21 @@ export default function SwitchSimPage() {
                 onChange={setKbPriceInput}
                 placeholder="예: 155000"
               />
-              <p className="text-[10px] text-slate-400 mt-1">주담대 한도 산정 기준</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">주담대 한도 산정 기준</p>
             </div>
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">전용면적 (㎡)</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">전용면적 (㎡)</label>
             <div className="flex gap-2">
               <input type="number" value={buyAreaInput} onChange={e => setBuyAreaInput(e.target.value)}
-                placeholder="예: 84" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                placeholder="예: 84" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
               {["59", "84", "100"].map(v => (
                 <button key={v} onClick={() => setBuyAreaInput(v)}
                   className={`px-3 py-2 rounded-lg text-xs font-bold border transition shrink-0 ${
-                    buyAreaInput === v ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"
+                    buyAreaInput === v
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                      : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300"
                   }`}>{v}㎡</button>
               ))}
             </div>
@@ -448,23 +456,27 @@ export default function SwitchSimPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">소재 지역</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">소재 지역</label>
               <div className="flex gap-2">
                 {[{ k: "adjusted", l: "조정지역" }, { k: "non-adjusted", l: "비조정" }].map(r => (
                   <button key={r.k} onClick={() => setBuyRegion(r.k as RegionType)}
                     className={`flex-1 py-2 rounded-lg text-xs font-bold border transition ${
-                      buyRegion === r.k ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"
+                      buyRegion === r.k
+                        ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                        : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300"
                     }`}>{r.l}</button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">취득 후 주택수</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">취득 후 주택수</label>
               <div className="flex gap-1.5">
                 {(["1", "2", "3+"] as HouseCount[]).map(h => (
                   <button key={h} onClick={() => setBuyHouseCount(h)}
                     className={`flex-1 py-2 rounded-lg text-xs font-bold border transition ${
-                      buyHouseCount === h ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"
+                      buyHouseCount === h
+                        ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                        : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300"
                     }`}>{h}주택</button>
                 ))}
               </div>
@@ -472,28 +484,30 @@ export default function SwitchSimPage() {
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">취득세 감면</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">취득세 감면</label>
             <div className="flex gap-2">
               {[{ k: "none", l: "없음" }, { k: "first-time", l: "생애최초" }, { k: "childbirth", l: "출산·양육" }].map(r => (
                 <button key={r.k} onClick={() => setBuyReduction(r.k as "none" | "first-time" | "childbirth")}
                   className={`flex-1 py-2 rounded-lg text-xs font-bold border transition ${
-                    buyReduction === r.k ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"
+                    buyReduction === r.k
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                      : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300"
                   }`}>{r.l}</button>
               ))}
             </div>
           </div>
 
           {/* 신규 대출 조건 (월부담 비교용) */}
-          <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+          <div className="grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-slate-700 pt-3">
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">신규 대출 금리 (%)</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">신규 대출 금리 (%)</label>
               <input type="number" step="0.1" value={newRate} onChange={e => setNewRate(e.target.value)}
-                placeholder="예: 4.2" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                placeholder="예: 4.2" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
             </div>
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">신규 대출 기간 (년)</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">신규 대출 기간 (년)</label>
               <input type="number" value={newLoanYears} onChange={e => setNewLoanYears(e.target.value)}
-                placeholder="예: 30" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                placeholder="예: 30" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500" />
             </div>
           </div>
         </div>
@@ -508,83 +522,83 @@ export default function SwitchSimPage() {
           <div ref={resultRef} className="space-y-4 result-enter">
 
             {/* 매도 내역 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-2">
-              <h3 className="text-sm font-bold text-slate-600 flex items-center gap-2">
-                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded">SELL</span>
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-2">
+              <h3 className="text-sm font-bold text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                <span className="bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-300 text-xs font-bold px-2 py-0.5 rounded">SELL</span>
                 매도 내역
               </h3>
               {result.sellTaxNote && (
-                <div className="text-[11px] text-slate-400 bg-slate-50 rounded-lg px-3 py-1.5">{result.sellTaxNote}</div>
+                <div className="text-[11px] text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-700 rounded-lg px-3 py-1.5">{result.sellTaxNote}</div>
               )}
               <div className="space-y-0 text-sm">
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">양도소득세</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">양도소득세</span>
                   <span className="font-bold">{fmtWon(result.sellTax)}</span>
                 </div>
                 {result.sellTax > 0 && (
-                  <div className="flex justify-between py-2 border-b border-slate-100">
-                    <span className="text-slate-500">지방소득세</span>
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span className="text-slate-500 dark:text-slate-400">지방소득세</span>
                     <span className="font-bold">{fmtWon(result.sellLocalTax)}</span>
                   </div>
                 )}
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">중개수수료 (VAT포함)</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">중개수수료 (VAT포함)</span>
                   <span className="font-bold">{fmtWon(result.sellBrokerageVat)}</span>
                 </div>
                 {result.existingLoan > 0 && (
-                  <div className="flex justify-between py-2 border-b border-slate-100">
-                    <span className="text-slate-500">기존 주담대 상환</span>
-                    <span className="font-bold text-red-500">-{fmtWon(result.existingLoan)}</span>
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span className="text-slate-500 dark:text-slate-400">기존 주담대 상환</span>
+                    <span className="font-bold text-red-500 dark:text-red-400">-{fmtWon(result.existingLoan)}</span>
                   </div>
                 )}
               </div>
-              <div className={`rounded-xl p-3 flex justify-between items-center ${result.netProceeds >= 0 ? "bg-blue-50 border border-blue-200" : "bg-red-50 border border-red-200"}`}>
-                <span className={`text-sm font-bold ${result.netProceeds >= 0 ? "text-blue-700" : "text-red-700"}`}>매도 실수령액</span>
-                <span className={`text-lg font-black ${result.netProceeds >= 0 ? "text-blue-700" : "text-red-600"}`}>
+              <div className={`rounded-xl p-3 flex justify-between items-center ${result.netProceeds >= 0 ? "bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800" : "bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800"}`}>
+                <span className={`text-sm font-bold ${result.netProceeds >= 0 ? "text-blue-700 dark:text-blue-300" : "text-red-700 dark:text-red-300"}`}>매도 실수령액</span>
+                <span className={`text-lg font-black ${result.netProceeds >= 0 ? "text-blue-700 dark:text-blue-300" : "text-red-600 dark:text-red-300"}`}>
                   {result.netProceeds < 0 ? "-" : ""}{fmtWon(Math.abs(result.netProceeds))}
                 </span>
               </div>
             </div>
 
             {/* 매수 내역 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-2">
-              <h3 className="text-sm font-bold text-slate-600 flex items-center gap-2">
-                <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded">BUY</span>
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-2">
+              <h3 className="text-sm font-bold text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                <span className="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2 py-0.5 rounded">BUY</span>
                 매수 내역
               </h3>
               <div className="space-y-0 text-sm">
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">취득세</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">취득세</span>
                   <span className="font-bold">{fmtWon(result.acqTax)}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">지방교육세</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">지방교육세</span>
                   <span className="font-bold">{fmtWon(result.eduTax)}</span>
                 </div>
                 {result.ruralTax > 0 && (
-                  <div className="flex justify-between py-2 border-b border-slate-100">
-                    <span className="text-slate-500">농어촌특별세</span>
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span className="text-slate-500 dark:text-slate-400">농어촌특별세</span>
                     <span className="font-bold">{fmtWon(result.ruralTax)}</span>
                   </div>
                 )}
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">중개수수료 (VAT포함)</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">중개수수료 (VAT포함)</span>
                   <span className="font-bold">{fmtWon(result.buyBrokerageVat)}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">주담대 한도 <span className="text-[10px] text-slate-400">(LTV {(result.ltv * 100).toFixed(0)}%)</span></span>
-                  <span className="font-bold text-blue-600">-{fmtWon(result.loanLimit)}</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">주담대 한도 <span className="text-[10px] text-slate-400 dark:text-slate-500">(LTV {(result.ltv * 100).toFixed(0)}%)</span></span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">-{fmtWon(result.loanLimit)}</span>
                 </div>
               </div>
             </div>
 
             {/* 자금 흐름 시각화 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-              <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-600">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+              <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-600 dark:text-slate-400">
                 <Wallet size={15} strokeWidth={1.75} />
                 자금 흐름 한눈에 보기
               </h3>
-              <p className="text-[11px] text-slate-400">새 집 매수 총비용 {fmtWon(result.totalBuyCost)}는 아래 3가지로 충당됩니다</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">새 집 매수 총비용 {fmtWon(result.totalBuyCost)}는 아래 3가지로 충당됩니다</p>
 
               {(() => {
                 const total = result.totalBuyCost;
@@ -620,15 +634,15 @@ export default function SwitchSimPage() {
                     <div className="flex flex-wrap gap-3 text-xs">
                       <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 rounded-sm bg-blue-400 inline-block" />
-                        <span className="text-slate-500">매도 실수령 {fmtWon(proceeds)}</span>
+                        <span className="text-slate-500 dark:text-slate-400">매도 실수령 {fmtWon(proceeds)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 rounded-sm bg-emerald-500 inline-block" />
-                        <span className="text-slate-500">신규 대출 {fmtWon(loan)}</span>
+                        <span className="text-slate-500 dark:text-slate-400">신규 대출 {fmtWon(loan)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 rounded-sm bg-amber-400 inline-block" />
-                        <span className="text-slate-500">추가 자기자본 {fmtWon(capital)}</span>
+                        <span className="text-slate-500 dark:text-slate-400">추가 자기자본 {fmtWon(capital)}</span>
                       </div>
                     </div>
                   </>
@@ -637,28 +651,28 @@ export default function SwitchSimPage() {
             </div>
 
             {/* 최종 결과 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-              <h3 className="text-sm font-bold text-slate-600">최종 결과</h3>
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+              <h3 className="text-sm font-bold text-slate-600 dark:text-slate-400">최종 결과</h3>
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-                  <p className="text-xs text-slate-500 mb-1">갈아타기 총 비용</p>
-                  <p className="text-xs text-slate-400 mb-2">(세금 + 수수료 합산)</p>
-                  <p className="text-lg font-black text-slate-700">{fmtWon(result.totalCost)}</p>
+                <div className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-4 text-center">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">갈아타기 총 비용</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">(세금 + 수수료 합산)</p>
+                  <p className="text-lg font-black text-slate-700 dark:text-slate-200">{fmtWon(result.totalCost)}</p>
                 </div>
-                <div className={`rounded-xl p-4 text-center border ${result.additionalCapital > 0 ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}>
-                  <p className={`text-xs font-semibold mb-1 ${result.additionalCapital > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                <div className={`rounded-xl p-4 text-center border ${result.additionalCapital > 0 ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800" : "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800"}`}>
+                  <p className={`text-xs font-semibold mb-1 ${result.additionalCapital > 0 ? "text-amber-600 dark:text-amber-300" : "text-emerald-600 dark:text-emerald-300"}`}>
                     추가 필요 자기자본
                   </p>
-                  <p className="text-xs text-slate-400 mb-2">(매도 실수령 + 주담대 외)</p>
-                  <p className={`text-lg font-black ${result.additionalCapital > 0 ? "text-amber-700" : "text-emerald-700"}`}>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">(매도 실수령 + 주담대 외)</p>
+                  <p className={`text-lg font-black ${result.additionalCapital > 0 ? "text-amber-700 dark:text-amber-300" : "text-emerald-700 dark:text-emerald-300"}`}>
                     {result.additionalCapital < 0 ? "여유자금 " : ""}{fmtWon(Math.abs(result.additionalCapital))}
-                    {result.additionalCapital < 0 && <span className="block text-xs font-normal text-emerald-500">({fmtHundred(Math.abs(result.additionalCapital))} 남음)</span>}
+                    {result.additionalCapital < 0 && <span className="block text-xs font-normal text-emerald-500 dark:text-emerald-400">({fmtHundred(Math.abs(result.additionalCapital))} 남음)</span>}
                   </p>
                 </div>
               </div>
 
               {result.additionalCapital > 0 && (
-                <div className="flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 leading-relaxed">
+                <div className="flex items-start gap-1.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
                   <Lightbulb size={14} strokeWidth={1.75} className="shrink-0 mt-0.5" />
                   <span>
                     매도 실수령액({fmtWon(result.netProceeds)})과 주담대({fmtWon(result.loanLimit)})를 합산해도
@@ -669,7 +683,7 @@ export default function SwitchSimPage() {
               )}
 
               {result.additionalCapital <= 0 && (
-                <div className="flex items-start gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-xs text-emerald-700 leading-relaxed">
+                <div className="flex items-start gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-3 text-xs text-emerald-700 dark:text-emerald-300 leading-relaxed">
                   <CheckCircle2 size={14} strokeWidth={1.75} className="shrink-0 mt-0.5" />
                   <span>
                     매도 실수령액과 주담대로 새 집 구매가 가능합니다.
@@ -680,51 +694,51 @@ export default function SwitchSimPage() {
             </div>
 
             {/* 월 부담 변화 분석 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-              <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-600">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+              <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-600 dark:text-slate-400">
                 <CalendarClock size={15} strokeWidth={1.75} />
                 매달 대출 상환 부담 변화
               </h3>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                  <p className="text-[11px] text-slate-400 mb-1">기존 집 월 상환액</p>
-                  <p className="text-lg font-black text-slate-600">{fmtWon(result.oldMonthly)}</p>
+                <div className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-4">
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-1">기존 집 월 상환액</p>
+                  <p className="text-lg font-black text-slate-600 dark:text-slate-300">{fmtWon(result.oldMonthly)}</p>
                   {result.existingLoan > 0 && (
-                    <p className="text-[10px] text-slate-400 mt-1">잔액 {fmtWon(result.existingLoan)}</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">잔액 {fmtWon(result.existingLoan)}</p>
                   )}
                 </div>
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                  <p className="text-[11px] text-emerald-500 mb-1">새 집 월 상환액</p>
-                  <p className="text-lg font-black text-emerald-700">{fmtWon(result.newMonthly)}</p>
-                  <p className="text-[10px] text-emerald-500 mt-1">대출 {fmtWon(result.loanLimit)}</p>
+                <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+                  <p className="text-[11px] text-emerald-500 dark:text-emerald-400 mb-1">새 집 월 상환액</p>
+                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-300">{fmtWon(result.newMonthly)}</p>
+                  <p className="text-[10px] text-emerald-500 dark:text-emerald-400 mt-1">대출 {fmtWon(result.loanLimit)}</p>
                 </div>
               </div>
 
               {/* 월 부담 증감 */}
-              <div className={`rounded-xl px-4 py-3 flex items-center justify-between ${result.monthlyDiff > 0 ? "bg-red-50 border border-red-200" : "bg-blue-50 border border-blue-200"}`}>
-                <span className={`text-sm font-bold ${result.monthlyDiff > 0 ? "text-red-700" : "text-blue-700"}`}>
+              <div className={`rounded-xl px-4 py-3 flex items-center justify-between ${result.monthlyDiff > 0 ? "bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800" : "bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800"}`}>
+                <span className={`text-sm font-bold ${result.monthlyDiff > 0 ? "text-red-700 dark:text-red-300" : "text-blue-700 dark:text-blue-300"}`}>
                   {result.monthlyDiff > 0 ? "매달 추가 부담" : "매달 부담 감소"}
                 </span>
-                <span className={`text-xl font-black ${result.monthlyDiff > 0 ? "text-red-600" : "text-blue-600"}`}>
+                <span className={`text-xl font-black ${result.monthlyDiff > 0 ? "text-red-600 dark:text-red-300" : "text-blue-600 dark:text-blue-300"}`}>
                   {result.monthlyDiff > 0 ? "+" : "-"}{fmtWon(Math.abs(result.monthlyDiff))}
                 </span>
               </div>
 
               {result.monthlyDiff > 0 && (
-                <p className="text-[11px] text-slate-500 leading-relaxed bg-slate-50 rounded-lg px-3 py-2">
-                  갈아타기 후 매달 <span className="font-bold text-red-600">{fmtWon(result.monthlyDiff)}</span>씩
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-slate-700 rounded-lg px-3 py-2">
+                  갈아타기 후 매달 <span className="font-bold text-red-600 dark:text-red-400">{fmtWon(result.monthlyDiff)}</span>씩
                   더 부담하게 됩니다. 연간 약 {fmtWon(result.monthlyDiff * 12)} 추가 지출이에요.
                   소득 대비 상환 여력을 꼭 확인하세요.
                 </p>
               )}
 
-              <p className="text-[10px] text-slate-400">
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">
                 * 원리금균등상환 기준. 실제 상환액은 상환방식(원금균등/거치식 등)과 금리 변동에 따라 달라집니다.
               </p>
             </div>
 
-            <p className="text-[10px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed pt-2 border-t border-slate-100 dark:border-slate-700">
               출처: 소득세법 제89조·제95조·제103조·제104조(양도세), 지방세법 제11조·제13조의2(취득세),
               공인중개사법 시행규칙 제20조 별표1(중개보수), 금융위원회 주택시장 안정화 대책(2025.10.15).
               본 계산은 참고용이며 실제 세액·대출 조건은 세무사·금융기관 확인이 필요합니다.

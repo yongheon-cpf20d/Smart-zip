@@ -4,6 +4,7 @@ import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { LineChart } from "lucide-react";
 import PriceInput from "@/components/PriceInput";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ✅ 법령 출처
 // 양도세: 소득세법 제95조(장특공제), 제103조(기본공제), 제104조(세율)
@@ -134,23 +135,26 @@ export default function AssetSimPage() {
   const netBarPct = Math.max(100 - taxBarPct, 0);
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
-          ← 메인으로
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-100">
             <LineChart size={20} strokeWidth={1.75} className="text-emerald-600" />
             순수익 계산기
           </h1>
-          <p className="text-xs text-slate-400 mt-1">집값이 오르면 세금 내고 실제로 얼마 남을까?</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">집값이 오르면 세금 내고 실제로 얼마 남을까?</p>
         </div>
 
         {/* 입력 섹션 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-5">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-5">
 
           {/* 취득가액 */}
           <PriceInput
@@ -167,10 +171,10 @@ export default function AssetSimPage() {
           />
 
           {/* 1세대1주택 토글 */}
-          <div className="flex items-center justify-between py-3 border-t border-b border-slate-100">
+          <div className="flex items-center justify-between py-3 border-t border-b border-slate-100 dark:border-slate-700">
             <div>
-              <p className="text-sm font-semibold text-slate-700">실거주 2년 채운 1세대 1주택인가요?</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">활성화 시 12억 이하 비과세 + 장특공제 연 8% 적용</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">실거주 2년 채운 1세대 1주택인가요?</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">활성화 시 12억 이하 비과세 + 장특공제 연 8% 적용</p>
             </div>
             <button
               onClick={() => setIsOneHouse(!isOneHouse)}
@@ -191,8 +195,8 @@ export default function AssetSimPage() {
           {/* 미래 가격 슬라이더 + 직접 입력 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-slate-400">미래 예상 매도가</label>
-              <span className="text-sm font-black text-slate-800">{fmtWon(sellPrice)}</span>
+              <label className="text-xs text-slate-400 dark:text-slate-500">미래 예상 매도가</label>
+              <span className="text-sm font-black text-slate-800 dark:text-slate-100">{fmtWon(sellPrice)}</span>
             </div>
 
             {/* ✅ 직접 입력칸 — 슬라이더는 큰 범위를 훑기엔 좋지만 미세한 가격 조정이 어려워서 추가.
@@ -212,9 +216,9 @@ export default function AssetSimPage() {
                   }
                 }}
                 placeholder="직접 입력 (만원)"
-                className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400"
+                className="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
-              <span className="text-xs text-slate-400 shrink-0">만원</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">만원</span>
             </div>
 
             <input
@@ -229,7 +233,7 @@ export default function AssetSimPage() {
               }}
               className="w-full accent-emerald-500"
             />
-            <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+            <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1">
               <span>현재가 {fmtWon(acqPrice)}</span>
               <span className="text-emerald-500 font-bold">{sellMultiple.toFixed(2)}배</span>
               <span>3배 {fmtWon(acqPrice * 3)}</span>
@@ -239,8 +243,8 @@ export default function AssetSimPage() {
           {/* 보유기간 슬라이더 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-slate-400">보유·거주 기간</label>
-              <span className="text-sm font-black text-slate-800">{holdY}년</span>
+              <label className="text-xs text-slate-400 dark:text-slate-500">보유·거주 기간</label>
+              <span className="text-sm font-black text-slate-800 dark:text-slate-100">{holdY}년</span>
             </div>
             <input
               type="range"
@@ -251,7 +255,7 @@ export default function AssetSimPage() {
               onChange={e => setHoldY(Number(e.target.value))}
               className="w-full accent-emerald-500"
             />
-            <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+            <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 mt-1">
               <span>1년</span>
               <span className="text-emerald-500 font-bold">
                 {isOneHouse
@@ -268,10 +272,10 @@ export default function AssetSimPage() {
           <div className="space-y-4">
 
             {/* 바 그래프 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-slate-600">전체 상승액 분석</p>
-                <p className="text-sm font-black text-slate-800">{fmtWon(grossProfit)}</p>
+                <p className="text-sm font-bold text-slate-600 dark:text-slate-400">전체 상승액 분석</p>
+                <p className="text-sm font-black text-slate-800 dark:text-slate-100">{fmtWon(grossProfit)}</p>
               </div>
 
               {/* 스택 바 */}
@@ -295,71 +299,71 @@ export default function AssetSimPage() {
               <div className="flex gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-sm bg-red-400 inline-block" />
-                  <span className="text-slate-500">세금 {fmtWon(result.totalTax)}</span>
+                  <span className="text-slate-500 dark:text-slate-400">세금 {fmtWon(result.totalTax)}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-sm bg-emerald-500 inline-block" />
-                  <span className="text-slate-500">실수익 {fmtWon(Math.max(result.netProfit, 0))}</span>
+                  <span className="text-slate-500 dark:text-slate-400">실수익 {fmtWon(Math.max(result.netProfit, 0))}</span>
                 </div>
               </div>
             </div>
 
             {/* 세부 내역 */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-2 text-sm">
-              <p className="text-sm font-bold text-slate-600 mb-3">세금 계산 내역</p>
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-2 text-sm">
+              <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-3">세금 계산 내역</p>
 
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">전체 양도차익</span>
+              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">전체 양도차익</span>
                 <span className="font-bold">{fmtWon(result.totalGain)}</span>
               </div>
               {result.taxableGain < result.totalGain && (
-                <div className="flex justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500">
+                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">
                     과세대상 양도차익
-                    <span className="text-[10px] text-slate-400 ml-1">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-1">
                       {sellPrice <= 1_200_000_000 ? "(전액 비과세)" : `(12억 초과분 안분)`}
                     </span>
                   </span>
-                  <span className="font-bold text-emerald-600">{fmtWon(result.taxableGain)}</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{fmtWon(result.taxableGain)}</span>
                 </div>
               )}
               {result.ltcgRate > 0 && (
-                <div className="flex justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500">
+                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">
                     장기보유특별공제
-                    <span className="text-[10px] text-slate-400 ml-1">({(result.ltcgRate * 100).toFixed(0)}%)</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-1">({(result.ltcgRate * 100).toFixed(0)}%)</span>
                   </span>
-                  <span className="font-bold text-emerald-600">-{fmtWon(result.ltcg)}</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">-{fmtWon(result.ltcg)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">과세표준 <span className="text-[10px] text-slate-400">(기본공제 250만 차감)</span></span>
+              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">과세표준 <span className="text-[10px] text-slate-400 dark:text-slate-500">(기본공제 250만 차감)</span></span>
                 <span className="font-bold">{fmtWon(result.taxBase)}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">양도소득세</span>
+              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">양도소득세</span>
                 <span className="font-bold text-red-500">{fmtWon(result.nationalTax)}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">지방소득세 <span className="text-[10px] text-slate-400">(국세×10%)</span></span>
+              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">지방소득세 <span className="text-[10px] text-slate-400 dark:text-slate-500">(국세×10%)</span></span>
                 <span className="font-bold text-red-400">{fmtWon(result.localTax)}</span>
               </div>
               <div className="flex justify-between py-1.5">
-                <span className="text-slate-500 font-semibold">총 납부 세금</span>
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">총 납부 세금</span>
                 <span className="font-black text-red-500">{fmtWon(result.totalTax)}</span>
               </div>
             </div>
 
             {/* 최종 순수익 */}
-            <div className={`rounded-2xl p-5 border ${result.netProfit > 0 ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
-              <p className={`text-xs font-semibold mb-1 ${result.netProfit > 0 ? "text-emerald-600" : "text-red-600"}`}>
+            <div className={`rounded-2xl p-5 border ${result.netProfit > 0 ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800" : "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800"}`}>
+              <p className={`text-xs font-semibold mb-1 ${result.netProfit > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
                 세후 순수익 (상승액 - 세금)
               </p>
-              <p className={`text-3xl font-black ${result.netProfit > 0 ? "text-emerald-700" : "text-red-700"}`}>
+              <p className={`text-3xl font-black ${result.netProfit > 0 ? "text-emerald-700 dark:text-emerald-300" : "text-red-700 dark:text-red-300"}`}>
                 {fmtWon(result.netProfit)}
               </p>
               {result.taxPct > 0 && (
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                   상승액의 {result.taxPct.toFixed(1)}%가 세금으로 납부됩니다
                 </p>
               )}
@@ -367,14 +371,14 @@ export default function AssetSimPage() {
 
             {/* 재미 멘트 */}
             {witComment && (
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-start gap-3">
+              <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex items-start gap-3">
                 <span className="text-2xl shrink-0">{witComment.emoji}</span>
-                <p className="text-sm text-slate-600 leading-relaxed">{witComment.text}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{witComment.text}</p>
               </div>
             )}
 
             {/* 면책 고지 */}
-            <p className="text-[10px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed pt-2 border-t border-slate-100 dark:border-slate-700">
               ※ 본 계산 결과는 소득세법 및 지방세법 표준 세율을 기반으로 한 모의 시뮬레이션입니다.
               필요경비는 취득가액의 2%로 보수적 추정하였으며, 조정대상지역 규제, 다주택 중과,
               필요경비 증빙 여부 등 개인의 세부 조건에 따라 실제 세액과 차이가 발생할 수 있으므로
