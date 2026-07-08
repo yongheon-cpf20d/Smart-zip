@@ -26,19 +26,30 @@ body {
 }
 
 /* ────────────────────────────────────────────────
-   ✅ 똑집 전역 애니메이션 — globals.css 맨 아래에 추가
-   기존 Tailwind 설정은 그대로 두고 이 내용만 이어붙이면 됨
+   ✅ 똑집 전역 애니메이션 (속도 완화 버전 — 눈 피로 개선)
 ──────────────────────────────────────────────── */
 
-/* ① 페이지 전환 효과 — app/template.tsx 와 함께 작동 */
+/* ① 페이지 전환 효과 — 움직임 최소화, 페이드 위주로 차분하게 */
 .page-transition {
-  animation: pageEnter 0.35s ease-out;
+  animation: pageEnter 0.2s ease-out;
 }
-
 @keyframes pageEnter {
   from {
     opacity: 0;
-    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ② 계산 결과 등장 애니메이션 — 스케일(확대) 효과 제거, 이동폭 축소 */
+.result-enter {
+  animation: resultEnter 0.28s ease-out;
+}
+@keyframes resultEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -46,45 +57,28 @@ body {
   }
 }
 
-/* ② 계산 결과 등장 애니메이션 — 결과 카드에 className="result-enter" 추가해서 사용 */
-.result-enter {
-  animation: resultEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes resultEnter {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* 결과 내부 항목들이 순차적으로 나타나는 효과 — className="result-stagger" 자식 요소에 사용 */
+/* 결과 내부 항목 순차 등장 — 지연시간/스케일 축소 */
 .result-stagger > * {
-  animation: resultEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: resultEnter 0.25s ease-out backwards;
 }
-.result-stagger > *:nth-child(1) { animation-delay: 0.03s; }
-.result-stagger > *:nth-child(2) { animation-delay: 0.06s; }
-.result-stagger > *:nth-child(3) { animation-delay: 0.09s; }
-.result-stagger > *:nth-child(4) { animation-delay: 0.12s; }
-.result-stagger > *:nth-child(5) { animation-delay: 0.15s; }
-.result-stagger > *:nth-child(6) { animation-delay: 0.18s; }
-.result-stagger > *:nth-child(7) { animation-delay: 0.21s; }
-.result-stagger > *:nth-child(8) { animation-delay: 0.24s; }
+.result-stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.result-stagger > *:nth-child(2) { animation-delay: 0.04s; }
+.result-stagger > *:nth-child(3) { animation-delay: 0.06s; }
+.result-stagger > *:nth-child(4) { animation-delay: 0.08s; }
+.result-stagger > *:nth-child(5) { animation-delay: 0.10s; }
+.result-stagger > *:nth-child(6) { animation-delay: 0.12s; }
+.result-stagger > *:nth-child(7) { animation-delay: 0.14s; }
+.result-stagger > *:nth-child(8) { animation-delay: 0.16s; }
 
-/* ③ 카드/버튼 호버 효과 — className="hover-lift" 추가해서 사용 */
+/* ③ 카드/버튼 호버 효과 (그대로 유지 — 사용자가 직접 조작할 때만 발생해서 부담 적음) */
 .hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* 버튼 눌림 효과 — className="btn-press" 추가해서 사용 */
 .btn-press {
   transition: transform 0.1s ease;
 }
@@ -92,47 +86,23 @@ body {
   transform: scale(0.97);
 }
 
-/* 숫자 카운트업용 tabular-nums (숫자 자릿수 흔들림 방지) */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-/* ────────────────────────────────────────────────
-   ✅ 똑집 전역 애니메이션 v2 — 기존 애니메이션에 이어붙이기
-   (globals.css 맨 아래, 저번에 넣은 v1 애니메이션 아래에 추가)
-──────────────────────────────────────────────── */
-
-/* ④ 링크/카드 클릭 시 즉각 피드백 — className="link-press" 추가해서 사용 */
 .link-press {
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.12s ease, opacity 0.12s ease;
 }
 .link-press:active {
-  transform: scale(0.96);
-  opacity: 0.7;
+  transform: scale(0.97);
+  opacity: 0.8;
 }
 
-/* ⑤ 페이지 전환을 조금 더 부드럽게 — template.tsx의 page-transition 업그레이드 */
-.page-transition {
-  animation: pageEnterV2 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes pageEnterV2 {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ⑥ 클릭 즉시 로딩 느낌을 주는 살짝 어두워지는 효과 — className="nav-link" 추가 */
 .nav-link {
-  transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+  transition: transform 0.12s ease, opacity 0.12s ease, background-color 0.12s ease;
 }
 .nav-link:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 /* ────────────────────────────────────────────────
