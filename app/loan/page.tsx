@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import PriceInput from "@/components/PriceInput";
 import ShareButton from "@/components/ShareButton";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type RepaymentType = "equal-pi" | "equal-principal" | "graduated";
 
@@ -277,7 +278,7 @@ function LoanPageContent() {
     Math.round(n).toLocaleString("ko-KR") + "원";
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <style jsx>{`
         @keyframes loanInputBreath {
           0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.35); }
@@ -286,22 +287,25 @@ function LoanPageContent() {
       `}</style>
       <div className="max-w-4xl mx-auto px-4 py-4 space-y-5">
 
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press"
-        >
-          ← 메인으로
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press"
+          >
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
-        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
           <Landmark size={20} strokeWidth={1.75} className="text-emerald-600" />
           주택담보대출 계산기
         </h1>
 
         {/* 1. 상환방식 설정 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
           <div>
-            <h2 className="text-sm font-bold text-slate-600 mb-3">상환방식</h2>
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-3">상환방식</h2>
             <div className="grid grid-cols-3 gap-2">
               {REPAYMENT_OPTIONS.map((opt) => {
                 const active = repaymentType === opt.key;
@@ -311,8 +315,8 @@ function LoanPageContent() {
                     onClick={() => setRepaymentType(opt.key)}
                     className={`py-3 rounded-xl text-sm font-bold border transition-all btn-press ${
                       active
-                        ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                        ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                     }`}
                   >
                     {opt.label}
@@ -323,8 +327,8 @@ function LoanPageContent() {
           </div>
 
           {(repaymentType === "equal-pi" || repaymentType === "equal-principal") && (
-            <div className="border-t border-slate-100 pt-4">
-              <label className="text-xs text-slate-400 mb-1.5 block">거치기간 (이 기간 동안은 이자만 납부)</label>
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1.5 block">거치기간 (이 기간 동안은 이자만 납부)</label>
               <div className="flex gap-2">
                 {GRACE_OPTIONS.map((g) => (
                   <button
@@ -332,8 +336,8 @@ function LoanPageContent() {
                     onClick={() => setGraceYears(g)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                       graceYears === g
-                        ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                        ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                     }`}
                   >
                     {g === 0 ? "없음" : `${g}년`}
@@ -344,8 +348,8 @@ function LoanPageContent() {
           )}
 
           {repaymentType === "graduated" && (
-            <div className="border-t border-slate-100 pt-4">
-              <label className="text-xs text-slate-400 mb-1.5 block">연간 원리금 증가율</label>
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1.5 block">연간 원리금 증가율</label>
               <div className="flex gap-2">
                 {ESCALATION_OPTIONS.map((e) => (
                   <button
@@ -353,15 +357,15 @@ function LoanPageContent() {
                     onClick={() => setEscalationRate(e)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                       escalationRate === e
-                        ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                        ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                     }`}
                   >
                     연 {e}%
                   </button>
                 ))}
               </div>
-              <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2 leading-relaxed">
                 매년 원리금(원금+이자)이 선택한 비율만큼 늘어나는 방식입니다. 실제 상품의 정확한
                 증가율은 취급 금융기관마다 다르므로, 본 계산은 참고용 모의 시뮬레이션입니다.
               </p>
@@ -370,11 +374,11 @@ function LoanPageContent() {
         </div>
 
         {/* 2. 대출정보 입력 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-          <h2 className="text-sm font-bold text-slate-600">대출정보 입력</h2>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">대출정보 입력</h2>
 
           {highlightRemaining && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-xs text-emerald-700">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-xs text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300">
               총비용 계산기에서 대출한도가 자동으로 입력됐어요. 대출기간과 금리만 입력하면 월 원리금이 바로 계산돼요!
             </div>
           )}
@@ -387,13 +391,13 @@ function LoanPageContent() {
           />
 
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">대출기간 (년)</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">대출기간 (년)</label>
             <input
               type="number"
               value={loanYears}
               onChange={(e) => { setLoanYears(e.target.value); setHighlightRemaining(false); }}
               placeholder="예: 30"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 mb-2"
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30 mb-2"
               style={highlightRemaining && !loanYears ? { animation: "loanInputBreath 1.4s ease-in-out infinite", borderColor: "#10b981" } : undefined}
             />
             <div className="flex gap-2">
@@ -403,8 +407,8 @@ function LoanPageContent() {
                   onClick={() => { setLoanYears(String(y)); setHighlightRemaining(false); }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                     loanYears === String(y)
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                      ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                   }`}
                 >
                   {y}년
@@ -414,14 +418,14 @@ function LoanPageContent() {
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">대출금리 (%, 연)</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">대출금리 (%, 연)</label>
             <input
               type="number"
               step="0.01"
               value={interestRate}
               onChange={(e) => { setInterestRate(e.target.value); setHighlightRemaining(false); }}
               placeholder="예: 4.2"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30"
               style={highlightRemaining && !interestRate ? { animation: "loanInputBreath 1.4s ease-in-out infinite", borderColor: "#10b981" } : undefined}
             />
           </div>
@@ -436,18 +440,18 @@ function LoanPageContent() {
 
         {/* 3. 월 원리금 결과 */}
         {result && (
-          <div ref={resultRef} className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center result-enter">
-            <p className="text-xs text-emerald-600 font-semibold mb-1">
+          <div ref={resultRef} className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-5 text-center result-enter">
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mb-1">
               월 상환액 ({repaymentType === "graduated" ? "1년차 첫 회차" : "첫 회차"} 기준)
             </p>
-            <p className="text-3xl font-black text-emerald-700">
+            <p className="text-3xl font-black text-emerald-700 dark:text-emerald-300">
               {formatWon(result.firstMonthlyPayment)}
             </p>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
               원금 {formatWon(result.firstMonthlyPrincipal)} · 이자 {formatWon(result.firstMonthlyInterest)}
             </p>
             {result.lastMonthlyPayment !== undefined && (
-              <p className="text-xs text-amber-600 mt-2 pt-2 border-t border-emerald-200">
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 pt-2 border-t border-emerald-200 dark:border-emerald-800">
                 만기 마지막 회차 원리금: {formatWon(result.lastMonthlyPayment)} (매년 {escalationRate}%씩 증가)
               </p>
             )}
@@ -456,8 +460,8 @@ function LoanPageContent() {
 
         {/* 4. 시뮬레이션 그래프 및 공유 버튼 */}
         {result && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 result-enter">
-            <h2 className="text-sm font-bold text-slate-600 mb-4">연차별 원금·이자 구성</h2>
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 result-enter">
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-4">연차별 원금·이자 구성</h2>
             <div style={{ width: "100%", height: 320 }}>
               <ResponsiveContainer>
                 <BarChart data={result.yearlyData} barCategoryGap="20%">
@@ -489,7 +493,7 @@ function LoanPageContent() {
               </ResponsiveContainer>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-slate-100">
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-700">
               <ShareButton
                 title="주택담보대출 계산 결과 - 똑집"
                 description={`대출금액 ${formatWon(Number(loanAmountInput) * 10000)}, 월 상환액 ${formatWon(result.firstMonthlyPayment)}`}

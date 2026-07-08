@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BarChart3, ChevronDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import ShareButton from "@/components/ShareButton";
+import ThemeToggle from "@/components/ThemeToggle";
 type RepayType = "equal-pi" | "equal-principal" | "bullet" | "graduated";
 type RateType = "variable" | "mixed" | "cyclic" | "fixed";
 // ✅ 스트레스 DSR 3단계 (2025.7.1 시행) + 10.15 대책(2025.10.16 시행) 반영
@@ -222,7 +223,7 @@ function DSRPageContent() {
   const bankPass = result ? result.dsrPlain <= 40 : null;
   const nonBankPass = result ? result.dsrPlain <= 50 : null;
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <style jsx>{`
         @keyframes dsrDateBreath {
           0%, 100% { opacity: 1; }
@@ -230,14 +231,19 @@ function DSRPageContent() {
         }
       `}</style>
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
-          ← 메인으로
-        </Link>
-        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+        <div className="flex items-center justify-between">
+          <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
           <BarChart3 size={20} strokeWidth={1.75} className="text-emerald-600" />
           DSR 계산기
         </h1>
-        <div className="relative bg-white border border-slate-200 rounded-2xl p-5">
+
+        {/* 스트레스 DSR 규제 현황 */}
+        <div className="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
           <span
             className="absolute top-4 right-4 text-[10px] font-semibold px-2 py-1 rounded-full"
             style={{
@@ -248,23 +254,25 @@ function DSRPageContent() {
           >
             {todayStr}
           </span>
-          <h2 className="text-sm font-bold text-slate-600 mb-3">스트레스 DSR 규제 현황</h2>
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-3">스트레스 DSR 규제 현황</h2>
           <div className="grid grid-cols-3 gap-2">
             {STRESS_DSR_STAGES.map((s, i) => {
               const active = i === CURRENT_STAGE_INDEX;
               return (
-                <div key={s.stage} className={`rounded-xl p-3 text-center border ${active ? "bg-red-50 border-red-200" : "bg-slate-50 border-slate-200"}`}>
-                  <p className={`text-xs font-bold ${active ? "text-red-700" : "text-slate-400"}`}>{s.stage}</p>
-                  <p className={`text-[10px] mt-0.5 ${active ? "text-red-500" : "text-slate-400"}`}>{s.date}</p>
-                  <p className={`text-[10px] mt-1 ${active ? "text-red-600 font-semibold" : "text-slate-400"}`}>{s.add}</p>
+                <div key={s.stage} className={`rounded-xl p-3 text-center border ${active ? "bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-800" : "bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600"}`}>
+                  <p className={`text-xs font-bold ${active ? "text-red-700 dark:text-red-300" : "text-slate-400 dark:text-slate-500"}`}>{s.stage}</p>
+                  <p className={`text-[10px] mt-0.5 ${active ? "text-red-500 dark:text-red-400" : "text-slate-400 dark:text-slate-500"}`}>{s.date}</p>
+                  <p className={`text-[10px] mt-1 ${active ? "text-red-600 dark:text-red-400 font-semibold" : "text-slate-400 dark:text-slate-500"}`}>{s.add}</p>
                 </div>
               );
             })}
           </div>
         </div>
-        <div className="bg-white border border-slate-200 rounded-2xl p-5">
-          <h2 className="text-sm font-bold text-slate-600 mb-2">장래인정소득이란?</h2>
-          <p className="text-xs text-slate-500 leading-relaxed mb-3">
+
+        {/* 장래인정소득 */}
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">장래인정소득이란?</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
             만 39세 이하 무주택 근로자가 만기 10년 이상 주택담보대출(분할상환)을 받을 때,
             현재 소득이 아닌 연령대별 소득흐름 평균을 반영해 DSR 산정용 소득을 높여주는 제도입니다.
           </p>
@@ -284,15 +292,15 @@ function DSRPageContent() {
           </button>
           {showTable && (
             <div className="mt-3 space-y-2 result-enter">
-              <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-lg">
+              <div className="max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-lg">
                 <table className="w-full text-[11px] border-collapse">
-                  <thead className="bg-slate-50 sticky top-0">
+                  <thead className="bg-slate-50 dark:bg-slate-700 sticky top-0">
                     <tr>
-                      <th className="py-2 px-2 text-slate-500 font-semibold">연령\만기</th>
-                      <th className="py-2 px-2 text-slate-500 font-semibold">10~14년</th>
-                      <th className="py-2 px-2 text-slate-500 font-semibold">15~19년</th>
-                      <th className="py-2 px-2 text-slate-500 font-semibold">20년~</th>
-                      <th className="py-2 px-2 text-slate-500 font-semibold">30년</th>
+                      <th className="py-2 px-2 text-slate-500 dark:text-slate-400 font-semibold">연령\만기</th>
+                      <th className="py-2 px-2 text-slate-500 dark:text-slate-400 font-semibold">10~14년</th>
+                      <th className="py-2 px-2 text-slate-500 dark:text-slate-400 font-semibold">15~19년</th>
+                      <th className="py-2 px-2 text-slate-500 dark:text-slate-400 font-semibold">20년~</th>
+                      <th className="py-2 px-2 text-slate-500 dark:text-slate-400 font-semibold">30년</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -302,30 +310,32 @@ function DSRPageContent() {
                       ["30~34세", "12.6%", "16.1%", "17.7%", "13.1%"],
                       ["35~39세", "6.2%", "6.8%", "5.3%", "-"],
                     ].map((row) => (
-                      <tr key={row[0]} className="border-t border-slate-100">
+                      <tr key={row[0]} className="border-t border-slate-100 dark:border-slate-700">
                         {row.map((cell, i) => (
-                          <td key={i} className="py-1.5 px-2 text-center text-slate-700">{cell}</td>
+                          <td key={i} className="py-1.5 px-2 text-center text-slate-700 dark:text-slate-300">{cell}</td>
                         ))}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <p className="text-[10px] text-slate-400">
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">
                 출처: 금융위원회, 「새정부 가계대출 관리방향 및 단계적 규제 정상화방안」(2022.6) 12p
               </p>
             </div>
           )}
         </div>
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
+
+        {/* 기존대출 입력 */}
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-600">기존대출 입력</h2>
-            <span className="text-[11px] text-slate-400">{existLoans.length}건</span>
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">기존대출 입력</h2>
+            <span className="text-[11px] text-slate-400 dark:text-slate-500">{existLoans.length}건</span>
           </div>
           {existLoans.map((loan, idx) => (
-            <div key={loan.id} className="border border-slate-100 rounded-xl p-3.5 space-y-3 bg-slate-50/50">
+            <div key={loan.id} className="border border-slate-100 dark:border-slate-700 rounded-xl p-3.5 space-y-3 bg-slate-50/50 dark:bg-slate-700/30">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500">대출 {idx + 1}</span>
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">대출 {idx + 1}</span>
                 {existLoans.length > 1 && (
                   <button
                     onClick={() => removeExistLoan(loan.id)}
@@ -337,16 +347,16 @@ function DSRPageContent() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">대출종류</label>
+                  <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">대출종류</label>
                   <select value={loan.loanType} onChange={(e) => updateExistLoan(loan.id, { loanType: e.target.value })}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-emerald-400">
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500">
                     {EXIST_LOAN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">상환방식</label>
+                  <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">상환방식</label>
                   <select value={loan.repayType} onChange={(e) => updateExistLoan(loan.id, { repayType: e.target.value as RepayType })}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-emerald-400">
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500">
                     <option value="equal-pi">원리금균등</option>
                     <option value="equal-principal">원금균등</option>
                     <option value="bullet">만기일시</option>
@@ -354,37 +364,37 @@ function DSRPageContent() {
                 </div>
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 block">대출금액 (만원)</label>
+                <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">대출금액 (만원)</label>
                 <input type="number" value={loan.amount} onChange={(e) => updateExistLoan(loan.id, { amount: e.target.value })}
-                  placeholder="예: 5000" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-emerald-400" />
+                  placeholder="예: 5000" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">
+                  <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">
                     대출만기 (년)
                     {loan.repayType === "bullet" && isCreditType(loan.loanType) && (
-                      <span className="text-amber-500"> · 심사만기 5년 고정</span>
+                      <span className="text-amber-500 dark:text-amber-400"> · 심사만기 5년 고정</span>
                     )}
                   </label>
                   <input type="number" value={loan.years} onChange={(e) => updateExistLoan(loan.id, { years: e.target.value })}
-                    placeholder="예: 5" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-emerald-400" />
+                    placeholder="예: 5" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">대출금리 (%)</label>
+                  <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">대출금리 (%)</label>
                   <input type="number" step="0.01" value={loan.rate} onChange={(e) => updateExistLoan(loan.id, { rate: e.target.value })}
-                    placeholder="예: 6.5" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-emerald-400" />
+                    placeholder="예: 6.5" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500" />
                 </div>
               </div>
               {isCreditType(loan.loanType) && loan.repayType !== "bullet" && Number(loan.years) > CREDIT_LOAN_MAX_YEARS && (
-                <p className="text-[11px] text-amber-600">
+                <p className="text-[11px] text-amber-600 dark:text-amber-400">
                   신용대출 분할상환은 DSR 산정만기가 최장 {CREDIT_LOAN_MAX_YEARS}년으로 상한됩니다. (실제 만기 {loan.years}년, 심사만기 {CREDIT_LOAN_MAX_YEARS}년)
                 </p>
               )}
               {existLoanMonthlies[idx] > 0 && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs text-emerald-700">
+                <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
                   심사용 월 원리금 <span className="font-bold">{fmtWon(existLoanMonthlies[idx])}</span>
                   {loan.repayType === "bullet" && isCreditType(loan.loanType) && (
-                    <p className="text-[10px] text-emerald-600 mt-0.5">만기일시상환은 산정만기 5년 원금분할 기준으로 계산됩니다.</p>
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">만기일시상환은 산정만기 5년 원금분할 기준으로 계산됩니다.</p>
                   )}
                 </div>
               )}
@@ -392,22 +402,24 @@ function DSRPageContent() {
           ))}
           <button
             onClick={addExistLoan}
-            className="w-full py-2.5 rounded-xl border border-dashed border-slate-300 text-slate-500 text-sm font-semibold hover:bg-slate-50 hover:border-emerald-300 hover:text-emerald-600 transition"
+            className="w-full py-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
           >
             + 기존대출 추가하기
           </button>
           {existMonthlyTotal > 0 && (
-            <div className="bg-slate-100 border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-700">
+            <div className="bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300">
               기존대출 합계 월 원리금 <span className="font-bold">{fmtWon(existMonthlyTotal)}</span>
             </div>
           )}
         </div>
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-          <h2 className="text-sm font-bold text-slate-600">신규대출 (주담대) 입력</h2>
+
+        {/* 신규대출 입력 */}
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">신규대출 (주담대) 입력</h2>
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">상환방식</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">상환방식</label>
             <select value={newRepayType} onChange={(e) => setNewRepayType(e.target.value as RepayType)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400">
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500">
               <option value="equal-pi">원리금균등</option>
               <option value="equal-principal">원금균등</option>
               <option value="graduated">체증식</option>
@@ -415,40 +427,42 @@ function DSRPageContent() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">대출원금 (만원)</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">대출원금 (만원)</label>
               <input type="number" value={newAmount} onChange={(e) => setNewAmount(e.target.value)}
-                placeholder="예: 50000" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                placeholder="예: 50000" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">대출금리 (%)</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">대출금리 (%)</label>
               <input type="number" step="0.01" value={newRate} onChange={(e) => setNewRate(e.target.value)}
-                placeholder="예: 4.2" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+                placeholder="예: 4.2" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500" />
             </div>
           </div>
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">대출기간 (년)</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">대출기간 (년)</label>
             <input type="number" value={newYears} onChange={(e) => setNewYears(e.target.value)}
-              placeholder="예: 30" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 mb-2" />
+              placeholder="예: 30" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 mb-2" />
             <div className="flex gap-2">
               {[30, 40, 50].map((y) => (
                 <button key={y} onClick={() => setNewYears(String(y))}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                    newYears === String(y) ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    newYears === String(y)
+                      ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                   }`}>
                   {y}년
                 </button>
               ))}
             </div>
             {Number(newYears) > DSR_MAX_YEARS && !isPolicyMortgage && (
-              <p className="text-[11px] text-amber-600 mt-1.5">
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5">
                 DSR 산정 시 만기는 최대 {DSR_MAX_YEARS}년까지만 인정됩니다. (실제 만기 {newYears}년, 심사만기 {DSR_MAX_YEARS}년)
               </p>
             )}
             {Number(newYears) > DSR_MAX_YEARS && (
-              <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
                 <div>
-                  <p className="text-xs font-semibold text-slate-600">정책모기지 상품 이용</p>
-                  <p className="text-[10px] text-slate-400">디딤돌대출·보금자리론 등 (만 34세 이하 무주택청년·신혼부부 대상 50년 상품)</p>
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">정책모기지 상품 이용</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500">디딤돌대출·보금자리론 등 (만 34세 이하 무주택청년·신혼부부 대상 50년 상품)</p>
                 </div>
                 <button
                   onClick={() => setIsPolicyMortgage(v => !v)}
@@ -467,14 +481,14 @@ function DSRPageContent() {
               </div>
             )}
             {Number(newYears) > DSR_MAX_YEARS && isPolicyMortgage && (
-              <p className="text-[11px] text-emerald-600 mt-1.5">
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1.5">
                 정책모기지 상품은 상품 설계상 50년 만기가 그대로 인정되어 심사만기 상한이 적용되지 않습니다.
               </p>
             )}
           </div>
-          <div className="border-t border-slate-100 pt-3 space-y-3">
+          <div className="border-t border-slate-100 dark:border-slate-700 pt-3 space-y-3">
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">금리유형</label>
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">금리유형</label>
               <div className="grid grid-cols-4 gap-1.5">
                 {[
                   { key: "variable", label: "변동형" },
@@ -484,7 +498,9 @@ function DSRPageContent() {
                 ].map((r) => (
                   <button key={r.key} onClick={() => setNewRateType(r.key as RateType)}
                     className={`py-2 rounded-lg text-xs font-bold border transition ${
-                      newRateType === r.key ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                      newRateType === r.key
+                        ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                     }`}>
                     {r.label}
                   </button>
@@ -494,8 +510,8 @@ function DSRPageContent() {
             {newRateType !== "fixed" && (
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-slate-600">수도권·규제지역 여부</p>
-                  <p className="text-[10px] text-slate-400">서울·경기·인천 또는 투기과열지구·조정대상지역</p>
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">수도권·규제지역 여부</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500">서울·경기·인천 또는 투기과열지구·조정대상지역</p>
                 </div>
                 <button
                   onClick={() => setIsMetroArea(v => !v)}
@@ -515,41 +531,43 @@ function DSRPageContent() {
             )}
           </div>
           {newMonthly > 0 && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2.5 text-sm text-emerald-700">
+            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg px-4 py-2.5 text-sm text-emerald-700 dark:text-emerald-300">
               실제 월 원리금 <span className="font-bold">{fmtWon(newMonthly)}</span>
-              <p className="text-[11px] text-emerald-600 mt-0.5">입력하신 실제 대출조건 기준 상환액입니다.</p>
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5">입력하신 실제 대출조건 기준 상환액입니다.</p>
             </div>
           )}
           {stressRate > 0 && Number(newRate) > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 text-xs text-amber-700 space-y-1">
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-2.5 text-xs text-amber-700 dark:text-amber-300 space-y-1">
               <p className="font-bold">
                 DSR 심사 적용금리: {Number(newRate).toFixed(2)}% + 스트레스금리 {stressRate.toFixed(2)}%p = {screeningRate.toFixed(2)}%
               </p>
-              <p className="text-amber-600">
+              <p className="text-amber-600 dark:text-amber-400">
                 심사만기 {isPolicyMortgage ? newYears : Math.min(Number(newYears) || 0, DSR_MAX_YEARS)}년 기준,
                 심사용 월 원리금 <span className="font-bold">{fmtWon(newMonthlyForDSR)}</span>으로 DSR이 계산됩니다.
               </p>
             </div>
           )}
           {newRateType === "fixed" && Number(newRate) > 0 && (
-            <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs text-slate-500">
+            <div className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400">
               순수 고정금리 대출은 스트레스금리가 적용되지 않습니다.
             </div>
           )}
         </div>
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-          <h2 className="text-sm font-bold text-slate-600">개인정보 입력</h2>
+
+        {/* 개인정보 입력 */}
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">개인정보 입력</h2>
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">
-              연소득 (만원) <span className="text-slate-400">— 혼인신고 완료 부부는 합산 입력, 전년도 원천징수영수증 기준</span>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">
+              연소득 (만원) <span className="text-slate-400 dark:text-slate-500">— 혼인신고 완료 부부는 합산 입력, 전년도 원천징수영수증 기준</span>
             </label>
             <input type="number" value={income} onChange={(e) => setIncome(e.target.value)}
-              placeholder="예: 6000" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+              placeholder="예: 6000" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">차주 나이 (만)</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">차주 나이 (만)</label>
             <input type="number" value={age} onChange={(e) => setAge(e.target.value)}
-              placeholder="예: 32" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400" />
+              placeholder="예: 32" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500" />
           </div>
         </div>
         <button
@@ -558,34 +576,36 @@ function DSRPageContent() {
         >
           계산하기
         </button>
+
+        {/* 결과 */}
         {result && (
-          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-1 result-enter">
-            <h2 className="text-sm font-bold text-slate-600 mb-2">DSR 심사 계산 결과</h2>
-            <div className="flex justify-between items-baseline py-2.5 border-b border-slate-100">
-              <span className="text-sm text-slate-500">장래소득 미반영 DSR</span>
-              <span className="text-xl font-black text-slate-800">{result.dsrPlain.toFixed(1)}%</span>
+          <div ref={resultRef} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-1 result-enter">
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">DSR 심사 계산 결과</h2>
+            <div className="flex justify-between items-baseline py-2.5 border-b border-slate-100 dark:border-slate-700">
+              <span className="text-sm text-slate-500 dark:text-slate-400">장래소득 미반영 DSR</span>
+              <span className="text-xl font-black text-slate-800 dark:text-slate-200">{result.dsrPlain.toFixed(1)}%</span>
             </div>
             <div className="flex justify-between items-baseline py-2.5">
-              <span className="text-sm text-slate-500">장래소득 반영 DSR</span>
-              <span className="text-xl font-black text-emerald-600">{result.dsrFuture.toFixed(1)}%</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">장래소득 반영 DSR</span>
+              <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{result.dsrFuture.toFixed(1)}%</span>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-3">
-              <div className={`rounded-xl p-3 text-center border ${bankPass ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
-                <p className={`text-xs font-bold ${bankPass ? "text-emerald-700" : "text-red-700"}`}>
+              <div className={`rounded-xl p-3 text-center border ${bankPass ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800" : "bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-800"}`}>
+                <p className={`text-xs font-bold ${bankPass ? "text-emerald-700 dark:text-emerald-300" : "text-red-700 dark:text-red-300"}`}>
                   {bankPass ? "은행권 통과" : "은행권 초과"}
                 </p>
-                <p className={`text-[10px] mt-0.5 ${bankPass ? "text-emerald-500" : "text-red-500"}`}>40% 이하 기준</p>
+                <p className={`text-[10px] mt-0.5 ${bankPass ? "text-emerald-500 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>40% 이하 기준</p>
               </div>
-              <div className={`rounded-xl p-3 text-center border ${nonBankPass ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
-                <p className={`text-xs font-bold ${nonBankPass ? "text-emerald-700" : "text-red-700"}`}>
+              <div className={`rounded-xl p-3 text-center border ${nonBankPass ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800" : "bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-800"}`}>
+                <p className={`text-xs font-bold ${nonBankPass ? "text-emerald-700 dark:text-emerald-300" : "text-red-700 dark:text-red-300"}`}>
                   {nonBankPass ? "비은행권 통과" : "비은행권 초과"}
                 </p>
-                <p className={`text-[10px] mt-0.5 ${nonBankPass ? "text-emerald-500" : "text-red-500"}`}>50% 이하 기준</p>
+                <p className={`text-[10px] mt-0.5 ${nonBankPass ? "text-emerald-500 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>50% 이하 기준</p>
               </div>
             </div>
 
-            {/* ✅ 공유하기 버튼 — 지금 입력한 조건과 결과를 그대로 배우자/가족에게 공유 */}
-            <div className="pt-3 mt-2 border-t border-slate-100">
+            {/* ✅ 공유하기 버튼 */}
+            <div className="pt-3 mt-2 border-t border-slate-100 dark:border-slate-700">
               <ShareButton
                 title="DSR 계산 결과 - 똑집"
                 description={`DSR ${result.dsrPlain.toFixed(1)}% (장래소득 반영시 ${result.dsrFuture.toFixed(1)}%)`}
@@ -602,7 +622,7 @@ function DSRPageContent() {
             </div>
           </div>
         )}
-        <p className="text-[10px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100">
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed pt-2 border-t border-slate-100 dark:border-slate-700">
           출처: 금융위원회 「3단계 스트레스 DSR 시행방안」(2025.5.20), 「10.15 가계부채 관리방안」(2025.10.15),
           전국은행연합회 소비자포털 스트레스금리 공시, 금융위원회 「가계대출 관리 강화 방안」(2023.9.13, DSR 만기 40년 상한),
           신용대출 DSR 산정만기 특례(만기일시상환 5년 원금분할 간주, 분할상환 최장 10년 상한).

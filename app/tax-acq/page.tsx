@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Home as HomeIcon, Lightbulb } from "lucide-react";
 import PriceInput, { formatManwon } from "@/components/PriceInput";
-import ShareButton from "@/components/ShareButton"; // ✅ 1. 공유하기 버튼 임포트
+import ShareButton from "@/components/ShareButton";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ✅ 법령 출처: 지방세법 제11조(부동산 취득의 세율), 제13조의2(법인의 주택 취득 등 중과)
 //    지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육)
@@ -168,11 +169,10 @@ function TaxAcqPageContent() {
     eduTax: number;
     total: number;
     isMultiHouseApplied: boolean;
-    effectiveRate: number; 
+    effectiveRate: number;
     price: number;
   } | null>(null);
 
-  // ✅ 2. URL 쿼리 파라미터로 상태값(입력창) 채워주기 (Hydration)
   useEffect(() => {
     const spPrice = searchParams.get("price");
     if (spPrice) {
@@ -190,7 +190,6 @@ function TaxAcqPageContent() {
     }
   }, [searchParams]);
 
-  // ✅ 3. 취득가액(price)이 전달되었다면 다이렉트로 즉시 계산 (Auto-Run)
   useEffect(() => {
     const spPrice = searchParams.get("price");
     if (spPrice) {
@@ -206,7 +205,7 @@ function TaxAcqPageContent() {
           applyMultiHouseTax: searchParams.get("applyMultiHouseTax") === "true",
           isTemporary2House: searchParams.get("isTemporary2House") === "true",
           reductionType: (searchParams.get("reductionType") as ReductionType) || "none",
-          isMetro: searchParams.get("isMetro") !== "false", // 기본값 true
+          isMetro: searchParams.get("isMetro") !== "false",
         });
       }, 300);
       return () => clearTimeout(t);
@@ -214,11 +213,9 @@ function TaxAcqPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 매매가 아니면 감면/중과 옵션 비활성화 여부
   const isPurchase = dealType === "purchase";
   const isOfficetelCommercial = propertyType === "officetel-commercial";
 
-  // ✅ 4. 계산 함수 (URL 값 강제 주입을 위한 overrideParams 허용)
   const calculate = (overrideParams?: {
     price: string;
     area: string;
@@ -259,7 +256,6 @@ function TaxAcqPageContent() {
     let standardRate: number;
     let isMultiHouseApplied = false;
 
-    // ── 세율 결정 ──────────────────────────────────────────
     if (tDealType === "gift") {
       appliedRate = GIFT_RATE;
       standardRate = GIFT_RATE;
@@ -285,7 +281,6 @@ function TaxAcqPageContent() {
 
     const acquisitionTaxBeforeReduction = price * appliedRate;
 
-    // ── 감면액 계산 (매매만 적용) ──────────────────────────
     let reductionAmount = 0;
     if (tIsPurchase && !tIsOfficetelCommercial) {
       if (tReductionType === "first-time" && price <= 1_200_000_000) {
@@ -297,11 +292,7 @@ function TaxAcqPageContent() {
     }
 
     const acquisitionTax = acquisitionTaxBeforeReduction - reductionAmount;
-
-    // ── 농어촌특별세: 일반 0.2% / 8%중과 0.6% / 12%중과 1.0% 고정 ──
     const ruralTax = calcRuralTax(price, areaNum, appliedRate, isMultiHouseApplied);
-
-    // ── 지방교육세: 거래유형별 공식 반영(매매 vs 증여·상속) ──
     const eduTax = calcEduTax(price, appliedRate, tDealType, isMultiHouseApplied, reductionAmount);
 
     const total = acquisitionTax + ruralTax + eduTax;
@@ -321,41 +312,42 @@ function TaxAcqPageContent() {
       price,
     });
 
-    // 결과 영역으로 자동 스크롤
     setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
-          ← 메인으로
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
-        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
           <HomeIcon size={20} strokeWidth={1.75} className="text-emerald-600" />
           취득세 계산기
         </h1>
 
         {/* ① 거래유형 선택 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-          <h2 className="text-sm font-bold text-slate-600">거래유형</h2>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">거래유형</h2>
           <div className="grid grid-cols-3 gap-2">
             {DEAL_TYPE_OPTIONS.map((opt) => (
               <button
                 key={opt.key}
                 onClick={() => {
                   setDealType(opt.key);
-                  // 증여/상속은 감면 초기화
                   if (opt.key !== "purchase") setReductionType("none");
                 }}
                 className={`py-3 rounded-xl border transition flex flex-col items-center gap-0.5 ${
                   dealType === opt.key
-                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                 }`}
               >
                 <span className="text-sm font-bold">{opt.label}</span>
@@ -366,10 +358,10 @@ function TaxAcqPageContent() {
 
           {dealType === "gift" && (
             <div className="space-y-1.5">
-              <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <p className="text-[11px] text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
                 증여는 취득세 3.5% 고정세율이 적용됩니다. 증여세는 별도입니다.
               </p>
-              <p className="text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <p className="text-[11px] text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
                 ※ 조정대상지역 내 공시가격 3억원 이상 주택을 다주택자로부터 증여받는 경우
                 취득세율이 12%로 중과될 수 있습니다(수증자의 주택수 무관). 본 계산기는 이 경우를
                 반영하지 않으므로, 해당 시 세무사 상담을 권장합니다.
@@ -377,15 +369,15 @@ function TaxAcqPageContent() {
             </div>
           )}
           {dealType === "inherit" && (
-            <p className="text-[11px] text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+            <p className="text-[11px] text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2">
               상속은 취득세 2.8% 고정세율이 적용됩니다. 상속세는 별도입니다.
             </p>
           )}
         </div>
 
         {/* ② 부동산 종류 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-          <h2 className="text-sm font-bold text-slate-600">부동산 종류</h2>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">부동산 종류</h2>
           <div className="grid grid-cols-3 gap-2">
             {PROPERTY_TYPE_OPTIONS.map((opt) => (
               <button
@@ -393,8 +385,8 @@ function TaxAcqPageContent() {
                 onClick={() => setPropertyType(opt.key)}
                 className={`py-3 rounded-xl border transition flex flex-col items-center gap-0.5 ${
                   propertyType === opt.key
-                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                 }`}
               >
                 <span className="text-sm font-bold">{opt.label}</span>
@@ -403,18 +395,18 @@ function TaxAcqPageContent() {
             ))}
           </div>
           {isOfficetelCommercial && (
-            <p className="text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2">
               업무용 오피스텔은 일반건물 세율 4%가 적용됩니다. 중과·감면 적용 대상 외입니다.
             </p>
           )}
         </div>
 
         {/* ③ 기본 정보 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-          <h2 className="text-sm font-bold text-slate-600">취득 정보 입력</h2>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">취득 정보 입력</h2>
 
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">
               {PRICE_LABEL[dealType].label}
             </label>
             <PriceInput
@@ -422,22 +414,22 @@ function TaxAcqPageContent() {
               onChange={setPriceInput}
               placeholder={PRICE_LABEL[dealType].placeholder}
             />
-            <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-relaxed">
               {PRICE_LABEL[dealType].desc}
             </p>
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">
               전용면적 (㎡)
-              <span className="text-slate-400 ml-1">— 농어촌특별세 및 감면 기준, 모르면 비워두기</span>
+              <span className="text-slate-400 dark:text-slate-500 ml-1">— 농어촌특별세 및 감면 기준, 모르면 비워두기</span>
             </label>
             <input
               type="number"
               value={area}
               onChange={(e) => setArea(e.target.value)}
               placeholder="예: 84.97"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 mb-2"
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 mb-2"
             />
             <div className="flex gap-2">
               {AREA_QUICK_BUTTONS.map((btn) => (
@@ -446,8 +438,8 @@ function TaxAcqPageContent() {
                   onClick={() => setArea(btn.value)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                     area === btn.value
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                      ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"
                   }`}
                 >
                   {btn.label}
@@ -459,11 +451,11 @@ function TaxAcqPageContent() {
 
         {/* ④ 적용 옵션 — 매매 + 주택/주거용 오피스텔일 때만 표시 */}
         {isPurchase && !isOfficetelCommercial && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-            <h2 className="text-sm font-bold text-slate-600">적용 옵션</h2>
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">적용 옵션</h2>
 
             {/* 다주택 중과 */}
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <label className="flex items-center gap-2 text-sm cursor-pointer text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={applyMultiHouseTax}
@@ -474,8 +466,8 @@ function TaxAcqPageContent() {
             </label>
 
             {applyMultiHouseTax && (
-              <div className="ml-6 space-y-3 border-l-2 border-emerald-100 pl-4">
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <div className="ml-6 space-y-3 border-l-2 border-emerald-100 dark:border-emerald-900 pl-4">
+                <label className="flex items-center gap-2 text-sm cursor-pointer text-slate-700 dark:text-slate-300">
                   <input
                     type="checkbox"
                     checked={isCorporation}
@@ -488,7 +480,7 @@ function TaxAcqPageContent() {
                 {!isCorporation && (
                   <>
                     <div>
-                      <label className="text-xs text-slate-400 mb-1 block">취득 후 보유 주택수 (이 주택 포함)</label>
+                      <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">취득 후 보유 주택수 (이 주택 포함)</label>
                       <div className="flex gap-2">
                         {(["1", "2", "3", "4+"] as HouseCount[]).map((h) => (
                           <button
@@ -496,8 +488,8 @@ function TaxAcqPageContent() {
                             onClick={() => setHouseCountAfter(h)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                               houseCountAfter === h
-                                ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                                : "bg-white border-slate-200 text-slate-500"
+                                ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                                : "bg-white border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"
                             }`}
                           >
                             {h}주택
@@ -507,14 +499,14 @@ function TaxAcqPageContent() {
                     </div>
 
                     <div>
-                      <label className="text-xs text-slate-400 mb-1 block">지역</label>
+                      <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">지역</label>
                       <div className="flex gap-2">
                         <button
                           onClick={() => setRegion("adjusted")}
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                             region === "adjusted"
-                              ? "bg-red-50 border-red-300 text-red-700"
-                              : "bg-white border-slate-200 text-slate-500"
+                              ? "bg-red-50 border-red-300 text-red-700 dark:bg-red-950/40 dark:border-red-700 dark:text-red-300"
+                              : "bg-white border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"
                           }`}
                         >
                           조정대상지역
@@ -523,8 +515,8 @@ function TaxAcqPageContent() {
                           onClick={() => setRegion("non-adjusted")}
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                             region === "non-adjusted"
-                              ? "bg-emerald-50 border-emerald-300 text-emerald-700"
-                              : "bg-white border-slate-200 text-slate-500"
+                              ? "bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                              : "bg-white border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"
                           }`}
                         >
                           비조정대상지역
@@ -532,7 +524,7 @@ function TaxAcqPageContent() {
                       </div>
                     </div>
 
-                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer text-slate-700 dark:text-slate-300">
                       <input
                         type="checkbox"
                         checked={isTemporary2House}
@@ -547,7 +539,7 @@ function TaxAcqPageContent() {
             )}
 
             {/* 취득세 감면 */}
-            <label className="flex items-center gap-2 text-sm cursor-pointer pt-2 border-t border-slate-100">
+            <label className="flex items-center gap-2 text-sm cursor-pointer pt-2 border-t border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={reductionType !== "none"}
@@ -558,14 +550,14 @@ function TaxAcqPageContent() {
             </label>
 
             {reductionType !== "none" && (
-              <div className="ml-6 space-y-3 border-l-2 border-emerald-100 pl-4">
+              <div className="ml-6 space-y-3 border-l-2 border-emerald-100 dark:border-emerald-900 pl-4">
                 <div className="flex gap-2">
                   <button
                     onClick={() => setReductionType("first-time")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                       reductionType === "first-time"
-                        ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                        : "bg-white border-slate-200 text-slate-500"
+                        ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                        : "bg-white border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"
                     }`}
                   >
                     생애최초 (제36조의3)
@@ -574,8 +566,8 @@ function TaxAcqPageContent() {
                     onClick={() => setReductionType("childbirth")}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
                       reductionType === "childbirth"
-                        ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                        : "bg-white border-slate-200 text-slate-500"
+                        ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300"
+                        : "bg-white border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"
                     }`}
                   >
                     출산·양육 (제36조의5)
@@ -584,23 +576,23 @@ function TaxAcqPageContent() {
 
                 {reductionType === "first-time" && (
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">
+                    <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">
                       소재지역 (60㎡ 이하 소형주택 가액기준 적용 시)
                     </label>
                     <div className="flex gap-2">
                       <button onClick={() => setIsMetro(true)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${isMetro ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"}`}>
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${isMetro ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300" : "bg-white border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"}`}>
                         수도권 (6억 이하 소형 300만)
                       </button>
                       <button onClick={() => setIsMetro(false)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${!isMetro ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500"}`}>
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${!isMetro ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300" : "bg-white border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300"}`}>
                         지방 (3억 이하 소형 300만)
                       </button>
                     </div>
                   </div>
                 )}
 
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
                   {reductionType === "first-time"
                     ? "취득가액 12억원 이하, 본인·배우자 무주택 요건 충족 시 적용. 생애최초와 출산양육 중복 적용 불가."
                     : "취득가액 12억원 이하, 1가구 1주택 요건 충족 시 적용. (생애최초와 중복 불가, 유리한 쪽 선택)"}
@@ -619,132 +611,131 @@ function TaxAcqPageContent() {
 
         {/* 결과 */}
         {result && (
-          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 result-enter">
-            <h2 className="text-sm font-bold text-slate-600">계산 결과</h2>
+          <div ref={resultRef} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3 result-enter">
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">계산 결과</h2>
 
             {result.isMultiHouseApplied && (
-              <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-700">
+              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 text-xs text-red-700 dark:text-red-300">
                 다주택자/법인 중과세율이 적용되었습니다 ({(result.appliedRate * 100).toFixed(0)}%)
               </div>
             )}
             {result.reductionAmount > 0 && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs text-emerald-700">
+              <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
                 취득세 감면 {fmtWon(result.reductionAmount)}이 적용되었습니다.
               </div>
             )}
 
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">적용 세율</span>
-                <span className="font-bold">{(result.appliedRate * 100).toFixed(2)}%</span>
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">적용 세율</span>
+                <span className="font-bold dark:text-slate-200">{(result.appliedRate * 100).toFixed(2)}%</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">감면 전 취득세</span>
-                <span className="font-bold">{fmtWon(result.acquisitionTaxBeforeReduction)}</span>
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">감면 전 취득세</span>
+                <span className="font-bold dark:text-slate-200">{fmtWon(result.acquisitionTaxBeforeReduction)}</span>
               </div>
               {result.reductionAmount > 0 && (
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">감면액</span>
-                  <span className="font-bold text-emerald-600">-{fmtWon(result.reductionAmount)}</span>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">감면액</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">-{fmtWon(result.reductionAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">취득세 (감면 후)</span>
-                <span className="font-bold">{fmtWon(result.acquisitionTax)}</span>
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">취득세 (감면 후)</span>
+                <span className="font-bold dark:text-slate-200">{fmtWon(result.acquisitionTax)}</span>
               </div>
             {result.ruralTax > 0 && (
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">
                   농어촌특별세
-                  <span className="text-[10px] text-slate-400 ml-1">
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-1">
                     (85㎡ 초과 · {dealType === "inherit" ? "공시가격" : dealType === "gift" ? "시가인정액" : "매매가격"} × 0.2%)
                   </span>
                 </span>
-                <span className="font-bold">{fmtWon(result.ruralTax)}</span>
+                <span className="font-bold dark:text-slate-200">{fmtWon(result.ruralTax)}</span>
               </div>
             )}
             {result.ruralTax === 0 && (
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">
                   농어촌특별세
-                  <span className="text-[10px] text-slate-400 ml-1">(85㎡ 이하 비과세)</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-1">(85㎡ 이하 비과세)</span>
                 </span>
-                <span className="font-bold text-slate-400">0원</span>
+                <span className="font-bold text-slate-400 dark:text-slate-500">0원</span>
               </div>
             )}
-              <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500">
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">
                   지방교육세
-                  <span className="text-[10px] text-slate-400 ml-1">(감면 후 취득세 × 10%)</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-1">(감면 후 취득세 × 10%)</span>
                 </span>
-                <span className="font-bold">{fmtWon(result.eduTax)}</span>
+                <span className="font-bold dark:text-slate-200">{fmtWon(result.eduTax)}</span>
               </div>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center mt-3">
-              <p className="text-xs text-emerald-600 font-semibold mb-1">총 납부세액</p>
-              <p className="text-2xl font-black text-emerald-700">{fmtWon(result.total)}</p>
+            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-center mt-3">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mb-1">총 납부세액</p>
+              <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300">{fmtWon(result.total)}</p>
             </div>
 
-            {/* ① 실효세율 표시 */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-              <p className="text-xs text-slate-500 font-semibold mb-1.5">실효세율 (취득가액 대비 실제 총 부담)</p>
+            {/* 실효세율 표시 */}
+            <div className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1.5">실효세율 (취득가액 대비 실제 총 부담)</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-black text-slate-700">
+                <span className="text-xl font-black text-slate-700 dark:text-slate-200">
                   {(result.effectiveRate * 100).toFixed(3)}%
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">
                   = 총납부세액 {fmtWon(result.total)} ÷ 취득가액 {fmtWon(result.price)}
                 </span>
               </div>
-              <div className="flex gap-3 mt-2 text-[10px] text-slate-400">
+              <div className="flex gap-3 mt-2 text-[10px] text-slate-400 dark:text-slate-500">
                 <span>취득세 {(result.acquisitionTax / result.price * 100).toFixed(3)}%</span>
                 {result.ruralTax > 0 && <span>농특세 {(result.ruralTax / result.price * 100).toFixed(3)}%</span>}
                 <span>지방교육세 {(result.eduTax / result.price * 100).toFixed(3)}%</span>
               </div>
             </div>
 
-            {/* ② 감면 자동 추천 넛지 (매매이고 감면 미선택 시) */}
+            {/* 감면 자동 추천 넛지 */}
             {isPurchase && !isOfficetelCommercial && reductionType === "none" && result.price <= 1_200_000_000 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
-                <p className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
+              <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-2">
+                <p className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300">
                   <Lightbulb size={14} strokeWidth={1.75} />
                   적용 가능한 취득세 감면 혜택이 있습니다
                 </p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-amber-700 font-semibold">생애최초 구매자라면</p>
-                      <p className="text-[10px] text-amber-600">최대 200만원 (소형주택은 300만원) 감면</p>
+                      <p className="text-xs text-amber-700 dark:text-amber-300 font-semibold">생애최초 구매자라면</p>
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400">최대 200만원 (소형주택은 300만원) 감면</p>
                     </div>
                     <button
                       onClick={() => setReductionType("first-time")}
-                      className="text-[11px] font-bold px-3 py-1.5 bg-amber-400 text-amber-900 rounded-lg hover:bg-amber-500 transition shrink-0"
+                      className="text-[11px] font-bold px-3 py-1.5 bg-amber-400 dark:bg-amber-700 text-amber-900 dark:text-amber-100 rounded-lg hover:bg-amber-500 dark:hover:bg-amber-600 transition shrink-0"
                     >
                       적용해보기
                     </button>
                   </div>
-                  <div className="flex items-center justify-between border-t border-amber-200 pt-2">
+                  <div className="flex items-center justify-between border-t border-amber-200 dark:border-amber-800 pt-2">
                     <div>
-                      <p className="text-xs text-amber-700 font-semibold">출산·양육 가구라면</p>
-                      <p className="text-[10px] text-amber-600">최대 500만원 감면</p>
+                      <p className="text-xs text-amber-700 dark:text-amber-300 font-semibold">출산·양육 가구라면</p>
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400">최대 500만원 감면</p>
                     </div>
                     <button
                       onClick={() => setReductionType("childbirth")}
-                      className="text-[11px] font-bold px-3 py-1.5 bg-amber-400 text-amber-900 rounded-lg hover:bg-amber-500 transition shrink-0"
+                      className="text-[11px] font-bold px-3 py-1.5 bg-amber-400 dark:bg-amber-700 text-amber-900 dark:text-amber-100 rounded-lg hover:bg-amber-500 dark:hover:bg-amber-600 transition shrink-0"
                     >
                       적용해보기
                     </button>
                   </div>
                 </div>
-                <p className="text-[10px] text-amber-600 border-t border-amber-200 pt-2">
+                <p className="text-[10px] text-amber-600 dark:text-amber-400 border-t border-amber-200 dark:border-amber-800 pt-2">
                   적용해보기 버튼을 누른 후 위 옵션을 확인하고 다시 계산해주세요.
                 </p>
               </div>
             )}
 
-            {/* ✅ 5. 공유하기 버튼 추가 */}
-            <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
               <ShareButton
                 title="취득세 계산 결과 - 똑집"
                 description={`취득가액 ${fmtWon(Number(priceInput)*10000)} 기준, 총 납부세액 ${fmtWon(result.total)}`}
@@ -764,7 +755,7 @@ function TaxAcqPageContent() {
               />
             </div>
 
-            <p className="text-[10px] text-slate-400 pt-2 leading-relaxed">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-2 leading-relaxed">
               출처: 지방세법 제11조(취득세율), 제13조의2(다주택·법인 중과), 제151조(지방교육세) /
               지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육) / 농어촌특별세법 제5조.
               농어촌특별세·지방교육세는 감면 전 취득세 기준으로 산정됩니다.
@@ -778,7 +769,6 @@ function TaxAcqPageContent() {
   );
 }
 
-// ✅ 6. Next.js App Router용 안전한 Suspense 컴포넌트 처리
 export default function TaxAcqPage() {
   return (
     <Suspense fallback={null}>

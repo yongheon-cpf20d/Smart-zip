@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Calculator, AlertTriangle, Info, ChevronRight } from "lucide-react";
+import { Calculator, ChevronRight } from "lucide-react";
 import PriceInput from "@/components/PriceInput";
-import ShareButton from "@/components/ShareButton"; // ✅ 1. 공유하기 버튼 임포트
+import ShareButton from "@/components/ShareButton";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ✅ 법령 출처
 // 취득세: 지방세법 제11조, 제13조의2 / 지방세특례제한법 제36조의3(생애최초), 제36조의5(출산·양육)
@@ -149,14 +150,12 @@ const AREA_QUICK = [
 function TotalCostPageContent() {
   const searchParams = useSearchParams();
 
-  // ① 주택 구분 상태
   const [houseCount, setHouseCount] = useState<HouseCount>("1");
   const [region, setRegion] = useState<RegionType>("adjusted");
   const [reductionType, setReductionType] = useState<ReductionType>("none");
   const [isMetro, setIsMetro] = useState(true);
   const [policyLoan, setPolicyLoan] = useState<PolicyLoanType>("none");
 
-  // ② 주택 정보 상태
   const [saleInput, setSaleInput] = useState("");
   const [kbInput, setKbInput] = useState("");
   const [areaInput, setAreaInput] = useState("");
@@ -183,7 +182,6 @@ function TotalCostPageContent() {
     myCapitalWithVat: number;
   } | null>(null);
 
-  // ✅ 2. 공유 링크로 접근 시 모든 파라미터를 읽어와 화면에 꽂아줌 (Hydration)
   useEffect(() => {
     const sharedHouseCount = searchParams.get("houseCount");
     const sharedRegion = searchParams.get("region");
@@ -204,7 +202,6 @@ function TotalCostPageContent() {
     if (sharedArea) setAreaInput(sharedArea);
   }, [searchParams]);
 
-  // ✅ 3. 필수 입력값(매매가, 시세)이 링크에 있으면 Stale State 에러 없이 즉시 강제 자동계산 (Auto-run)
   useEffect(() => {
     const sharedSale = searchParams.get("sale");
     const sharedKb = searchParams.get("kb");
@@ -227,7 +224,6 @@ function TotalCostPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ 4. 계산기 본체 (overrideParams가 오면 URL 기반 연산, 안 오면 화면 상태 기반 연산)
   const calculate = (overrideParams?: {
     sale: string;
     kb: string;
@@ -304,7 +300,7 @@ function TotalCostPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <style jsx>{`
         @keyframes loanLinkBreath {
           0%, 100% { opacity: 1; }
@@ -313,30 +309,34 @@ function TotalCostPageContent() {
       `}</style>
       <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition link-press">
-          ← 메인으로
-        </Link>
+        {/* 헤더 — 메인으로 링크 + 다크모드 토글 */}
+        <div className="flex items-center justify-between">
+          <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition link-press">
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
-            <Calculator size={20} strokeWidth={1.75} className="text-emerald-600" />
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
+            <Calculator size={20} strokeWidth={1.75} className="text-emerald-600 dark:text-emerald-400" />
             총비용 계산기
           </h1>
-          <p className="text-xs text-slate-400 mt-1">집 구매 시 실제 필요한 총비용과 자기자본을 한눈에</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">집 구매 시 실제 필요한 총비용과 자기자본을 한눈에</p>
         </div>
 
         {/* ① 주택 구분 설정 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-          <h2 className="text-sm font-bold text-slate-600">주택 구분</h2>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">주택 구분</h2>
 
           <div>
-            <label className="text-xs text-slate-400 mb-1.5 block">보유 주택수 (취득 후 기준)</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1.5 block">보유 주택수 (취득 후 기준)</label>
             <div className="grid grid-cols-4 gap-2">
               {(["1", "2", "3", "4+"] as HouseCount[]).map((h) => (
                 <button key={h} onClick={() => setHouseCount(h)}
                   className={`py-2.5 rounded-xl text-sm font-bold border transition ${houseCount === h
-                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                    : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600"
                   }`}>
                   {h}주택
                 </button>
@@ -345,7 +345,7 @@ function TotalCostPageContent() {
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 mb-1.5 block">소재 지역</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1.5 block">소재 지역</label>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { key: "adjusted", label: "조정대상지역" },
@@ -353,8 +353,8 @@ function TotalCostPageContent() {
               ].map((r) => (
                 <button key={r.key} onClick={() => setRegion(r.key as RegionType)}
                   className={`py-2.5 rounded-xl text-sm font-bold border transition ${region === r.key
-                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                    : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600"
                   }`}>
                   {r.label}
                 </button>
@@ -363,7 +363,7 @@ function TotalCostPageContent() {
           </div>
 
           <div>
-            <label className="text-xs text-slate-400 mb-1.5 block">취득세 감면</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1.5 block">취득세 감면</label>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { key: "none", label: "없음" },
@@ -372,8 +372,8 @@ function TotalCostPageContent() {
               ].map((r) => (
                 <button key={r.key} onClick={() => setReductionType(r.key as ReductionType)}
                   className={`py-2.5 rounded-xl text-sm font-bold border transition ${reductionType === r.key
-                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                    : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600"
                   }`}>
                   {r.label}
                 </button>
@@ -382,14 +382,14 @@ function TotalCostPageContent() {
           </div>
 
           {reductionType === "first-time" && (
-            <div className="border-t border-slate-100 pt-4">
-              <label className="text-xs text-slate-400 mb-1.5 block">지역 구분</label>
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+              <label className="text-xs text-slate-400 dark:text-slate-500 mb-1.5 block">지역 구분</label>
               <div className="flex gap-2">
                 {[true, false].map((m) => (
                   <button key={String(m)} onClick={() => setIsMetro(m)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${isMetro === m
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                      : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600"
                     }`}>
                     {m ? "수도권" : "지방"}
                   </button>
@@ -398,16 +398,16 @@ function TotalCostPageContent() {
             </div>
           )}
 
-          <div className="border-t border-slate-100 pt-4">
-            <label className="text-xs text-slate-400 mb-1.5 block">연계 정책대출 상품</label>
+          <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1.5 block">연계 정책대출 상품</label>
             <div className="flex gap-2 flex-wrap">
               {(["none", "newborn", "didimdol", "bobreumjari"] as PolicyLoanType[]).map((p) => {
                 const label = p === "none" ? "일반대출" : POLICY_LOAN_INFO[p]?.label || "보금자리론";
                 return (
                   <button key={p} onClick={() => setPolicyLoan(p)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${policyLoan === p
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                      : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600"
                     }`}>
                     {label}
                   </button>
@@ -418,8 +418,8 @@ function TotalCostPageContent() {
         </div>
 
         {/* ② 대출/자산 정보 입력 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-          <h2 className="text-sm font-bold text-slate-600">부동산 매수 정보 입력</h2>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400">부동산 매수 정보 입력</h2>
 
           <PriceInput
             label="매매가격 (만원)"
@@ -436,20 +436,20 @@ function TotalCostPageContent() {
           />
 
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">전용면적 (㎡) — 농어촌특별세 부과 기준</label>
+            <label className="text-xs text-slate-400 dark:text-slate-500 mb-1 block">전용면적 (㎡) — 농어촌특별세 부과 기준</label>
             <input
               type="number"
               value={areaInput}
               onChange={(e) => setAreaInput(e.target.value)}
               placeholder="예: 84"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 mb-2"
+              className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30 mb-2"
             />
             <div className="flex gap-2">
               {AREA_QUICK.map((a) => (
                 <button key={a.value} onClick={() => setAreaInput(a.value)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${areaInput === a.value
-                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    ? "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300"
+                    : "bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600"
                   }`}>
                   {a.label}
                 </button>
@@ -459,7 +459,7 @@ function TotalCostPageContent() {
 
           <button
             onClick={() => calculate()}
-            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition btn-press"
+            className="w-full bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition btn-press"
           >
             총비용 산출하기
           </button>
@@ -467,56 +467,57 @@ function TotalCostPageContent() {
 
         {/* ③ 결과 화면 */}
         {result && (
-          <div ref={resultRef} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 result-enter">
-            <h2 className="text-sm font-bold text-slate-600 pb-2 border-b border-slate-100">총비용 모의 정산서</h2>
-            
+          <div ref={resultRef} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4 result-enter">
+            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 pb-2 border-b border-slate-100 dark:border-slate-700">총비용 모의 정산서</h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4 text-center">
-                <p className="text-xs text-emerald-600 font-bold mb-1">총 필요 자금 (세금+중개비 포함)</p>
-                <p className="text-2xl font-black text-emerald-700">{fmtWon(result.totalWithVat)}</p>
+              <div className="bg-emerald-50/70 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 rounded-2xl p-4 text-center">
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mb-1">총 필요 자금 (세금+중개비 포함)</p>
+                <p className="text-2xl font-black text-emerald-700 dark:text-emerald-300">{fmtWon(result.totalWithVat)}</p>
               </div>
-              <div className="bg-blue-50/70 border border-blue-100 rounded-2xl p-4 text-center">
-                <p className="text-xs text-blue-600 font-bold mb-1">최대 주담대 이용 금액</p>
-                <p className="text-2xl font-black text-blue-700">{fmtWon(result.loanLimit)}</p>
+              <div className="bg-blue-50/70 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 rounded-2xl p-4 text-center">
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-bold mb-1">최대 주담대 이용 금액</p>
+                <p className="text-2xl font-black text-blue-700 dark:text-blue-300">{fmtWon(result.loanLimit)}</p>
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100">
-              <p className="text-xs text-slate-500 font-bold mb-1">준비해야 하는 최소 현금</p>
-              <p className="text-3xl font-black text-slate-800">{fmtWon(result.myCapitalWithVat)}</p>
-              <p className="text-[11px] text-slate-400 mt-1">취득세 등 세금 {fmtWon(result.acqTax + result.eduTax + result.ruralTax)} 및 중개보수 부가세포함액 취합 완료</p>
+            <div className="bg-slate-50 dark:bg-slate-700 rounded-2xl p-5 text-center border border-slate-100 dark:border-slate-600">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mb-1">준비해야 하는 최소 현금</p>
+              <p className="text-3xl font-black text-slate-800 dark:text-slate-100">{fmtWon(result.myCapitalWithVat)}</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">취득세 등 세금 {fmtWon(result.acqTax + result.eduTax + result.ruralTax)} 및 중개보수 부가세포함액 취합 완료</p>
             </div>
 
-            <div className="space-y-2 pt-2 text-sm text-slate-600">
-              <div className="flex justify-between py-1.5 border-b border-dashed border-slate-100">
+            <div className="space-y-2 pt-2 text-sm text-slate-600 dark:text-slate-400">
+              <div className="flex justify-between py-1.5 border-b border-dashed border-slate-100 dark:border-slate-700">
                 <span>순수 주택 매매대금</span>
                 <span className="font-semibold">{fmtWon(result.salePrice)}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-dashed border-slate-100">
+              <div className="flex justify-between py-1.5 border-b border-dashed border-slate-100 dark:border-slate-700">
                 <span>세금 합계 (취득+교육+농특세)</span>
                 <span className="font-semibold">{fmtWon(result.acqTax + result.eduTax + result.ruralTax)}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-dashed border-slate-100">
+              <div className="flex justify-between py-1.5 border-b border-dashed border-slate-100 dark:border-slate-700">
                 <span>공인중개사 중개수수료 (VAT포함)</span>
                 <span className="font-semibold">{fmtWon(result.brokerageVat)}</span>
               </div>
             </div>
 
             {result.policyNote && (
-              <div className={`flex items-start gap-1.5 rounded-xl px-3 py-2.5 text-[11px] leading-relaxed ${result.policyNote.startsWith("[주의]") ? "bg-red-50 text-red-700 border border-red-200" : "bg-blue-50 text-blue-700 border border-blue-200"}`}>
+              <div className={`flex items-start gap-1.5 rounded-xl px-3 py-2.5 text-[11px] leading-relaxed ${
+                result.policyNote.startsWith("[주의]")
+                  ? "bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
+                  : "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+              }`}>
                 <span>{result.policyNote.replace(/^\[(주의|안내)\]\s*/, "")}</span>
               </div>
             )}
 
-            {/* ✅ 5. 대출 연계 넛지 버튼 및 카카오톡 공유하기 연동 완료 */}
             {result.loanLimit > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
                 <Link href={`/loan?amount=${Math.round(result.loanLimit / 10000)}`}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-rose-500 hover:text-rose-600 transition animate-pulse">
+                  className="inline-flex items-center gap-1 text-xs font-bold text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 transition animate-pulse">
                   이 대출 한도로 월 원리금 시뮬레이션 해보기 <ChevronRight size={13} strokeWidth={2.5} />
                 </Link>
-                
-                {/* 공유하기 버튼 배치 */}
                 <ShareButton
                   title="내 집 마련 총비용 계산 결과 - 똑집"
                   description={`매매가 ${fmtHundred(result.salePrice)} 구매 시 최소 현금 ${fmtHundred(result.myCapitalWithVat)} 필요 (대출 ${fmtHundred(result.loanLimit)} 포함)`}
@@ -536,19 +537,19 @@ function TotalCostPageContent() {
           </div>
         )}
 
-        {/* 주석 가이드 생략 없음 */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-          <p className="text-[11px] text-slate-500 leading-relaxed">
+        {/* 주석 안내 */}
+        <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
             본 계산은 필수 세금(취득세·지방교육세·농어촌특별세)과 법정 최대 중개수수료를 합산한 예상치입니다.
             단, 아래 항목은 계약 조건에 따라 달라지므로 총액에서 제외되었습니다.
           </p>
-          <ul className="mt-2 space-y-1 text-[11px] text-slate-400">
+          <ul className="mt-2 space-y-1 text-[11px] text-slate-400 dark:text-slate-500">
             <li>• 근저당 설정 등록면허세 (대출 이용 시 발생 · 대출금×120%×0.2%)</li>
             <li>• 법무사 수수료 (약 40~80만원, 사무소별 상이)</li>
             <li>• 국민주택채권 할인료 (매일 금리에 따라 변동 · 약 20~80만원)</li>
             <li>• 인지세 15만원 + 등기신청수수료(증지) 1.5만원</li>
           </ul>
-          <p className="mt-2 text-[11px] text-slate-500 font-semibold">
+          <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
             → 실제 등기 시 통상 100~200만원 내외의 여유 자금을 추가로 준비하시길 권장합니다.
           </p>
         </div>
@@ -557,7 +558,6 @@ function TotalCostPageContent() {
   );
 }
 
-// ✅ 6. Next.js App Router용 안전한 Suspense 컴포넌트 처리
 export default function TotalCostPage() {
   return (
     <Suspense fallback={null}>
