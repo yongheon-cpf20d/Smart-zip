@@ -40,6 +40,9 @@ const regulations = (["투기과열지구", "조정대상지역", "토지거래�
     bgColor: style.bgColor,
     textColor: style.textColor,
     dotColor: style.dotColor,
+    cardBgClass: style.cardBgClass,
+    cardBorderClass: style.cardBorderClass,
+    cardTextClass: style.cardTextClass,
     areas: areas.length > 0 ? areas : ["해당 지역 없음"],
     rules: style.rules,
   };
@@ -309,24 +312,19 @@ export default function Home() {
             </div>
             <div className="p-4 space-y-3 overflow-y-auto h-[460px]">
               {regulations.map((reg) => (
-                <div key={reg.zone} style={{
-                  background: reg.bgColor,
-                  border: `1px solid ${reg.borderColor}`,
-                  borderRadius: "12px",
-                  padding: "16px",
-                }}>
+                <div key={reg.zone} className={`rounded-xl p-4 border ${reg.cardBgClass} ${reg.cardBorderClass}`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <span style={{
-                      width: 10, height: 10, borderRadius: "50%",
-                      background: reg.dotColor, display: "inline-block", flexShrink: 0,
-                    }} />
-                    <span style={{ color: reg.textColor, fontWeight: 700, fontSize: 14 }}>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0 inline-block"
+                      style={{ background: reg.dotColor }}
+                    />
+                    <span className={`font-bold text-sm ${reg.cardTextClass}`}>
                       {reg.zone}
                     </span>
                   </div>
                   <ul className="space-y-1">
                     {reg.rules.map((r) => (
-                      <li key={r} style={{ color: reg.textColor, fontSize: 12, display: "flex", gap: 6 }}>
+                      <li key={r} className={`text-xs flex gap-1.5 ${reg.cardTextClass}`}>
                         <span>·</span>{r}
                       </li>
                     ))}
@@ -335,24 +333,19 @@ export default function Home() {
               ))}
 
               {NATIONAL_POLICY_CARDS.map((card) => (
-                <div key={card.title} style={{
-                  background: card.bgColor,
-                  border: `1px solid ${card.borderColor}`,
-                  borderRadius: "12px",
-                  padding: "16px",
-                }}>
+                <div key={card.title} className={`rounded-xl p-4 border ${card.cardBgClass} ${card.cardBorderClass}`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <span style={{
-                      width: 10, height: 10, borderRadius: "50%",
-                      background: card.dotColor, display: "inline-block", flexShrink: 0,
-                    }} />
-                    <span style={{ color: card.textColor, fontWeight: 700, fontSize: 14 }}>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0 inline-block"
+                      style={{ background: card.dotColor }}
+                    />
+                    <span className={`font-bold text-sm ${card.cardTextClass}`}>
                       {card.title}
                     </span>
                   </div>
                   <ul className="space-y-1">
                     {card.rules.map((r) => (
-                      <li key={r} style={{ color: card.textColor, fontSize: 12, display: "flex", gap: 6 }}>
+                      <li key={r} className={`text-xs flex gap-1.5 ${card.cardTextClass}`}>
                         <span>·</span>{r}
                       </li>
                     ))}

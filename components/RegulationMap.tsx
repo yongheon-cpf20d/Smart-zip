@@ -64,7 +64,7 @@ export default function RegulationMap() {
   };
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%", background: "#fafbfc" }}>
+    <div className="relative w-full h-full bg-slate-50 dark:bg-slate-900">
 
       <style jsx global>{`
         @keyframes regPulse {
@@ -77,58 +77,36 @@ export default function RegulationMap() {
       `}</style>
 
       {/* 좌측 상단: 뒤로가기 / 전국 전환 버튼 */}
-      <div style={{ position: "absolute", top: 12, left: 12, zIndex: 10, display: "flex", gap: 6 }}>
+      <div className="absolute top-3 left-3 z-10 flex gap-1.5">
         {view === "seoul" && (
           <button
             onClick={() => switchView("metro")}
-            style={{
-              background: "white", border: "1px solid #e2e8f0",
-              borderRadius: 8, padding: "6px 12px", fontSize: 12,
-              fontWeight: 600, cursor: "pointer", color: "#334155",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-            }}
+            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             ← 수도권 보기
           </button>
         )}
         <button
           onClick={() => switchView(view === "nationwide" ? "metro" : "nationwide")}
-          style={{
-            background: "white", border: "1px solid #e2e8f0",
-            borderRadius: 8, padding: "6px 12px", fontSize: 12,
-            fontWeight: 600, cursor: "pointer", color: "#334155",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-          }}
+          className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
         >
           {view === "nationwide" ? "← 수도권 보기" : "전국 보기"}
         </button>
       </div>
 
       {/* 현재 뷰 표시 */}
-      <div style={{
-        position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
-        zIndex: 10, background: "white", border: "1px solid #e2e8f0",
-        borderRadius: 8, padding: "6px 14px", fontSize: 12,
-        fontWeight: 700, color: "#334155",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-      }}>
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 shadow-sm">
         {view === "metro" ? "수도권 (서울·경기)" : view === "seoul" ? "서울특별시" : "전국"}
       </div>
 
       {/* 범례 */}
-      <div style={{
-        position: "absolute", bottom: 14, right: 14, zIndex: 10,
-        background: "rgba(255,255,255,0.96)", border: "1px solid #eef1f5",
-        borderRadius: 12, padding: "12px 16px", fontSize: 11,
-        boxShadow: "0 2px 10px rgba(15,23,42,0.06)",
-        backdropFilter: "blur(4px)",
-      }}>
+      <div className="absolute bottom-3.5 right-3.5 z-10 bg-white/95 dark:bg-slate-800/95 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-[11px] shadow-md backdrop-blur-sm">
         {[
           { color: "#fca5a5", label: "투기과열지구", border: null },
           { color: "#f97316", label: "조정대상지역", border: null },
           { color: "transparent", label: "토지거래허가구역", border: TOHEO_COLOR },
         ].map((item) => (
-          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
+          <div key={item.label} className="flex items-center gap-1.5 mb-1.5 last:mb-0">
             <span style={{
               width: 10, height: 10, borderRadius: 3,
               background: item.color === "transparent" ? "#fef2f2" : item.color,
@@ -136,10 +114,10 @@ export default function RegulationMap() {
               border: item.border ? `2px solid ${item.border}` : "none",
               flexShrink: 0,
             }} />
-            <span style={{ color: "#64748b", fontWeight: 500 }}>{item.label}</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{item.label}</span>
           </div>
         ))}
-        <p style={{ color: "#b0b8c4", fontSize: 10, marginTop: 7, marginBottom: 0, borderTop: "1px solid #f1f4f8", paddingTop: 6 }}>
+        <p className="text-slate-400 dark:text-slate-500 text-[10px] mt-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-700 mb-0">
           스크롤/핀치로 확대·축소 가능
         </p>
       </div>

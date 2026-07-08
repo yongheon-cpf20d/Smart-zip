@@ -19,6 +19,10 @@ export const REGULATION_STYLE: Record<RegulationType, {
   bgColor: string;
   textColor: string;
   dotColor: string;
+  // 다크모드 카드용 Tailwind 클래스
+  cardBgClass: string;
+  cardBorderClass: string;
+  cardTextClass: string;
   rules: string[];
 }> = {
   "투기과열지구": {
@@ -27,6 +31,9 @@ export const REGULATION_STYLE: Record<RegulationType, {
     bgColor: "#ffffff",
     textColor: "#BF2400",
     dotColor: "#FF3000",
+    cardBgClass: "bg-white dark:bg-red-950/40",
+    cardBorderClass: "border-[#FF3000] dark:border-red-700",
+    cardTextClass: "text-[#BF2400] dark:text-red-300",
     rules: [
       "주택구입 LTV 40%, 생애최초 LTV 70%",
     ],
@@ -37,6 +44,9 @@ export const REGULATION_STYLE: Record<RegulationType, {
     bgColor: "#ffffff",
     textColor: "#BF4400",
     dotColor: "#FF5D00",
+    cardBgClass: "bg-white dark:bg-orange-950/40",
+    cardBorderClass: "border-[#FF5D00] dark:border-orange-700",
+    cardTextClass: "text-[#BF4400] dark:text-orange-300",
     rules: [
       "투기과열지구 하위 규제로 현재는 의미 없음"
     ],
@@ -49,6 +59,9 @@ export const REGULATION_STYLE: Record<RegulationType, {
     bgColor: "#ffffff",  // 규제요약 카드의 배경색 → 아주 연한 빨강(거의 흰색에 가까운 핑크)
     textColor: "#D17900",  // 규제요약 카드 안의 글자색 → 진한 적갈색
     dotColor: "#FF9500",  // 카드 제목 앞의 작은 동그라미(●) 색 → 진한 빨강
+    cardBgClass: "bg-white dark:bg-amber-950/40",
+    cardBorderClass: "border-[#FF9500] dark:border-amber-600",
+    cardTextClass: "text-[#D17900] dark:text-amber-300",
     rules: [
       "실거주 목적 외 주택 취득 금지",
       "구청장 허가 없이 매매·증여·임대차 계약 불가",
@@ -280,6 +293,10 @@ export type PolicyCard = {
   bgColor: string;
   textColor: string;
   dotColor: string;
+  // 다크모드 카드용 Tailwind 클래스
+  cardBgClass: string;
+  cardBorderClass: string;
+  cardTextClass: string;
   rules: string[];
 };
 
@@ -290,6 +307,9 @@ export const NATIONAL_POLICY_CARDS: PolicyCard[] = [
     bgColor: "#ffffff",
     textColor: "#3730a3",
     dotColor: "#6366f1",
+    cardBgClass: "bg-white dark:bg-indigo-950/40",
+    cardBorderClass: "border-[#c7d2fe] dark:border-indigo-700",
+    cardTextClass: "text-[#3730a3] dark:text-indigo-300",
     rules: [
       "스트레스금리 수도권·규제지역 주담대 3.0%, 그 외 1.5%",
       "지방은 0.75% 한시 적용(~2026 말)",
@@ -301,6 +321,9 @@ export const NATIONAL_POLICY_CARDS: PolicyCard[] = [
     bgColor: "#ffffff",
     textColor: "#166534",
     dotColor: "#22c55e",
+    cardBgClass: "bg-white dark:bg-green-950/40",
+    cardBorderClass: "border-[#bbf7d0] dark:border-green-700",
+    cardTextClass: "text-[#166534] dark:text-green-300",
     rules: [
       "주택담보대출 상한액 지정 : 6억 (15억 이하) / 4억 (15~25억) / 2억 (25억 초과)",
     ],
