@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import RegulationMap from "../components/RegulationMap";
 import RollingWidget from "../components/RollingWidget";
+import ThemeToggle from "../components/ThemeToggle";
 import { useVisitorTracking } from "../hooks/useVisitorTracking";
 import { REGULATION_STYLE, groupByType, NATIONAL_POLICY_CARDS } from "../lib/regulationData";
 
@@ -138,10 +139,10 @@ export default function Home() {
   }));
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <div className="max-w-7xl mx-auto px-4 py-4 space-y-4">
 
-        {/* ① 로고 */}
+        {/* ① 로고 + 다크모드 토글 */}
         <header className="flex items-center gap-2">
           <Link href="/" className="inline-flex items-center gap-0.5 link-press">
             <Image
@@ -152,15 +153,13 @@ export default function Home() {
               className="h-10 w-auto"
               priority
             />
-            <span
-              className="font-brand text-2xl tracking-tight leading-none select-none"
-              style={{
-                color: "#000000",
-              }}
-            >
+            <span className="font-brand text-2xl tracking-tight leading-none select-none text-black dark:text-white">
               똑집
             </span>
           </Link>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
 
         {/* ② + ③ 롤링 위젯 2개 */}
@@ -168,12 +167,14 @@ export default function Home() {
 
           {/* ② 오늘의 신고가 — 클릭 시 신고가 페이지로 이동 */}
           {highLoading ? (
-            <div className="flex items-center gap-3 bg-slate-100 border border-slate-200 rounded-xl px-4"
-              style={{ height: "56px" }}>
+            <div
+              className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4"
+              style={{ height: "56px" }}
+            >
               <span className="text-[10px] font-bold bg-slate-500 text-white px-2 py-1 rounded shrink-0">
                 실거래 신고가
               </span>
-              <span className="text-sm text-slate-400 animate-pulse">불러오는 중</span>
+              <span className="text-sm text-slate-400 dark:text-slate-500 animate-pulse">불러오는 중</span>
             </div>
           ) : (
             <RollingWidget
@@ -184,7 +185,7 @@ export default function Home() {
               }
               badge="실거래 신고가"
               badgeStyle="bg-rose-500 text-white"
-              containerStyle="bg-rose-50 border border-rose-200 text-rose-900"
+              containerStyle="bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200"
               displayMs={3500}
               transitionMs={400}
             />
@@ -192,19 +193,21 @@ export default function Home() {
 
           {/* ③ 부동산 뉴스 */}
           {newsLoading ? (
-            <div className="flex items-center gap-3 bg-slate-100 border border-slate-200 rounded-xl px-4"
-              style={{ height: "56px" }}>
+            <div
+              className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4"
+              style={{ height: "56px" }}
+            >
               <span className="text-[10px] font-bold bg-slate-500 text-white px-2 py-1 rounded shrink-0">
                 부동산 뉴스
               </span>
-              <span className="text-sm text-slate-400 animate-pulse">불러오는 중</span>
+              <span className="text-sm text-slate-400 dark:text-slate-500 animate-pulse">불러오는 중</span>
             </div>
           ) : (
             <RollingWidget
               items={newsRollingItems.length > 0 ? newsRollingItems : [{ text: "뉴스를 불러올 수 없습니다." }]}
               badge="부동산 뉴스"
               badgeStyle="bg-emerald-600 text-white"
-              containerStyle="bg-emerald-50 border border-emerald-200 text-emerald-900"
+              containerStyle="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200"
               displayMs={4000}
               transitionMs={400}
             />
@@ -213,29 +216,29 @@ export default function Home() {
 
         {/* ③.5 정책발표 박스 — Supabase 최신 3개 자동 반영 */}
         <Link href="/policy" className="block group">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-emerald-300 hover:bg-emerald-50/40 transition-all hover-lift nav-link">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/20 transition-all hover-lift nav-link">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Megaphone size={15} strokeWidth={1.75} className="text-amber-400" />
-                <span className="text-sm font-bold text-slate-700">최신 정책 발표</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-600">국토부 · 금융위</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">최신 정책 발표</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400">국토부 · 금융위</span>
               </div>
-              <span className="flex items-center gap-0.5 text-xs text-slate-400 group-hover:text-emerald-600 transition">
+              <span className="flex items-center gap-0.5 text-xs text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">
                 전체 보기
                 <ChevronRight size={13} strokeWidth={1.75} />
               </span>
             </div>
             <div className="space-y-2">
               {latestPolicies.length === 0 ? (
-                <p className="text-xs text-slate-400 py-2">등록된 정책 발표가 없습니다.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 py-2">등록된 정책 발표가 없습니다.</p>
               ) : (
                 latestPolicies.map((item) => (
                   <div key={item.slug} className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">{item.tag}</span>
-                    <span className="text-xs text-slate-400 shrink-0">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 shrink-0">{item.tag}</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
                       {new Date(item.display_date).toLocaleDateString("ko-KR")}
                     </span>
-                    <span className="text-sm text-slate-700 truncate">{item.title}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300 truncate">{item.title}</span>
                   </div>
                 ))
               )}
@@ -251,27 +254,27 @@ export default function Home() {
               <Link
                 key={m.href}
                 href={m.href}
-                className="flex flex-col items-center justify-center gap-1.5 py-3.5 bg-white border border-slate-200 rounded-xl hover:bg-emerald-50 hover:border-emerald-300 transition-all hover-lift nav-link"
+                className="flex flex-col items-center justify-center gap-1.5 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover-lift nav-link"
               >
-                <Icon size={18} strokeWidth={1.75} className="text-slate-500" />
-                <span className="text-[11px] font-semibold text-slate-700 text-center leading-tight">{m.name}</span>
+                <Icon size={18} strokeWidth={1.75} className="text-slate-500 dark:text-slate-400" />
+                <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 text-center leading-tight">{m.name}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* 피드백 + 업데이트 배너 */}
-        <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-          <Link href="/changelog" className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-600 transition link-press">
+        <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3">
+          <Link href="/changelog" className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition link-press">
             <ThumbsUp size={13} strokeWidth={1.75} className="text-emerald-400" />
             반영된 피드백 확인하기
             <ChevronRight size={13} strokeWidth={1.75} />
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/feedback/board" className="text-xs text-slate-400 hover:text-emerald-600 transition link-press">
+            <Link href="/feedback/board" className="text-xs text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition link-press">
               내 피드백 확인
             </Link>
-            <Link href="/feedback" className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition link-press">
+            <Link href="/feedback" className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition link-press">
               <MessageSquare size={13} strokeWidth={1.75} />
               의견 남기기
             </Link>
@@ -282,12 +285,12 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
           {/* ⑤ 규제 지도 */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="px-4 py-3.5 border-b border-slate-100 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm dark:shadow-slate-900/50">
+            <div className="px-4 py-3.5 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
               <MapPin size={15} strokeWidth={1.75} className="text-rose-400" />
               <div>
-                <h2 className="text-sm font-bold text-slate-700">규제지역 현황 지도</h2>
-                <p className="text-[11px] text-slate-400 mt-0.5">수도권 기본 표시 · 전국 보기 전환 가능</p>
+                <h2 className="text-sm font-bold text-slate-700 dark:text-slate-300">규제지역 현황 지도</h2>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">수도권 기본 표시 · 전국 보기 전환 가능</p>
               </div>
             </div>
             <div className="h-[460px]">
@@ -296,12 +299,12 @@ export default function Home() {
           </div>
 
           {/* ⑥ 규제 요약 */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm dark:shadow-slate-900/50">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
               <FileText size={15} strokeWidth={1.75} className="text-orange-400" />
               <div>
-                <h2 className="text-sm font-bold text-slate-700">현행 규제 요약</h2>
-                <p className="text-[11px] text-slate-400 mt-0.5">2026년 기준 · 서울 전역 투기과열지구</p>
+                <h2 className="text-sm font-bold text-slate-700 dark:text-slate-300">현행 규제 요약</h2>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">2026년 기준 · 서울 전역 투기과열지구</p>
               </div>
             </div>
             <div className="p-4 space-y-3 overflow-y-auto h-[460px]">
@@ -331,8 +334,6 @@ export default function Home() {
                 </div>
               ))}
 
-             
-
               {NATIONAL_POLICY_CARDS.map((card) => (
                 <div key={card.title} style={{
                   background: card.bgColor,
@@ -360,7 +361,7 @@ export default function Home() {
               ))}
 
               <div className="text-center pt-2">
-                <Link href="/regulation" className="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold hover:underline link-press">
+                <Link href="/regulation" className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-semibold hover:underline link-press">
                   전체 규제 내역 보기
                   <ChevronRight size={13} strokeWidth={1.75} />
                 </Link>
