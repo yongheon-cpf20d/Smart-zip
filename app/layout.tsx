@@ -103,6 +103,20 @@ export default function RootLayout({
           integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtcfe70V9gVXjXtaC12ojr55Uv/2j0LxUwWjaHrX3+j80"
           crossOrigin="anonymous"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('ddokzip_theme');
+                  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var shouldBeDark = saved === 'dark' || (!saved && prefersDark);
+                  if (shouldBeDark) document.documentElement.classList.add('dark');
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         {children}
         <Footer />
       </body>
