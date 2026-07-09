@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { REGULATION_AREAS } from "@/lib/regulationData";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ✅ 법령/정책 출처: 금융위원회 「주택시장 안정화 대책」 관련 「긴급 가계부채 점검회의」(2025.10.15)
 //    + 지방세법 제13조의2(법인의 주택 취득 등 중과), 종합부동산세법 등
@@ -14,22 +15,22 @@ type RegColor = "red" | "orange" | "amber";
 
 const colorMap: Record<RegColor, { bg: string; border: string; text: string; badge: string }> = {
   red: {
-    bg: "bg-red-50",
-    border: "border-red-200",
-    text: "text-red-700",
-    badge: "bg-red-100 text-red-700",
+    bg: "bg-red-50 dark:bg-red-950/40",
+    border: "border-red-200 dark:border-red-800",
+    text: "text-red-700 dark:text-red-300",
+    badge: "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300",
   },
   orange: {
-    bg: "bg-orange-50",
-    border: "border-orange-200",
-    text: "text-orange-700",
-    badge: "bg-orange-100 text-orange-700",
+    bg: "bg-orange-50 dark:bg-orange-950/40",
+    border: "border-orange-200 dark:border-orange-800",
+    text: "text-orange-700 dark:text-orange-300",
+    badge: "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300",
   },
   amber: {
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    text: "text-amber-700",
-    badge: "bg-amber-100 text-amber-700",
+    bg: "bg-amber-50 dark:bg-amber-950/40",
+    border: "border-amber-200 dark:border-amber-800",
+    text: "text-amber-700 dark:text-amber-300",
+    badge: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
   },
 };
 
@@ -86,22 +87,25 @@ const CURRENT_STAGE_INDEX = 2;
 
 export default function RegulationPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <div className="max-w-5xl mx-auto px-4 py-4 space-y-5">
 
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition"
-        >
-          ← 메인으로
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition"
+          >
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
             <ShieldCheck size={20} strokeWidth={1.75} className="text-emerald-600" />
             규제 현황
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
             2025.10.15 「주택시장 안정화 대책」 기준 · 출처: 금융위원회
           </p>
         </div>
@@ -142,7 +146,7 @@ export default function RegulationPage() {
                       {matchedAreas.map((a) => (
                         <span
                           key={a.name}
-                          className={`text-[10px] px-2 py-0.5 rounded-full bg-white/60 ${c.text}`}
+                          className={`text-[10px] px-2 py-0.5 rounded-full bg-white/60 dark:bg-slate-900/30 ${c.text}`}
                         >
                           {a.name}
                         </span>
@@ -156,9 +160,9 @@ export default function RegulationPage() {
         </div>
 
         {/* 스트레스 DSR */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5">
-          <h2 className="text-sm font-bold text-slate-600 mb-1">스트레스 DSR 단계별 현황</h2>
-          <p className="text-xs text-slate-400 mb-4">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-1">스트레스 DSR 단계별 현황</h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
             대출금리에 일정 수준의 스트레스 금리를 가산해 DSR을 산정, 미래 금리 상승 리스크를 미리 반영하는 제도입니다.
           </p>
           <div className="grid grid-cols-3 gap-3">
@@ -168,19 +172,21 @@ export default function RegulationPage() {
                 <div
                   key={s.stage}
                   className={`rounded-xl p-4 border ${
-                    active ? "bg-red-50 border-red-200" : "bg-slate-50 border-slate-200"
+                    active
+                      ? "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800"
+                      : "bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
                   }`}
                 >
-                  <p className={`text-sm font-bold ${active ? "text-red-700" : "text-slate-400"}`}>
+                  <p className={`text-sm font-bold ${active ? "text-red-700 dark:text-red-300" : "text-slate-400 dark:text-slate-500"}`}>
                     {s.stage}
                   </p>
-                  <p className={`text-[11px] mt-0.5 ${active ? "text-red-500" : "text-slate-400"}`}>
+                  <p className={`text-[11px] mt-0.5 ${active ? "text-red-500 dark:text-red-400" : "text-slate-400 dark:text-slate-500"}`}>
                     {s.date}
                   </p>
-                  <p className={`text-xs mt-1.5 font-semibold ${active ? "text-red-600" : "text-slate-400"}`}>
+                  <p className={`text-xs mt-1.5 font-semibold ${active ? "text-red-600 dark:text-red-400" : "text-slate-400 dark:text-slate-500"}`}>
                     가산 {s.add}
                   </p>
-                  <p className={`text-[10px] mt-2 leading-relaxed ${active ? "text-red-500" : "text-slate-400"}`}>
+                  <p className={`text-[10px] mt-2 leading-relaxed ${active ? "text-red-500 dark:text-red-400" : "text-slate-400 dark:text-slate-500"}`}>
                     {s.note}
                   </p>
                 </div>
@@ -190,31 +196,31 @@ export default function RegulationPage() {
         </div>
 
         {/* 추가 대출 규제 (10.15 대책) */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5">
-          <h2 className="text-sm font-bold text-slate-600 mb-1">주택가격별 주담대 한도 차등화</h2>
-          <p className="text-xs text-slate-400 mb-4">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-1">주택가격별 주담대 한도 차등화</h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
             수도권·규제지역 주택구입목적 주담대 한도가 시가에 따라 차등 적용됩니다. (2025.10.16 시행)
           </p>
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-              <p className="text-xs text-slate-500">15억원 이하</p>
-              <p className="text-lg font-bold text-slate-700 mt-1">6억원</p>
+            <div className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-3">
+              <p className="text-xs text-slate-500 dark:text-slate-400">15억원 이하</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mt-1">6억원</p>
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-              <p className="text-xs text-amber-600">15억 ~ 25억원</p>
-              <p className="text-lg font-bold text-amber-700 mt-1">4억원</p>
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
+              <p className="text-xs text-amber-600 dark:text-amber-400">15억 ~ 25억원</p>
+              <p className="text-lg font-bold text-amber-700 dark:text-amber-300 mt-1">4억원</p>
             </div>
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-              <p className="text-xs text-red-600">25억원 초과</p>
-              <p className="text-lg font-bold text-red-700 mt-1">2억원</p>
+            <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl p-3">
+              <p className="text-xs text-red-600 dark:text-red-400">25억원 초과</p>
+              <p className="text-lg font-bold text-red-700 dark:text-red-300 mt-1">2억원</p>
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 mt-3">
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-3">
             ※ 이주비대출은 주택가격과 관계없이 최대 6억원 적용
           </p>
         </div>
 
-        <p className="text-[10px] text-slate-400 pt-2 leading-relaxed">
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-2 leading-relaxed">
           출처: 금융위원회 「주택시장 안정화 대책」 관련 「긴급 가계부채 점검회의」(2025.10.15) 보도자료,
           지방세법 제13조의2. 본 정보는 참고용이며 실제 규제지역 지정 현황 및 세부 기준은
           국토교통부 및 금융위원회 공지를 확인해주세요.

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Gift } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ✅ 정보 출처: 한국주택금융공사(HF) 디딤돌/보금자리론 상품안내(2026.06.22 기준 고시),
 //    주택도시기금 포털, 주택공급에 관한 규칙, LH청약플러스, 뉴:홈, 지방세법 제36조의3·제36조의5
@@ -12,22 +13,22 @@ type CardColor = "emerald" | "blue" | "violet";
 
 const colorMap: Record<CardColor, { bg: string; border: string; text: string; badge: string }> = {
   emerald: {
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    text: "text-emerald-700",
-    badge: "bg-emerald-100 text-emerald-700",
+    bg: "bg-emerald-50 dark:bg-emerald-950/40",
+    border: "border-emerald-200 dark:border-emerald-800",
+    text: "text-emerald-700 dark:text-emerald-300",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
   },
   blue: {
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    text: "text-blue-700",
-    badge: "bg-blue-100 text-blue-700",
+    bg: "bg-blue-50 dark:bg-blue-950/40",
+    border: "border-blue-200 dark:border-blue-800",
+    text: "text-blue-700 dark:text-blue-300",
+    badge: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
   },
   violet: {
-    bg: "bg-violet-50",
-    border: "border-violet-200",
-    text: "text-violet-700",
-    badge: "bg-violet-100 text-violet-700",
+    bg: "bg-violet-50 dark:bg-violet-950/40",
+    border: "border-violet-200 dark:border-violet-800",
+    text: "text-violet-700 dark:text-violet-300",
+    badge: "bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300",
   },
 };
 
@@ -151,7 +152,7 @@ function BenefitCard({
   return (
     <div className={`${c.bg} border ${c.border} rounded-2xl p-5 flex flex-col h-full`}>
       <p className={`text-sm font-bold ${c.text} mb-1`}>{title}</p>
-      <p className="text-[11px] text-slate-500 mb-3 leading-relaxed">{subtitle}</p>
+      <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">{subtitle}</p>
       <ul className="space-y-1.5 mt-auto">
         {points.map((p) => (
           <li key={p} className={`text-xs ${c.text} flex items-start gap-1.5 leading-relaxed`}>
@@ -174,29 +175,32 @@ function BenefitCard({
 
 export default function BenefitsPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <div className="max-w-5xl mx-auto px-4 py-4 space-y-7">
 
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition"
-        >
-          ← 메인으로
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition"
+          >
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
             <Gift size={20} strokeWidth={1.75} className="text-emerald-600" />
             정책 지원
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
             2026 기준 정책 지원을 한눈에
           </p>
         </div>
 
         {/* 대출 */}
         <section className="space-y-3">
-          <h2 className="text-base font-bold text-slate-700 flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             🏦 대출 (정책모기지)
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -215,7 +219,7 @@ export default function BenefitsPage() {
 
         {/* 세금 감면 */}
         <section className="space-y-3">
-          <h2 className="text-base font-bold text-slate-700 flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             💰 세금 감면
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -234,7 +238,7 @@ export default function BenefitsPage() {
 
         {/* 청약 특별공급 */}
         <section className="space-y-3">
-          <h2 className="text-base font-bold text-slate-700 flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
             🏠 청약 특별공급
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -250,7 +254,7 @@ export default function BenefitsPage() {
           </div>
         </section>
 
-        <p className="text-[10px] text-slate-400 pt-2 leading-relaxed border-t border-slate-100 mt-2">
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-2 leading-relaxed border-t border-slate-100 dark:border-slate-700 mt-2">
           출처: 한국주택금융공사 디딤돌/보금자리론 상품안내(2026.06.22 기준 고시), 주택도시기금 포털,
           「주택공급에 관한 규칙」, 「공공주택 특별법 시행규칙」 별표6, LH청약플러스, 뉴:홈,
           지방세특례제한법 제36조의3·제36조의5, 소득세법 제89조. 소득기준 %는 전년도 도시근로자

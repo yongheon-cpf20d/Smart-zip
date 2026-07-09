@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Trophy, ArrowUpRight, MapPin } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -57,6 +58,35 @@ type RegionView = "top" | "seoul" | "gyeonggi";
 function PosterCard({ record }: { record: NewHighRecord }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  // ✅ 다크모드 감지 — html 클래스 변경을 실시간으로 구독
+  useEffect(() => {
+    const update = () => setIsDark(document.documentElement.classList.contains("dark"));
+    update();
+    const mo = new MutationObserver(update);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, []);
+
+  // ✅ 카드 색상 팔레트 — 라이트/다크 전환
+  const cs = {
+    bg:          isDark ? "#1e293b" : "#ffffff",
+    shadow:      isDark ? "0 1px 3px rgba(0,0,0,0.4)" : "0 1px 3px rgba(0,0,0,0.04)",
+    decor:       isDark ? "rgba(16,185,129,0.08)" : "rgba(16,185,129,0.05)",
+    badgeBg:     isDark ? "#0f172a" : "#ffffff",
+    badgeBorder: isDark ? "#10b981" : "#000000",
+    badgeText:   isDark ? "#10b981" : "#000000",
+    dateText:    isDark ? "#94a3b8" : "#000000",
+    regionText:  isDark ? "#64748b" : "#64748b",
+    nameText:    isDark ? "#f1f5f9" : "#0f172a",
+    areaText:    isDark ? "#94a3b8" : "#334155",
+    divider:     isDark ? "#334155" : "#f1f5f9",
+    labelText:   isDark ? "#94a3b8" : "#000000",
+    mutedText:   isDark ? "#64748b" : "#94a3b8",
+    footerText:  isDark ? "#e2e8f0" : "#334155",
+    footerMuted: isDark ? "#64748b" : "#94a3b8",
+  };
 
   const diffPct = record.previousHighPrice && record.priceDiff !== null
     ? ((record.priceDiff / record.previousHighPrice) * 100).toFixed(1)
@@ -101,65 +131,65 @@ function PosterCard({ record }: { record: NewHighRecord }) {
 
   return (
     <div className="relative group hover-lift" onClick={handleCardClick} style={{ cursor: "pointer" }} title="클릭하면 이미지로 저장할 수 있습니다">
-      {/* 포스터 본체 (캡처 대상) */}
+      {/* 포스터 본체 (캡처 대상) — 인라인 스타일로 다크/라이트 동적 전환 (html2canvas 호환) */}
       <div
         ref={cardRef}
         style={{
-          background: "#ffffff",
+          background: cs.bg,
           border: "1.5px solid #10b981",
           borderRadius: "16px",
           padding: "28px 24px 22px",
           position: "relative",
           overflow: "hidden",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+          boxShadow: cs.shadow,
           minHeight: 320,
           display: "flex",
           flexDirection: "column",
         }}
       >
         {/* 배경 장식 (은은하게) */}
-        <div style={{ position: "absolute", top: -50, right: -50, width: 160, height: 160, borderRadius: "50%", background: "rgba(16,185,129,0.05)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: -50, right: -50, width: 160, height: 160, borderRadius: "50%", background: cs.decor, pointerEvents: "none" }} />
+
         {/* 헤더: 뱃지 + 날짜 */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 5,
-            /* ✅ 투명도 없는 완전 불투명한 6자리 헥스코드 적용 */
-            background: "#ffffff", // 연한 핑크색 등 원하는 색
-            border: "1px solid #000000", // 테두리 색
+            background: cs.badgeBg,
+            border: `1px solid ${cs.badgeBorder}`,
             borderRadius: 999, padding: "0 10px",
             height: 20,
           }}>
             <span className="badge-text" style={{
-              color: "#000000", fontWeight: 800, fontSize: 10, letterSpacing: "0.05em",
+              color: cs.badgeText, fontWeight: 800, fontSize: 10, letterSpacing: "0.05em",
               position: "relative",
               top: 0,
             }}>신고가</span>
           </div>
-          <span style={{ color: "#000000", fontSize: 10 }}>{record.dealDate}</span>
+          <span style={{ color: cs.dateText, fontSize: 10 }}>{record.dealDate}</span>
         </div>
 
         {/* 지역 */}
-        <p style={{ color: "#64748b", fontSize: 10, marginBottom: 3 }}>
+        <p style={{ color: cs.regionText, fontSize: 10, marginBottom: 3 }}>
           {record.regionName} · {record.dong}
         </p>
 
-        {/* 단지명 · 평형 · 타입 (검은색) */}
-        <p style={{ color: "#0f172a", fontWeight: 900, fontSize: record.complexName.length > 9 ? 18 : 22, marginBottom: 3, lineHeight: 1.2 }}>
+        {/* 단지명 */}
+        <p style={{ color: cs.nameText, fontWeight: 900, fontSize: record.complexName.length > 9 ? 18 : 22, marginBottom: 3, lineHeight: 1.2 }}>
           {record.complexName}
         </p>
 
-        {/* 면적/층/준공년도 (검은색 계열) */}
-        <p style={{ color: "#334155", fontSize: 10, marginBottom: 18 }}>
+        {/* 면적/층/준공년도 */}
+        <p style={{ color: cs.areaText, fontSize: 10, marginBottom: 18 }}>
           전용 {record.area}㎡ (약 {toPyeong(record.area)}평) · {record.floor}층
           {record.buildYear && ` · ${record.buildYear}년 준공`}
         </p>
 
         {/* 구분선 */}
-        <div style={{ borderTop: "1px solid #f1f5f9", marginBottom: 16 }} />
+        <div style={{ borderTop: `1px solid ${cs.divider}`, marginBottom: 16 }} />
 
-        {/* 신고가 (빨간색) */}
+        {/* 신고가 */}
         <div style={{ marginBottom: 12 }}>
-          <p style={{ color: "#000000", fontSize: 10, marginBottom: 3, letterSpacing: "0.1em" }}>실거래가</p>
+          <p style={{ color: cs.labelText, fontSize: 10, marginBottom: 3, letterSpacing: "0.1em" }}>실거래가</p>
           <p style={{ color: "#ef4444", fontWeight: 900, fontSize: 26, lineHeight: 1 }}>
             {fmtPriceFull(record.price)}
           </p>
@@ -170,13 +200,13 @@ function PosterCard({ record }: { record: NewHighRecord }) {
           <>
             <div style={{ display: "flex", gap: 20, marginBottom: 12 }}>
               <div>
-                <p style={{ color: "#94a3b8", fontSize: 9, marginBottom: 2 }}>직전 신고가</p>
+                <p style={{ color: cs.mutedText, fontSize: 9, marginBottom: 2 }}>직전 신고가</p>
                 <p style={{ color: "#fca5a5", fontWeight: 700, fontSize: 12 }}>
                   {fmtPriceFull(record.previousHighPrice)}
                 </p>
               </div>
               <div>
-                <p style={{ color: "#94a3b8", fontSize: 9, marginBottom: 2 }}>직전 대비 상승률</p>
+                <p style={{ color: cs.mutedText, fontSize: 9, marginBottom: 2 }}>직전 대비 상승률</p>
                 <p style={{ color: "#ef4444", fontWeight: 800, fontSize: 12 }}>
                   +{diffPct}%
                 </p>
@@ -192,7 +222,7 @@ function PosterCard({ record }: { record: NewHighRecord }) {
             }}>
               <ArrowUpRight size={16} strokeWidth={2} color="#ef4444" />
               <div>
-                <p style={{ color: "#94a3b8", fontSize: 8, marginBottom: 1 }}>직전 신고가 대비 상승</p>
+                <p style={{ color: cs.mutedText, fontSize: 8, marginBottom: 1 }}>직전 신고가 대비 상승</p>
                 <p style={{ color: "#ef4444", fontWeight: 900, fontSize: 16 }}>
                   {fmtPriceFull(record.priceDiff)}
                 </p>
@@ -203,7 +233,7 @@ function PosterCard({ record }: { record: NewHighRecord }) {
 
         {/* 푸터: 로고 + 슬로건 */}
         <div style={{
-          borderTop: "1px solid #f1f5f9", paddingTop: 12,
+          borderTop: `1px solid ${cs.divider}`, paddingTop: 12,
           display: "flex", alignItems: "center", justifyContent: "space-between",
           marginTop: "auto",
         }}>
@@ -217,11 +247,11 @@ function PosterCard({ record }: { record: NewHighRecord }) {
               <path d="M50 14 L14 44 V86 C14 88.2 15.8 90 18 90 H82 C84.2 90 86 88.2 86 86 V44 Z" stroke="#10b981" strokeWidth="7.5" strokeLinejoin="round" strokeLinecap="round" />
               <path d="M31 59 L45 73 L69 49" stroke="#10b981" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span style={{ color: "#334155", fontSize: 9, fontWeight: 700 }}>
-              똑집<span style={{ color: "#94a3b8", fontWeight: 400 }}>, 똑똑한 부동산 길잡이</span>
+            <span style={{ color: cs.footerText, fontSize: 9, fontWeight: 700 }}>
+              똑집<span style={{ color: cs.footerMuted, fontWeight: 400 }}>, 똑똑한 부동산 길잡이</span>
             </span>
           </div>
-          <span style={{ color: "#94a3b8", fontSize: 8 }}>국토교통부 실거래가 기반</span>
+          <span style={{ color: cs.footerMuted, fontSize: 8 }}>국토교통부 실거래가 기반</span>
         </div>
       </div>
 
@@ -330,26 +360,29 @@ export default function NewHighPage() {
   }); // 이미 price_diff desc로 정렬되어 옴
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800 font-sans">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans">
       <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
 
-        <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition">
-          ← 메인으로
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-600 transition">
+            ← 메인으로
+          </Link>
+          <ThemeToggle />
+        </div>
 
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
             <Trophy size={20} strokeWidth={1.75} className="text-emerald-600" />
             오늘의 신고가
           </h1>
-          <p className="text-xs text-slate-400 mt-1">국토교통부 실거래가 기반 · 매일 자동 갱신 · 카드에 마우스 올리면 저장 버튼이 나타납니다</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">국토교통부 실거래가 기반 · 매일 자동 갱신 · 카드에 마우스 올리면 저장 버튼이 나타납니다</p>
         </div>
 
         {/* 지역 선택 */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-3">
           {regionView !== "top" && (
             <button onClick={() => switchView("top")}
-              className="text-xs text-slate-400 hover:text-emerald-600 flex items-center gap-1 transition">
+              className="text-xs text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1 transition">
               ← 전체 보기
             </button>
           )}
@@ -358,29 +391,29 @@ export default function NewHighPage() {
             {regionView === "top" && (
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => switchView("seoul")}
-                  className="py-3.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all">
+                  className="py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all">
                   서울
-                  <span className="block text-[11px] font-normal text-slate-400 mt-0.5">25개 자치구</span>
+                  <span className="block text-[11px] font-normal text-slate-400 dark:text-slate-500 mt-0.5">25개 자치구</span>
                 </button>
                 <button onClick={() => switchView("gyeonggi")}
-                  className="py-3.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all">
+                  className="py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all">
                   경기도
-                  <span className="block text-[11px] font-normal text-slate-400 mt-0.5">31개 시군</span>
+                  <span className="block text-[11px] font-normal text-slate-400 dark:text-slate-500 mt-0.5">31개 시군</span>
                 </button>
               </div>
             )}
 
             {regionView === "seoul" && (
               <div>
-                <p className="text-xs text-slate-400 mb-2">구를 선택하면 해당 구만 보여요</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">구를 선택하면 해당 구만 보여요</p>
                 <div className="flex flex-wrap gap-1.5">
                   <button onClick={() => setSelectedDistrict(null)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${!selectedDistrict ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${!selectedDistrict ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"}`}>
                     전체
                   </button>
                   {SEOUL_DISTRICTS.map(d => (
                     <button key={d} onClick={() => setSelectedDistrict(d === selectedDistrict ? null : d)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${selectedDistrict === d ? "bg-emerald-100 border-emerald-400 text-emerald-700" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${selectedDistrict === d ? "bg-emerald-100 border-emerald-400 text-emerald-700 dark:bg-emerald-900/40 dark:border-emerald-600 dark:text-emerald-300" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"}`}>
                       {d}
                     </button>
                   ))}
@@ -390,15 +423,15 @@ export default function NewHighPage() {
 
             {regionView === "gyeonggi" && (
               <div>
-                <p className="text-xs text-slate-400 mb-2">시·군을 선택하면 해당 지역만 보여요</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">시·군을 선택하면 해당 지역만 보여요</p>
                 <div className="flex flex-wrap gap-1.5">
                   <button onClick={() => setSelectedDistrict(null)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${!selectedDistrict ? "bg-blue-100 border-blue-400 text-blue-700" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${!selectedDistrict ? "bg-blue-100 border-blue-400 text-blue-700 dark:bg-blue-900/40 dark:border-blue-600 dark:text-blue-300" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"}`}>
                     전체
                   </button>
                   {GYEONGGI_CITIES.map(d => (
                     <button key={d} onClick={() => setSelectedDistrict(d === selectedDistrict ? null : d)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${selectedDistrict === d ? "bg-blue-100 border-blue-400 text-blue-700" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"}`}>
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${selectedDistrict === d ? "bg-blue-100 border-blue-400 text-blue-700 dark:bg-blue-900/40 dark:border-blue-600 dark:text-blue-300" : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600"}`}>
                       {d}
                     </button>
                   ))}
@@ -410,24 +443,24 @@ export default function NewHighPage() {
 
         {/* 건수 */}
         <div className="flex items-center justify-between px-1">
-          <p className="text-sm font-bold text-slate-600">
+          <p className="text-sm font-bold text-slate-600 dark:text-slate-400">
             {selectedDistrict ?? (regionView === "seoul" ? "서울" : regionView === "gyeonggi" ? "경기" : "전체")} 신고가
             <span className="text-emerald-500 ml-1">({filteredData.length}건)</span>
           </p>
-          <p className="text-[10px] text-slate-400">상승액 큰 순 정렬</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500">상승액 큰 순 정렬</p>
         </div>
 
         {/* 포스터 그리드 */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-64 bg-white border border-slate-200 rounded-2xl animate-pulse" />
+              <div key={i} className="h-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : filteredData.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-400 text-sm space-y-2">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 dark:text-slate-500 text-sm space-y-2">
             <p>해당 지역의 신고가 데이터가 없습니다.</p>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-300 dark:text-slate-600">
               실거래가 데이터를 매일 수집 중입니다. 데이터가 쌓일수록 더 많은 신고가가 표시돼요.
             </p>
           </div>
@@ -439,7 +472,7 @@ export default function NewHighPage() {
           </div>
         )}
 
-        <p className="text-[10px] text-slate-400 leading-relaxed pt-2 border-t border-slate-200">
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed pt-2 border-t border-slate-200 dark:border-slate-700">
           출처: 국토교통부 아파트매매 실거래가 공개 API. 신고가는 당사 DB에 누적된 과거 거래 중
           동일 단지·면적의 최고가를 경신한 거래를 의미합니다. 실거래 신고 기한(계약 후 30일)에 따라
           실제 거래일과 공개일 사이에 차이가 있을 수 있습니다.
