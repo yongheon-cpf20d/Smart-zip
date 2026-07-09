@@ -43,14 +43,14 @@ export async function GET(req: NextRequest) {
   const results = await Promise.all(
     monthList.map(async (ym) => {
       try {
-        const url = `${BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${sigunguCode}&DEAL_YMD=${ym}&pageNo=1&numOfRows=1000`;
+        const url = `${BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${sigunguCode}&DEAL_YMD=${ym}&pageNo=1&numOfRows=1000&_type=json`;
         const res = await fetch(url, { next: { revalidate: 3600 } });
         const json = await res.json();
         const raw = json?.response?.body?.items?.item ?? [];
-        const all = Array.isArray(raw) ? raw : (raw?.아파트 ? [raw] : []);
+        const all = Array.isArray(raw) ? raw : (raw && typeof raw === "object" && "aptNm" in raw ? [raw] : []);
         return {
           ym,
-          items: all.filter((x: { 아파트: string }) => x.아파트 === aptName),
+          items: all.filter((x: { aptNm: string }) => x.aptNm === aptName),
         };
       } catch {
         return { ym, items: [] };

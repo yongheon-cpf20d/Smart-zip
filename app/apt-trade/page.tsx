@@ -5,7 +5,10 @@ import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
-import { Search, Building2, TrendingUp, Users, Activity, X } from "lucide-react";
+import { Search, Building2, TrendingUp, Users, Activity, X, ChevronLeft } from "lucide-react";
+import Link from "next/link";
+import ThemeToggle from "../../components/ThemeToggle";
+import ShareButton from "../../components/ShareButton";
 
 // ─── 지역 코드 ────────────────────────────────────────────────
 const SEOUL_DISTRICTS = [
@@ -48,9 +51,13 @@ const GYEONGGI_DISTRICTS = [
 // ─── 타입 ─────────────────────────────────────────────────────
 interface AptItem { kaptCode: string; kaptName: string; }
 interface TradeRaw {
-  아파트: string; 거래금액: string;
-  년: number | string; 월: number | string; 일: number | string;
-  전용면적: string; 층: string;
+  aptNm: string;
+  dealAmount: string;
+  dealYear: number | string;
+  dealMonth: number | string;
+  dealDay: number | string;
+  excluUseAr: string;
+  floor: string;
 }
 interface MonthData { ym: string; items: TradeRaw[]; }
 interface AptInfo {
@@ -158,7 +165,7 @@ export default function AptTradePage() {
         // 거래 많은 평형 자동 선택
         const counts: Record<string, number> = {};
         history.flatMap(h => h.items).forEach(item => {
-          const k = Math.floor(parseFloat(item.전용면적 || "0")).toString();
+          const k = Math.floor(parseFloat(item.excluUseAr || "0")).toString();
           if (k !== "0") counts[k] = (counts[k] || 0) + 1;
         });
         const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0];
@@ -189,7 +196,7 @@ export default function AptTradePage() {
   const availableAreas = useMemo(() => {
     const s = new Set(
       tradeHistory.flatMap(h => h.items)
-        .map(item => Math.floor(parseFloat(item.전용면적 || "0")).toString())
+        .map(item => Math.floor(parseFloat(item.excluUseAr || "0")).toString())
         .filter(a => a !== "0")
     );
     return Array.from(s).sort((a, b) => parseInt(a) - parseInt(b));
@@ -199,10 +206,10 @@ export default function AptTradePage() {
   const chartData = useMemo(() =>
     tradeHistory.map(({ ym, items }) => {
       const filtered = selectedArea
-        ? items.filter(item => Math.floor(parseFloat(item.전용면적 || "0")).toString() === selectedArea)
+        ? items.filter(item => Math.floor(parseFloat(item.excluUseAr || "0")).toString() === selectedArea)
         : items;
       const prices = filtered
-        .map(item => parseInt(item.거래금액?.replace(/,/g, "") || "0"))
+        .map(item => parseInt(item.dealAmount?.replace(/,/g, "") || "0"))
         .filter(v => v > 0);
       const count = filtered.length;
       return {
@@ -247,8 +254,15 @@ export default function AptTradePage() {
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
       {/* 헤더 */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-6">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-4">
         <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            <Link href="/" className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+              <ChevronLeft className="w-4 h-4" />
+              메인으로
+            </Link>
+            <ThemeToggle />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Building2 className="w-6 h-6 text-blue-500" />
             아파트 실거래 분석
@@ -479,6 +493,25 @@ export default function AptTradePage() {
                   : "거래가 드물어 매도 시 시간이 걸릴 수 있어요."}
               </div>
             )}
+
+            {/* 공유 버튼 */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
+              <p className="text-xs text-gray-400 mb-3">공유하기</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <ShareButton
+                  title={`${selectedApt.kaptName} 실거래 분석 | 똑집`}
+                  description={`${selectedApt.kaptName}의 최근 24개월 실거래 추이와 환금성을 확인해보세요.`}
+                  params={{}}
+                />
+                <Link
+                  href="/"
+                  className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-200 transition shadow-sm"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  메인으로
+                </Link>
+              </div>
+            </div>
           </>
         )}
 
