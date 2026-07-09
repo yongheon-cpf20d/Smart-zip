@@ -7,7 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import {
   Landmark, BarChart3, Home as HomeIcon, Building2, TrendingUp,
   ShieldCheck, Gift, Calculator, Trophy, ArrowLeftRight, LineChart, Crown,
-  MapPin, FileText, Megaphone, MessageSquare, ThumbsUp, ChevronRight,
+  MapPin, FileText, Megaphone, MessageSquare, ThumbsUp, ChevronRight, Repeat2, Scale,
 } from "lucide-react";
 import RegulationMap from "../components/RegulationMap";
 import RollingWidget from "../components/RollingWidget";
@@ -57,6 +57,8 @@ const navItems = [
   { name: "보유세 계산기", href: "/tax-hold", icon: Building2 },
   { name: "양도세 계산기", href: "/tax-sell", icon: TrendingUp },
   { name: "갈아타기 계산기", href: "/switch-sim", icon: ArrowLeftRight },
+  { name: "전월세 전환", href: "/rent-convert", icon: Repeat2 },
+  { name: "전세 vs 매매", href: "/compare", icon: Scale },
   { name: "순수익 계산기", href: "/asset-sim", icon: LineChart },
   { name: "오늘의 신고가", href: "/new-high", icon: Trophy },
   { name: "대장 아파트", href: "/top-apt", icon: Crown },
