@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/compare`,     lastModified: now, changeFrequency: "monthly", priority: 0.8 },
 
     // 실시간 데이터 (매일 갱신)
+    { url: `${BASE_URL}/apt-trade`,   lastModified: now, changeFrequency: "daily",   priority: 0.9 },
     { url: `${BASE_URL}/new-high`,    lastModified: now, changeFrequency: "daily",   priority: 0.9 },
     { url: `${BASE_URL}/top-apt`,     lastModified: now, changeFrequency: "daily",   priority: 0.8 },
 
