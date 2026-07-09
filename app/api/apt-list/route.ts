@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   if (!code) return NextResponse.json([], { status: 400 });
 
   try {
-    const url = `${BASE}/getSigunguAptList3?serviceKey=${encodeURIComponent(API_KEY)}&sigunguCode=${code}&numOfRows=3000&pageNo=1`;
+    const url = `${BASE}/getSigunguAptList3?serviceKey=${encodeURIComponent(API_KEY)}&sigunguCode=${code}&numOfRows=3000&pageNo=1&_type=json`;
     const res = await fetch(url, { next: { revalidate: 86400 } });
     const json = await res.json();
     const raw = json?.response?.body?.items?.item ?? [];

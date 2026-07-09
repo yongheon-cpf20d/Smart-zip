@@ -133,7 +133,11 @@ export default function AptTradePage() {
 
     fetch(`/api/apt-list?sigunguCode=${selectedDistrict.code}`)
       .then(r => r.json())
-      .then(d => setAptList(Array.isArray(d) ? d : []))
+      .then(d => {
+        const list = Array.isArray(d) ? d : [];
+        setAptList(list);
+        if (list.length > 0) setShowDropdown(true);
+      })
       .catch(() => setAptList([]))
       .finally(() => setAptListLoading(false));
   }, [selectedDistrict]);
@@ -299,6 +303,11 @@ export default function AptTradePage() {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">단지</p>
             {aptListLoading ? (
               <div className="text-sm text-gray-400 text-center py-6 animate-pulse">단지 목록 불러오는 중…</div>
+            ) : aptList.length === 0 ? (
+              <div className="text-sm text-red-400 text-center py-6">
+                단지 목록을 불러오지 못했습니다.<br/>
+                <span className="text-xs text-gray-400">API 키 설정을 확인해 주세요.</span>
+              </div>
             ) : (
               <div className="relative" ref={searchRef}>
                 <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-400">
