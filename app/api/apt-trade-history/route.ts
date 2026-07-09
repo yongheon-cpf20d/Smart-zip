@@ -21,6 +21,25 @@ export async function GET(req: NextRequest) {
     monthList.push(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`);
   }
 
+  const debug = sp.get("debug") === "1";
+
+  // 최근 1개월만 디버그용으로 먼저 확인
+  if (debug) {
+    const ym = monthList[monthList.length - 1];
+    const url = `${BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${sigunguCode}&DEAL_YMD=${ym}&pageNo=1&numOfRows=20`;
+    const res = await fetch(url, { cache: "no-store" });
+    const text = await res.text();
+    try {
+      const json = JSON.parse(text);
+      const raw = json?.response?.body?.items?.item ?? json?.response?.body?.items ?? [];
+      const all = Array.isArray(raw) ? raw : [raw];
+      const sample = all.slice(0, 3).map((x: Record<string, unknown>) => ({ 아파트: x["아파트"], 전용면적: x["전용면적"], 거래금액: x["거래금액"] }));
+      return NextResponse.json({ ym, aptName, totalInMonth: all.length, sample, matched: all.filter((x: { 아파트: string }) => x["아파트"] === aptName).length });
+    } catch {
+      return NextResponse.json({ raw: text.slice(0, 500) });
+    }
+  }
+
   const results = await Promise.all(
     monthList.map(async (ym) => {
       try {

@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "xml-response", preview: text.slice(0, 300) }, { status: 502 });
     }
 
-    const body = (json as { response?: { body?: { items?: { item?: unknown } } } })?.response?.body;
-    const raw = body?.items?.item ?? [];
+    const body = (json as { response?: { body?: { items?: unknown } } })?.response?.body;
+    const raw = body?.items ?? [];
     const items: { kaptCode: string; kaptName: string }[] = Array.isArray(raw) ? raw : (raw && typeof raw === "object" && "kaptCode" in raw ? [raw as { kaptCode: string; kaptName: string }] : []);
     items.sort((a, b) => a.kaptName.localeCompare(b.kaptName));
     return NextResponse.json(items);
