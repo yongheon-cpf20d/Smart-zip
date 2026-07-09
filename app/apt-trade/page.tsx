@@ -428,7 +428,7 @@ export default function AptTradePage() {
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={2} />
                   <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                   <Tooltip
-                    formatter={(v: number) => [`${v}건`, "거래건수"]}
+                    formatter={(v) => [`${v ?? 0}건`, "거래건수"]}
                     contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e5e7eb" }}
                   />
                   <Bar dataKey="거래건수" fill="#3b82f6" radius={[3, 3, 0, 0]} maxBarSize={32} />
@@ -447,7 +447,7 @@ export default function AptTradePage() {
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={2} />
                   <YAxis tick={{ fontSize: 10 }} unit="억" />
                   <Tooltip
-                    formatter={(v: number, name: string) => [`${v}억`, name]}
+                    formatter={(v, name) => [`${v ?? 0}억`, name]}
                     contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e5e7eb" }}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
