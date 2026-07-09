@@ -278,10 +278,14 @@ export default function ComparePage() {
             <div>
               <label className={labelClass}>
                 연간 집값 상승률 (%)
-                <span className="ml-1 font-normal text-slate-400">매매 자산 가치 증가 기대값</span>
+                <span className="ml-1 font-normal text-slate-400"></span>
               </label>
               <input type="number" step="0.1" value={growthRate} onChange={e => setGrowthRate(e.target.value)}
                 className={inputClass} placeholder="2.0" />
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 leading-relaxed">
+                장기 주택가격 <strong>연평균 상승률은 장기 국채금리 (10년물)에 수렴</strong>한다는 연구/통계가 존재합니다.<br />
+                현재는 4.2% 내외입니다.
+              </p>
             </div>
           </div>
         </div>
