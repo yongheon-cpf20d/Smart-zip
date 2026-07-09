@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const API_KEY = process.env.RTMS_API_KEY ?? "";
-const BASE = "https://apis.data.go.kr/1613000/RTMSOBJSvc/getRTMSDataSvcAptTrade";
+const BASE = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev";
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
