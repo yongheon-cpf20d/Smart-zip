@@ -9,11 +9,14 @@ export const metadata: Metadata = {
     "서울아파트랭킹", "경기아파트순위", "고가아파트순위", "아파트시세순위",
     "부동산랭킹", "아파트가격순위",
   ],
+  alternates: {
+    canonical: "https://똑집.com/top-apt",
+  },
   openGraph: {
     title: "서울·경기 대장 아파트 랭킹 | 지역별 시세 1위 — 똑집",
     description:
       "서울 25개 구·경기 지역별 시세 최고가 대장 아파트. 평형별 가격, 지도로 위치 확인.",
-    url: "https://xn--b71bo88a.com/top-apt",
+    url: "https://똑집.com/top-apt",
   },
 };
 

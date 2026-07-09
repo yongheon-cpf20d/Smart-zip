@@ -9,11 +9,14 @@ export const metadata: Metadata = {
     "전세매매손익", "집살까전세살까", "손익분기계산", "전세기회비용",
     "부동산비교계산기", "매매전세차이",
   ],
+  alternates: {
+    canonical: "https://똑집.com/compare",
+  },
   openGraph: {
     title: "전세 vs 매매 비교 계산기 | 손익분기 연차 자동 계산 — 똑집",
     description:
       "취득세·이자·재산세·양도세와 집값 상승률 반영 20년 시뮬레이션. 몇 년 보유해야 매매가 유리한지 즉시 계산.",
-    url: "https://xn--b71bo88a.com/compare",
+    url: "https://똑집.com/compare",
   },
 };
 

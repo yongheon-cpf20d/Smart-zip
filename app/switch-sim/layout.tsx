@@ -8,11 +8,14 @@ export const metadata: Metadata = {
     "갈아타기계산기", "갈아타기시뮬레이션", "주택갈아타기", "집바꾸기비용",
     "선매도선매수", "갈아타기세금", "갈아타기손익", "주택교체비용",
   ],
+  alternates: {
+    canonical: "https://똑집.com/switch-sim",
+  },
   openGraph: {
     title: "갈아타기 계산기 2026 | 매도·매수 순서별 손익 시뮬레이션 — 똑집",
     description:
       "현재 집 팔고 새 집 살 때 양도세·취득세·이사비 포함 실제 순자산 변화를 시뮬레이션.",
-    url: "https://xn--b71bo88a.com/switch-sim",
+    url: "https://똑집.com/switch-sim",
   },
 };
 

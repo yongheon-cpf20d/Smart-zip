@@ -9,11 +9,14 @@ export const metadata: Metadata = {
     "이자계산기", "대출이자계산기", "주담대이자계산", "체증식상환",
     "원금균등상환", "대출월납부액", "주택대출계산",
   ],
+  alternates: {
+    canonical: "https://똑집.com/loan",
+  },
   openGraph: {
     title: "주담대 계산기 2026 | 원리금·이자 월 납부액 즉시 계산 — 똑집",
     description:
       "원리금균등·원금균등·체증식 방식별 월 납부액, 연차별 원금·이자 구성을 한눈에. 무료 주택담보대출 계산기.",
-    url: "https://xn--b71bo88a.com/loan",
+    url: "https://똑집.com/loan",
   },
 };
 

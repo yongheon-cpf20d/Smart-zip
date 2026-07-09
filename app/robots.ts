@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/admin/", "/feedback/"],
       },
     ],
-    sitemap: "https://xn--b71bo88a.com/sitemap.xml",
-    host: "https://xn--b71bo88a.com",
+    sitemap: "https://똑집.com/sitemap.xml",
+    host: "https://똑집.com",
   };
 }

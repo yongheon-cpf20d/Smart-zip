@@ -9,11 +9,14 @@ export const metadata: Metadata = {
     "전세월세계산기", "전월세계산기", "법정전환율", "전세금환산",
     "월세보증금계산", "전월세전환",
   ],
+  alternates: {
+    canonical: "https://똑집.com/rent-convert",
+  },
   openGraph: {
     title: "전월세 전환 계산기 2026 | 전세↔월세 즉시 환산 — 똑집",
     description:
       "전세금↔월세를 법정 전환율(4.75%) 기준으로 즉시 환산. 협상 시나리오 전환율 조절 가능.",
-    url: "https://xn--b71bo88a.com/rent-convert",
+    url: "https://똑집.com/rent-convert",
   },
 };
 

@@ -9,11 +9,14 @@ export const metadata: Metadata = {
     "규제지역변경", "대출규제정책", "세제개편", "청약제도변경",
     "2026부동산정책",
   ],
+  alternates: {
+    canonical: "https://똑집.com/policy",
+  },
   openGraph: {
     title: "부동산 정책 발표 모음 2026 | 국토부·금융위 최신 정책 — 똑집",
     description:
       "국토부·금융위 부동산 정책 발표를 한 곳에서. 규제·대출·세제·청약 제도 변경 타임라인.",
-    url: "https://xn--b71bo88a.com/policy",
+    url: "https://똑집.com/policy",
   },
 };
 

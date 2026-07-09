@@ -8,11 +8,14 @@ export const metadata: Metadata = {
     "주택총비용계산기", "집살때비용", "취득세중개비", "부동산총비용",
     "집구입비용계산", "아파트구입비용", "인테리어비용포함", "실비용계산",
   ],
+  alternates: {
+    canonical: "https://똑집.com/total-cost",
+  },
   openGraph: {
     title: "주택 구입 총비용 계산기 | 취득세·중개비·인테리어 포함 — 똑집",
     description:
       "집 살 때 드는 취득세, 중개보수, 인테리어, 이사비를 모두 합산한 실전 총비용 계산기.",
-    url: "https://xn--b71bo88a.com/total-cost",
+    url: "https://똑집.com/total-cost",
   },
 };
 

@@ -8,11 +8,14 @@ export const metadata: Metadata = {
     "DSR계산기", "총부채원리금상환비율", "DSR한도계산", "대출가능금액",
     "스트레스DSR", "주담대한도", "DSR40", "DSR50", "대출한도계산기",
   ],
+  alternates: {
+    canonical: "https://똑집.com/dsr",
+  },
   openGraph: {
     title: "DSR 계산기 2026 | 스트레스 DSR 반영 대출 한도 계산 — 똑집",
     description:
       "연봉 입력 하나로 DSR 40%·50% 기준 최대 대출 한도 즉시 계산. 스트레스 DSR 3단계 자동 반영.",
-    url: "https://xn--b71bo88a.com/dsr",
+    url: "https://똑집.com/dsr",
   },
 };
 

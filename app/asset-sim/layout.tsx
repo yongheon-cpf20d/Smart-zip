@@ -9,11 +9,14 @@ export const metadata: Metadata = {
     "아파트투자수익", "레버리지수익률", "부동산ROI", "월세수익률계산",
     "투자부동산계산기",
   ],
+  alternates: {
+    canonical: "https://똑집.com/asset-sim",
+  },
   openGraph: {
     title: "부동산 순수익 계산기 | 임대 투자 실질 수익률 분석 — 똑집",
     description:
       "취득세·보유세·이자·공실 모두 차감한 실질 임대 수익률과 레버리지 ROI를 즉시 계산.",
-    url: "https://xn--b71bo88a.com/asset-sim",
+    url: "https://똑집.com/asset-sim",
   },
 };
 

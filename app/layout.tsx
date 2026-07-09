@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 // public/fonts/Griun_Cherry1Spoon-Rg.ttf → globals.css에 @font-face로 등록
 // 여기서는 Google Fonts만 처리 (로컬 폰트는 CSS에서 --font-brand 변수로 관리)
 
-const BASE_URL = "https://xn--b71bo88a.com"; // 도메인 확정 후 수정
+const BASE_URL = "https://똑집.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -35,6 +35,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "똑집 DDokzip" }],
   creator: "똑집 DDokzip",
+  alternates: {
+    canonical: BASE_URL,
+  },
 
   // Open Graph (카카오톡, 페이스북, 슬랙 등)
   openGraph: {

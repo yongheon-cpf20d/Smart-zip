@@ -9,11 +9,14 @@ export const metadata: Metadata = {
     "실거래신고가", "부동산신고가", "아파트최고가", "실거래가조회",
     "국토부실거래가", "신고가알림",
   ],
+  alternates: {
+    canonical: "https://똑집.com/new-high",
+  },
   openGraph: {
     title: "오늘의 신고가 | 서울·경기 아파트 실거래 최고가 실시간 — 똑집",
     description:
       "국토교통부 실거래가 API 기반 서울·경기 아파트 신고가를 매일 업데이트. 지역별 신고가 순위 확인.",
-    url: "https://xn--b71bo88a.com/new-high",
+    url: "https://똑집.com/new-high",
   },
 };
 

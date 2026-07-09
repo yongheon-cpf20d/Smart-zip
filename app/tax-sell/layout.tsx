@@ -9,11 +9,14 @@ export const metadata: Metadata = {
     "장기보유특별공제", "양도세중과", "다주택양도세", "양도세계산",
     "2026양도세", "집팔때세금계산",
   ],
+  alternates: {
+    canonical: "https://똑집.com/tax-sell",
+  },
   openGraph: {
     title: "양도세 계산기 2026 | 1주택 비과세·장기보유특별공제 자동 반영 — 똑집",
     description:
       "보유기간·거주기간·주택 수 입력으로 양도소득세 즉시 계산. 1세대 1주택 비과세 12억, 장특공 최대 80% 자동 적용.",
-    url: "https://xn--b71bo88a.com/tax-sell",
+    url: "https://똑집.com/tax-sell",
   },
 };
 
