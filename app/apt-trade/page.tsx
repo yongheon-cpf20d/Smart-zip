@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
-  BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  ComposedChart, Bar, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { Search, Building2, TrendingUp, Users, Activity, X, ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -58,35 +58,66 @@ interface TradeRaw {
   dealDay: number | string;
   excluUseAr: string;
   floor: string;
+  dong?: string;
 }
 interface MonthData { ym: string; items: TradeRaw[]; }
+
+interface JeonseRaw {
+  aptNm: string;
+  deposit: string;
+  dealYear: number | string;
+  dealMonth: number | string;
+  dealDay: number | string;
+  excluUseAr: string;
+  floor: string;
+  dong?: string;
+  monthlyRent?: string | number;
+}
+interface JeonseMonthData { ym: string; items: JeonseRaw[]; }
 interface AptInfo {
   kaptName?: string; doroJuso?: string;
-  kaptTotCnt?: number | string;
-  privArea?: string;
+  kaptdaCnt?: number | string;   // 총 세대수
+  kaptMparea60?: number | string;  // 전용 60㎡ 이하 세대수
+  kaptMparea85?: number | string;  // 전용 60~85㎡ 세대수
+  kaptMparea135?: number | string; // 전용 85~135㎡ 세대수
+  kaptMparea136?: number | string; // 전용 135㎡ 초과 세대수
   kaptBcompany?: string; kaptUsedate?: string;
+  kaptDongCnt?: string; kaptTopFloor?: number;
 }
 
 // ─── 헬퍼 ─────────────────────────────────────────────────────
 function fmtEok(억: number | null | undefined): string {
   if (억 == null) return "-";
-  if (억 >= 10) return `${억}억`;
   return `${억}억`;
 }
 
-/** privArea 문자열에서 targetArea(㎡) 근처 세대수 파싱 */
-function parsePrivArea(privArea: string | undefined, targetArea: number): number | null {
-  if (!privArea) return null;
-  const lines = privArea.split(/[\n,;·]+/).map(s => s.trim()).filter(Boolean);
-  for (const line of lines) {
-    const m = line.match(/(\d+\.?\d*)\s*[㎡A]?\s*[\/\s]+\s*(\d+)/);
-    if (m) {
-      const area = parseFloat(m[1]);
-      const cnt = parseInt(m[2]);
-      if (Math.abs(area - targetArea) <= 3) return cnt;
-    }
-  }
-  return null;
+function fmtDealAmount(dealAmountStr: string): string {
+  const manwon = parseInt(dealAmountStr.replace(/,/g, "") || "0");
+  if (!manwon) return "-";
+  const eok = Math.floor(manwon / 10000);
+  const man = manwon % 10000;
+  if (man === 0) return `${eok}억`;
+  return `${eok}억 ${man.toLocaleString()}만`;
+}
+
+/** 선택 평형에 해당하는 세대수 반환 (구조화 필드 사용) */
+function getAreaUnitCount(aptInfo: AptInfo | null, selectedArea: string): number | null {
+  if (!aptInfo) return null;
+  const area = parseInt(selectedArea);
+  const toNum = (v: number | string | undefined) => {
+    const n = Number(v);
+    return n > 0 ? n : null;
+  };
+  if (area <= 60) return toNum(aptInfo.kaptMparea60);
+  if (area <= 85) return toNum(aptInfo.kaptMparea85);
+  if (area <= 135) return toNum(aptInfo.kaptMparea135);
+  return toNum(aptInfo.kaptMparea136);
+}
+
+/** 준공일 포맷 "20210806" → "2021.08.06" */
+function fmtUsedate(s: string | undefined): string {
+  if (!s || s.length < 8) return s ?? "";
+  return `${s.slice(0, 4)}.${s.slice(4, 6)}.${s.slice(6, 8)}`;
 }
 
 // ─── 통계 카드 ─────────────────────────────────────────────────
@@ -121,7 +152,9 @@ export default function AptTradePage() {
   const [aptInfo, setAptInfo] = useState<AptInfo | null>(null);
   const [tradeHistory, setTradeHistory] = useState<MonthData[]>([]);
   const [selectedArea, setSelectedArea] = useState<string>("");
+  const [jeonseHistory, setJeonseHistory] = useState<JeonseMonthData[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
+  const [tableType, setTableType] = useState<"매매" | "전세">("매매");
   const searchRef = useRef<HTMLDivElement>(null);
 
   // 지역 탭 변경 → 초기화
@@ -149,19 +182,24 @@ export default function AptTradePage() {
       .finally(() => setAptListLoading(false));
   }, [selectedDistrict]);
 
-  // 단지 선택 → 정보 + 거래 이력 로드
+  // 단지 선택 → 정보 + 매매/전세 이력 로드
   useEffect(() => {
     if (!selectedApt || !selectedDistrict) return;
     setDataLoading(true);
-    setAptInfo(null); setTradeHistory([]); setSelectedArea("");
+    setAptInfo(null); setTradeHistory([]); setJeonseHistory([]); setSelectedArea(""); setTableType("매매");
+
+    const base = `/api/apt-trade-history?sigunguCode=${selectedDistrict.code}&aptName=${encodeURIComponent(selectedApt.kaptName)}&months=24`;
+    const jeonseBase = `/api/apt-jeonse-history?sigunguCode=${selectedDistrict.code}&aptName=${encodeURIComponent(selectedApt.kaptName)}&months=24`;
 
     Promise.all([
       fetch(`/api/apt-info?kaptCode=${selectedApt.kaptCode}`).then(r => r.json()),
-      fetch(`/api/apt-trade-history?sigunguCode=${selectedDistrict.code}&aptName=${encodeURIComponent(selectedApt.kaptName)}&months=24`).then(r => r.json()),
+      fetch(base).then(r => r.json()),
+      fetch(jeonseBase).then(r => r.json()),
     ])
-      .then(([info, history]: [AptInfo, MonthData[]]) => {
+      .then(([info, history, jeonse]: [AptInfo, MonthData[], JeonseMonthData[]]) => {
         setAptInfo(info);
         setTradeHistory(history);
+        setJeonseHistory(Array.isArray(jeonse) ? jeonse : []);
         // 거래 많은 평형 자동 선택
         const counts: Record<string, number> = {};
         history.flatMap(h => h.items).forEach(item => {
@@ -202,7 +240,7 @@ export default function AptTradePage() {
     return Array.from(s).sort((a, b) => parseInt(a) - parseInt(b));
   }, [tradeHistory]);
 
-  // 차트 데이터
+  // 차트 데이터 (매매 + 전세 합산)
   const chartData = useMemo(() =>
     tradeHistory.map(({ ym, items }) => {
       const filtered = selectedArea
@@ -212,32 +250,101 @@ export default function AptTradePage() {
         .map(item => parseInt(item.dealAmount?.replace(/,/g, "") || "0"))
         .filter(v => v > 0);
       const count = filtered.length;
+
+      // 전세 데이터 (같은 ym)
+      const jeonseMonth = jeonseHistory.find(h => h.ym === ym);
+      const jeonseFiltered = jeonseMonth
+        ? (selectedArea
+            ? jeonseMonth.items.filter(item => Math.floor(parseFloat(item.excluUseAr || "0")).toString() === selectedArea)
+            : jeonseMonth.items)
+        : [];
+      const jeonsePrices = jeonseFiltered
+        .map(item => parseInt(String(item.deposit || "0").replace(/,/g, "")))
+        .filter(v => v > 0);
+
       return {
+        ym,
         month: `${ym.slice(0, 4)}.${ym.slice(4)}`,
         거래건수: count,
-        평균가: count > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / count / 10000) : null,
-        최고가: count > 0 ? Math.round(Math.max(...prices) / 10000) : null,
-        최저가: count > 0 ? Math.round(Math.min(...prices) / 10000) : null,
+        매매평균가: count > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / count / 100) / 100 : null,
+        전세평균가: jeonsePrices.length > 0 ? Math.round(jeonsePrices.reduce((a, b) => a + b, 0) / jeonsePrices.length / 100) / 100 : null,
       };
     }),
-  [tradeHistory, selectedArea]);
+  [tradeHistory, jeonseHistory, selectedArea]);
 
-  // 통계
+  // 거래 내역 표 데이터
+  const tableRows = useMemo(() => {
+    const sortByDate = <T extends { dealYear: number | string; dealMonth: number | string; dealDay: number | string }>(arr: T[]) =>
+      [...arr].sort((a, b) => {
+        const da = `${a.dealYear}${String(a.dealMonth).padStart(2, "0")}${String(a.dealDay).padStart(2, "0")}`;
+        const db = `${b.dealYear}${String(b.dealMonth).padStart(2, "0")}${String(b.dealDay).padStart(2, "0")}`;
+        return db.localeCompare(da);
+      });
+
+    if (tableType === "매매") {
+      const all = tradeHistory.flatMap(h => h.items);
+      const filtered = selectedArea
+        ? all.filter(item => Math.floor(parseFloat(item.excluUseAr || "0")).toString() === selectedArea)
+        : all;
+      return sortByDate(filtered).map(item => ({
+        년월: `${item.dealYear}.${String(item.dealMonth).padStart(2, "0")}`,
+        일: String(item.dealDay),
+        가격: fmtDealAmount(item.dealAmount || ""),
+        전용면적: `${Math.floor(parseFloat(item.excluUseAr || "0"))}㎡`,
+        동: item.dong || "-",
+        층수: `${item.floor}층`,
+      }));
+    } else {
+      const all = jeonseHistory.flatMap(h => h.items);
+      const filtered = selectedArea
+        ? all.filter(item => Math.floor(parseFloat(item.excluUseAr || "0")).toString() === selectedArea)
+        : all;
+      return sortByDate(filtered).map(item => ({
+        년월: `${item.dealYear}.${String(item.dealMonth).padStart(2, "0")}`,
+        일: String(item.dealDay),
+        가격: fmtDealAmount(String(item.deposit || "")),
+        전용면적: `${Math.floor(parseFloat(item.excluUseAr || "0"))}㎡`,
+        동: item.dong || "-",
+        층수: `${item.floor}층`,
+      }));
+    }
+  }, [tableType, tradeHistory, jeonseHistory, selectedArea]);
+
+  // 통계 (거래건수·환금성은 최근 12개월 기준 / 최근평균가는 최근 3개월 기준)
   const stats = useMemo(() => {
-    const active = chartData.filter(d => d.거래건수 > 0);
-    if (!active.length) return null;
-    const total = active.reduce((s, d) => s + d.거래건수, 0);
-    const avgMonthly = total / active.length;
-    const maxPrice = Math.max(...active.map(d => d.최고가 ?? 0));
-    const minPrice = Math.min(...active.filter(d => d.최저가 != null).map(d => d.최저가!));
-    const latestAvg = [...active].reverse()[0]?.평균가 ?? null;
+    if (!chartData.length) return null;
 
+    // ── 최근 12개월 기준 ──────────────────────────────────────
+    const last12 = chartData.slice(-12);
+    const active12 = last12.filter(d => d.거래건수 > 0);
+    if (!active12.length) return null;
+    const total = active12.reduce((s, d) => s + d.거래건수, 0);
+    const avgMonthly = total / 12; // 12개월 전체 기준 월평균
+
+    // ── 최근 3개월 평균가 (거래 없으면 거래 있는 마지막 달까지 소급) ──
+    const withPrice = chartData.filter(d => d.매매평균가 != null);
+    const recent3 = withPrice.slice(-3);
+    const latestAvg = recent3.length > 0
+      ? Math.round(recent3.reduce((s, d) => s + (d.매매평균가 ?? 0), 0) / recent3.length * 100) / 100
+      : null;
+
+    // ── 24개월 최고/최저 (차트 전체 범위) ────────────────────
+    const allPrices = tradeHistory.flatMap(h => {
+      const filtered = selectedArea
+        ? h.items.filter(item => Math.floor(parseFloat(item.excluUseAr || "0")).toString() === selectedArea)
+        : h.items;
+      return filtered.map(item => parseInt(item.dealAmount?.replace(/,/g, "") || "0")).filter(v => v > 0);
+    });
+    const maxPrice = allPrices.length > 0 ? Math.round(Math.max(...allPrices) / 100) / 100 : null;
+    const minPrice = allPrices.length > 0 ? Math.round(Math.min(...allPrices) / 100) / 100 : null;
+
+    // ── 세대수·환금성 ─────────────────────────────────────────
     let unitCount: number | null = null;
     if (aptInfo) {
-      const target = selectedArea ? parseInt(selectedArea) : null;
-      if (target && aptInfo.privArea) unitCount = parsePrivArea(aptInfo.privArea, target);
-      if (!unitCount && aptInfo.kaptTotCnt)
-        unitCount = typeof aptInfo.kaptTotCnt === "string" ? parseInt(aptInfo.kaptTotCnt) : aptInfo.kaptTotCnt;
+      // 선택 평형별 세대수 우선, 없으면 전체 세대수
+      unitCount = selectedArea
+        ? (getAreaUnitCount(aptInfo, selectedArea) ?? (Number(aptInfo.kaptdaCnt) || null))
+        : (Number(aptInfo.kaptdaCnt) || null);
     }
     const liquidity = unitCount && avgMonthly > 0
       ? parseFloat(((avgMonthly / unitCount) * 100).toFixed(2))
@@ -247,7 +354,7 @@ export default function AptTradePage() {
       total, avgMonthly: parseFloat(avgMonthly.toFixed(1)),
       maxPrice, minPrice, latestAvg, unitCount, liquidity,
     };
-  }, [chartData, aptInfo, selectedArea]);
+  }, [chartData, tradeHistory, aptInfo, selectedArea]);
 
   const districts = region === "서울" ? SEOUL_DISTRICTS : GYEONGGI_DISTRICTS;
 
@@ -400,10 +507,14 @@ export default function AptTradePage() {
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{aptInfo.doroJuso}</p>
                     )}
                   </div>
-                  <div className="text-right text-xs text-gray-400 shrink-0 space-y-0.5">
-                    {aptInfo.kaptUsedate && <div>준공 {aptInfo.kaptUsedate}</div>}
+                  <div className="text-right text-xs text-gray-400 shrink-0 space-y-1">
+                    {aptInfo.kaptdaCnt && (
+                      <div className="font-medium text-gray-600 dark:text-gray-300">
+                        총 {Number(aptInfo.kaptdaCnt).toLocaleString()}세대
+                      </div>
+                    )}
+                    {aptInfo.kaptUsedate && <div>준공 {fmtUsedate(aptInfo.kaptUsedate)}</div>}
                     {aptInfo.kaptBcompany && <div>{aptInfo.kaptBcompany}</div>}
-                    {aptInfo.kaptTotCnt && <div>총 {Number(aptInfo.kaptTotCnt).toLocaleString()}세대</div>}
                   </div>
                 </div>
               </div>
@@ -413,7 +524,7 @@ export default function AptTradePage() {
             {stats && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <StatCard
-                  label="24개월 총 거래"
+                  label="최근 12개월 거래"
                   value={`${stats.total}건`}
                   sub={`월평균 ${stats.avgMonthly}건`}
                   icon={<Activity className="w-4 h-4 text-blue-500" />}
@@ -432,85 +543,125 @@ export default function AptTradePage() {
                   highlight={stats.liquidity != null}
                 />
                 <StatCard
-                  label="최근 평균가"
+                  label="최근 3개월 평균가"
                   value={stats.latestAvg != null ? `${fmtEok(stats.latestAvg)}` : "-"}
-                  sub={`최고 ${fmtEok(stats.maxPrice)} · 최저 ${fmtEok(stats.minPrice)}`}
+                  sub={`24개월 최고 ${fmtEok(stats.maxPrice)} · 최저 ${fmtEok(stats.minPrice)}`}
                   icon={<TrendingUp className="w-4 h-4 text-orange-500" />}
                 />
               </div>
             )}
 
-            {/* 월별 거래건수 차트 */}
+            {/* 통합 차트: 매매가(꺾은선) + 전세가(꺾은선) + 거래건수(막대) */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                월별 거래건수 {selectedArea && <span className="text-blue-500">· {selectedArea}㎡</span>}
-              </h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  실거래가 추이 {selectedArea && <span className="text-blue-500">· {selectedArea}㎡</span>}
+                </h3>
+                <div className="flex items-center gap-3 text-xs text-gray-400">
+                  <span className="flex items-center gap-1"><span className="inline-block w-6 h-0.5 bg-blue-500 rounded" />매매</span>
+                  <span className="flex items-center gap-1"><span className="inline-block w-6 h-0.5 bg-amber-400 rounded" />전세</span>
+                  <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded-sm bg-blue-200 dark:bg-blue-900" />건수</span>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <ComposedChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.2)" />
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={2} />
-                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <YAxis yAxisId="price" tick={{ fontSize: 10 }} unit="억" />
+                  <YAxis yAxisId="count" hide />
                   <Tooltip
-                    formatter={(v) => [`${v ?? 0}건`, "거래건수"]}
                     contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e5e7eb" }}
+                    formatter={(value, name) => {
+                      if (name === "거래건수") return [`${value}건`, "매매 거래건수"];
+                      if (name === "매매평균가") return [`${value}억`, "매매 평균가"];
+                      if (name === "전세평균가") return [`${value}억`, "전세 평균가"];
+                      return [value, name];
+                    }}
                   />
-                  <Bar dataKey="거래건수" fill="#3b82f6" radius={[3, 3, 0, 0]} maxBarSize={32} />
-                </BarChart>
+                  <Bar yAxisId="count" dataKey="거래건수" fill="#bfdbfe" radius={[2, 2, 0, 0]} maxBarSize={28} opacity={0.8} />
+                  <Line yAxisId="price" type="monotone" dataKey="매매평균가" stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />
+                  <Line yAxisId="price" type="monotone" dataKey="전세평균가" stroke="#f59e0b" strokeWidth={2} dot={false} connectNulls />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
 
-            {/* 가격 추이 차트 */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                가격 추이 (억원) {selectedArea && <span className="text-blue-500">· {selectedArea}㎡</span>}
-              </h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(156,163,175,0.2)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={2} />
-                  <YAxis tick={{ fontSize: 10 }} unit="억" />
-                  <Tooltip
-                    formatter={(v, name) => [`${v ?? 0}억`, name]}
-                    contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e5e7eb" }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Line type="monotone" dataKey="최고가" stroke="#ef4444" strokeWidth={1.5} dot={false} connectNulls />
-                  <Line type="monotone" dataKey="평균가" stroke="#3b82f6" strokeWidth={2}   dot={false} connectNulls />
-                  <Line type="monotone" dataKey="최저가" stroke="#10b981" strokeWidth={1.5} dot={false} connectNulls />
-                </LineChart>
-              </ResponsiveContainer>
+            {/* 거래 내역 표 */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              {/* 탭 */}
+              <div className="flex border-b border-gray-100 dark:border-gray-800">
+                {(["매매", "전세"] as const).map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setTableType(t)}
+                    className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                      tableType === t
+                        ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-500"
+                        : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    }`}
+                  >
+                    {t} 실거래가
+                    <span className="ml-1.5 text-xs text-gray-400">
+                      ({tableType === t ? tableRows.length : (t === "매매"
+                        ? tradeHistory.flatMap(h => selectedArea ? h.items.filter(i => Math.floor(parseFloat(i.excluUseAr||"0")).toString()===selectedArea) : h.items).length
+                        : jeonseHistory.flatMap(h => selectedArea ? h.items.filter(i => Math.floor(parseFloat(i.excluUseAr||"0")).toString()===selectedArea) : h.items).length
+                      )}건)
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* 테이블 헤더 */}
+              <div className="grid grid-cols-6 px-4 py-2 bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-400 font-medium">
+                <span>년월</span>
+                <span className="text-center">일</span>
+                <span className="text-right">가격</span>
+                <span className="text-center">면적</span>
+                <span className="text-center">동</span>
+                <span className="text-center">층</span>
+              </div>
+
+              {/* 테이블 바디 */}
+              {tableRows.length === 0 ? (
+                <div className="py-10 text-center text-sm text-gray-400">거래 내역이 없습니다.</div>
+              ) : (
+                <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-96 overflow-y-auto">
+                  {tableRows.map((row, i) => (
+                    <div key={i} className="grid grid-cols-6 px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                      <span className="text-gray-500 dark:text-gray-400">{row.년월}</span>
+                      <span className="text-center text-gray-400">{row.일}</span>
+                      <span className="text-right font-semibold text-gray-900 dark:text-white">{row.가격}</span>
+                      <span className="text-center text-gray-500 dark:text-gray-400">{row.전용면적}</span>
+                      <span className="text-center text-gray-400">{row.동}</span>
+                      <span className="text-center text-gray-400">{row.층수}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* 환금성 안내 */}
-            {stats?.liquidity != null && (
+            {stats?.liquidity != null && 
               <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-4 text-sm text-emerald-700 dark:text-emerald-400">
                 <strong>{selectedApt.kaptName}</strong> {selectedArea}㎡의 월평균 환금성은{" "}
                 <strong>{stats.liquidity}%</strong>예요.{" "}
-                {stats.liquidity >= 2
-                  ? "거래가 활발해 매도 시 유리한 편이에요."
-                  : stats.liquidity >= 0.5
-                  ? "일반적인 수준의 환금성이에요."
-                  : "거래가 드물어 매도 시 시간이 걸릴 수 있어요."}
+                {stats.liquidity >= 0.8
+                  ? "S등급. 매도자 우위의 초고도 환금성이에요"
+                  : stats.liquidity >= 0.4
+                  ? "A등급. 건강한 실수요 시장의 환금성이에요.가장 이상적이고 정상적인 회전율입니다."
+                  : stats.liquidity >= 0.2
+                  ? "B등급. 주의. 매수자 우위의 환금성이에요. 때때로 가격조정이 필요할 수 있어요."
+                  : "C등급. 위험. 매수자 우위의 저조한 환금성이에요. 가격조정이 필요할 수 있어요."}
               </div>
-            )}
+            }
 
             {/* 공유 버튼 */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
               <p className="text-xs text-gray-400 mb-3">공유하기</p>
-              <div className="flex flex-wrap items-center gap-2">
-                <ShareButton
-                  title={`${selectedApt.kaptName} 실거래 분석 | 똑집`}
-                  description={`${selectedApt.kaptName}의 최근 24개월 실거래 추이와 환금성을 확인해보세요.`}
-                  params={{}}
-                />
-                <Link
-                  href="/"
-                  className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-200 transition shadow-sm"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  메인으로
-                </Link>
-              </div>
+              <ShareButton
+                title={`${selectedApt.kaptName} 실거래 분석 | 똑집`}
+                description={`${selectedApt.kaptName}의 최근 24개월 실거래 추이와 환금성을 확인해보세요.`}
+                params={{}}
+              />
             </div>
           </>
         )}
