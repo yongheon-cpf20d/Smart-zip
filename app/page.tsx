@@ -50,9 +50,9 @@ const regulations = (["투기과열지구", "조정대상지역", "토지거래�
 
 // ✅ 네비게이션 — 이모지 대신 lucide-react 라인 아이콘, 라벨은 명확한 명사형으로 통일
 const navItems = [
-  { name: "총비용 계산기", href: "/total-cost", icon: Calculator },
+  { name: "총비용 계산기", href: "/total-cost", icon: Calculator, tip: "집 사는데 총 얼마 들지?" },
   { name: "주담대 계산기", href: "/loan", icon: Landmark },
-  { name: "DSR 계산기", href: "/dsr", icon: BarChart3 },
+  { name: "DSR 계산기", href: "/dsr", icon: BarChart3, tip: "내 DSR 괜찮은 건가?" },
   { name: "취득세 계산기", href: "/tax-acq", icon: HomeIcon },
   { name: "보유세 계산기", href: "/tax-hold", icon: Building2 },
   { name: "양도세 계산기", href: "/tax-sell", icon: TrendingUp },
@@ -60,8 +60,8 @@ const navItems = [
   { name: "전월세 전환", href: "/rent-convert", icon: Repeat2 },
   { name: "전세 vs 매매", href: "/compare", icon: Scale },
   { name: "순수익 계산기", href: "/asset-sim", icon: LineChart },
-  { name: "오늘의 신고가", href: "/new-high", icon: Trophy },
-  { name: "대장 아파트", href: "/top-apt", icon: Crown },
+  { name: "오늘의 신고가", href: "/new-high", icon: Trophy, tip: "오늘 최고가 경신한 단지는?" },
+  { name: "대장 아파트", href: "/top-apt", icon: Crown, tip: "이 동네 1등 아파트는?" },
   { name: "단지 분석", href: "/apt-trade", icon: BarChart3 },
   { name: "규제 현황", href: "/regulation", icon: ShieldCheck },
   { name: "정책 지원", href: "/benefits", icon: Gift },
@@ -253,15 +253,36 @@ export default function Home() {
         </Link>
 
         {/* ④ 네비게이션 버튼 */}
-        <nav className="grid grid-cols-4 md:grid-cols-6 gap-2">
-          {navItems.map((m) => {
+        <style>{`
+          @keyframes bubble-pop {
+            0%   { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(4px); }
+            15%  { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+            70%  { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) scale(0.9) translateY(-3px); }
+          }
+          .nav-bubble {
+            animation: bubble-pop 2.8s ease forwards;
+            pointer-events: none;
+          }
+        `}</style>
+        <nav className="grid grid-cols-4 md:grid-cols-6 gap-2 pt-8">
+          {navItems.map((m, i) => {
             const Icon = m.icon;
             return (
               <Link
                 key={m.href}
                 href={m.href}
-                className="flex flex-col items-center justify-center gap-1.5 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover-lift nav-link"
+                className="relative flex flex-col items-center justify-center gap-1.5 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all hover-lift nav-link"
               >
+                {m.tip && (
+                  <div
+                    className="nav-bubble absolute bottom-full left-1/2 mb-2 w-max max-w-[110px] rounded-xl bg-emerald-500 dark:bg-emerald-600 px-2.5 py-1.5 text-[10px] font-semibold text-white text-center leading-snug shadow-lg"
+                    style={{ animationDelay: `${0.4 + i * 0.08}s` }}
+                  >
+                    {m.tip}
+                    <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-emerald-500 dark:border-t-emerald-600" />
+                  </div>
+                )}
                 <Icon size={18} strokeWidth={1.75} className="text-slate-500 dark:text-slate-400" />
                 <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 text-center leading-tight">{m.name}</span>
               </Link>

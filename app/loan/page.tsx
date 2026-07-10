@@ -455,6 +455,16 @@ function LoanPageContent() {
                 만기 마지막 회차 원리금: {formatWon(result.lastMonthlyPayment)} (매년 {escalationRate}%씩 증가)
               </p>
             )}
+            {loanAmountInput && loanYears && interestRate && (
+              <div className="mt-4 pt-4 border-t border-emerald-200 dark:border-emerald-800">
+                <Link
+                  href={`/dsr?newAmount=${loanAmountInput}&newYears=${loanYears}&newRate=${interestRate}`}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 transition animate-pulse"
+                >
+                  내 소득으로 DSR 초과되지 않을까? →
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
