@@ -114,6 +114,23 @@ function getAreaUnitCount(aptInfo: AptInfo | null, selectedArea: string): number
   return toNum(aptInfo.kaptMparea136);
 }
 
+/** 선택 면적 → API 구간 레이블 */
+function getAreaBucketLabel(selectedArea: string): string {
+  const area = parseInt(selectedArea);
+  if (area <= 60) return "60㎡ 이하 기준";
+  if (area <= 85) return "60~85㎡ 기준";
+  if (area <= 135) return "85~135㎡ 기준";
+  return "135㎡ 초과 기준";
+}
+
+/** 환금성 → 등급 문자 */
+function getLiquidityGradeLetter(v: number): string {
+  if (v >= 0.8) return "S";
+  if (v >= 0.4) return "A";
+  if (v >= 0.2) return "B";
+  return "C";
+}
+
 /** 준공일 포맷 "20210806" → "2021.08.06" */
 function fmtUsedate(s: string | undefined): string {
   if (!s || s.length < 8) return s ?? "";
@@ -340,11 +357,17 @@ export default function AptTradePage() {
 
     // ── 세대수·환금성 ─────────────────────────────────────────
     let unitCount: number | null = null;
+    let unitCountType: "area" | "total" | null = null;
     if (aptInfo) {
-      // 선택 평형별 세대수 우선, 없으면 전체 세대수
-      unitCount = selectedArea
-        ? (getAreaUnitCount(aptInfo, selectedArea) ?? (Number(aptInfo.kaptdaCnt) || null))
-        : (Number(aptInfo.kaptdaCnt) || null);
+      const areaCount = selectedArea ? getAreaUnitCount(aptInfo, selectedArea) : null;
+      if (areaCount != null) {
+        unitCount = areaCount;
+        unitCountType = "area";
+      } else {
+        const total = Number(aptInfo.kaptdaCnt) || null;
+        unitCount = total;
+        unitCountType = total ? "total" : null;
+      }
     }
     const liquidity = unitCount && avgMonthly > 0
       ? parseFloat(((avgMonthly / unitCount) * 100).toFixed(2))
@@ -352,7 +375,7 @@ export default function AptTradePage() {
 
     return {
       total, avgMonthly: parseFloat(avgMonthly.toFixed(1)),
-      maxPrice, minPrice, latestAvg, unitCount, liquidity,
+      maxPrice, minPrice, latestAvg, unitCount, unitCountType, liquidity,
     };
   }, [chartData, tradeHistory, aptInfo, selectedArea]);
 
@@ -539,13 +562,17 @@ export default function AptTradePage() {
                 <StatCard
                   label="동일평형 세대수"
                   value={stats.unitCount ? `${stats.unitCount.toLocaleString()}세대` : "-"}
-                  sub={selectedArea ? `전용 ${selectedArea}㎡` : "전체"}
+                  sub={
+                    stats.unitCountType === "area" ? getAreaBucketLabel(selectedArea ?? "")
+                    : stats.unitCountType === "total" ? "전체 단지 기준"
+                    : "세대수 정보 없음"
+                  }
                   icon={<Users className="w-4 h-4 text-purple-500" />}
                 />
                 <StatCard
                   label="환금성"
-                  value={stats.liquidity != null ? `${stats.liquidity}%` : "-"}
-                  sub="월평균 거래 ÷ 세대수"
+                  value={stats.liquidity != null ? `${getLiquidityGradeLetter(stats.liquidity)}등급` : "-"}
+                  sub={stats.liquidity != null ? `${stats.liquidity}% 월평균 거래율` : "월평균 거래 ÷ 세대수"}
                   icon={<TrendingUp className="w-4 h-4 text-emerald-500" />}
                   highlight={stats.liquidity != null}
                 />

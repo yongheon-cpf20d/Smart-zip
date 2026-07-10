@@ -23,6 +23,10 @@ export async function GET(req: NextRequest) {
       .toLowerCase();
   }
   const normAptName = normName(aptName);
+  const nameMatch = (a: string) => {
+    const n = normName(a);
+    return n === normAptName || normAptName.endsWith(n) || n.endsWith(normAptName);
+  };
 
   // 최근 N개월 목록 (오래된 순)
   const now = new Date();
@@ -37,15 +41,16 @@ export async function GET(req: NextRequest) {
   // 최근 1개월만 디버그용으로 먼저 확인
   if (debug) {
     const ym = monthList[monthList.length - 1];
-    const url = `${BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${sigunguCode}&DEAL_YMD=${ym}&pageNo=1&numOfRows=20&_type=json`;
+    const url = `${BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${sigunguCode}&DEAL_YMD=${ym}&pageNo=1&numOfRows=1000&_type=json`;
     const res = await fetch(url, { cache: "no-store" });
     const text = await res.text();
     try {
       const json = JSON.parse(text);
       const raw = json?.response?.body?.items?.item ?? json?.response?.body?.items ?? [];
       const all = Array.isArray(raw) ? raw : [raw];
+      const uniqueNames = [...new Set(all.map((x: { aptNm: string }) => x.aptNm))].sort();
       const sample = all.slice(0, 3).map((x: Record<string, unknown>) => ({ aptNm: x["aptNm"], excluUseAr: x["excluUseAr"], dealAmount: x["dealAmount"] }));
-      return NextResponse.json({ ym, aptName, normAptName, totalInMonth: all.length, sample, matched: all.filter((x: { aptNm: string }) => normName(x["aptNm"]) === normAptName).length });
+      return NextResponse.json({ ym, aptName, normAptName, totalInMonth: all.length, uniqueNames, sample, matched: all.filter((x: { aptNm: string }) => normName(x["aptNm"]) === normAptName).length });
     } catch {
       return NextResponse.json({ raw: text.slice(0, 500) });
     }
@@ -61,7 +66,7 @@ export async function GET(req: NextRequest) {
         const all = Array.isArray(raw) ? raw : (raw && typeof raw === "object" && "aptNm" in raw ? [raw] : []);
         return {
           ym,
-          items: all.filter((x: { aptNm: string }) => normName(x.aptNm) === normAptName),
+          items: all.filter((x: { aptNm: string }) => nameMatch(x.aptNm)),
         };
       } catch {
         return { ym, items: [] };

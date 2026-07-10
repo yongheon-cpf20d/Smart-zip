@@ -23,6 +23,10 @@ export async function GET(req: NextRequest) {
   }
 
   const normAptName = normName(aptName);
+  const nameMatch = (a: string) => {
+    const n = normName(a);
+    return n === normAptName || normAptName.endsWith(n) || n.endsWith(normAptName);
+  };
 
   const now = new Date();
   const monthList: string[] = [];
@@ -61,7 +65,7 @@ export async function GET(req: NextRequest) {
           ym,
           // 전세만 (월세금액 = 0 또는 없는 경우)
           items: all.filter((x: { aptNm: string; monthlyRent?: string | number }) =>
-            normName(x.aptNm) === normAptName &&
+            nameMatch(x.aptNm) &&
             (!x.monthlyRent || x.monthlyRent === 0 || x.monthlyRent === "0")
           ),
         };
