@@ -358,6 +358,13 @@ export default function AptTradePage() {
 
   const districts = region === "서울" ? SEOUL_DISTRICTS : GYEONGGI_DISTRICTS;
 
+  function getLiquidityGrade(v: number) {
+    if (v >= 0.8) return <span>S등급. 매도자 우위의 초고도 환금성이에요.</span>;
+    if (v >= 0.4) return <span>A등급. 건강한 실수요 시장의 환금성이에요.<br/>가장 이상적이고 정상적인 회전율입니다.</span>;
+    if (v >= 0.2) return <span>B등급. 주의. 매수자 우위의 환금성이에요. 때때로 가격조정이 필요할 수 있어요.</span>;
+    return <span>C등급. 위험. 매수자 우위의 저조한 환금성이에요. 가격조정이 필요할 수 있어요.</span>;
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
       {/* 헤더 */}
@@ -640,17 +647,11 @@ export default function AptTradePage() {
             </div>
 
             {/* 환금성 안내 */}
-            {stats?.liquidity != null && 
+            {stats?.liquidity != null &&
               <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-4 text-sm text-emerald-700 dark:text-emerald-400">
                 <strong>{selectedApt.kaptName}</strong> {selectedArea}㎡의 월평균 환금성은{" "}
                 <strong>{stats.liquidity}%</strong>예요.{" "}
-                {stats.liquidity >= 0.8
-                  ? "S등급. 매도자 우위의 초고도 환금성이에요"
-                  : stats.liquidity >= 0.4
-                  ? "A등급. 건강한 실수요 시장의 환금성이에요.가장 이상적이고 정상적인 회전율입니다."
-                  : stats.liquidity >= 0.2
-                  ? "B등급. 주의. 매수자 우위의 환금성이에요. 때때로 가격조정이 필요할 수 있어요."
-                  : "C등급. 위험. 매수자 우위의 저조한 환금성이에요. 가격조정이 필요할 수 있어요."}
+                {getLiquidityGrade(stats.liquidity)}
               </div>
             }
 
