@@ -308,6 +308,11 @@ function TaxHoldPageContent() {
           보유세 계산기
         </h1>
         <p className="text-xs text-slate-400 dark:text-slate-500 -mt-2">재산세 + 지방교육세 + 도시지역분 + 종합부동산세 + 농어촌특별세</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          이 계산기는 아파트·주택의 공시가격을 입력해 부동산 보유세(재산세+종합부동산세)를 즉시 계산합니다.
+          재산세 계산기, 종부세 계산기로도 많이 찾는 서비스이며, 1주택자 특례와 다주택자 세율을 모두 반영해
+          정확한 부동산 보유세 계산 결과를 제공합니다.
+        </p>
 
         {/* ① 공시가격 입력 */}
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">

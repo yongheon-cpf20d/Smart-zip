@@ -273,6 +273,10 @@ function DSRPageContent() {
             {todayStr}
           </span>
           <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-3">스트레스 DSR 규제 현황</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
+            2025년 7월 시행된 스트레스 DSR 3단계를 반영해 DSR 한도를 계산하는 스트레스 DSR 3단계 계산기입니다.
+            연소득과 대출조건을 입력하면 은행권 40%·비은행권 50% 기준 최대 대출 가능액을 바로 확인할 수 있습니다.
+          </p>
           <div className="grid grid-cols-3 gap-2">
             {STRESS_DSR_STAGES.map((s, i) => {
               const active = i === CURRENT_STAGE_INDEX;
