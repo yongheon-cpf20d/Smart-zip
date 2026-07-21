@@ -122,6 +122,12 @@ export default function RootLayout({
         />
         {children}
         <Footer />
+        {/* Google AdSense */}
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7865515654128188"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-D84ZFV2WFB"
