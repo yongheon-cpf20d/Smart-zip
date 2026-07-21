@@ -248,7 +248,7 @@ function DSRPageContent() {
         </div>
         <h1 className="flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-200">
           <BarChart3 size={20} strokeWidth={1.75} className="text-emerald-600" />
-          DSR 계산기
+          DSR 계산기 (스트레스 DSR 3단계 반영)
         </h1>
 
         {highlightFromLoan && (
