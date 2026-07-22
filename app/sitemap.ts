@@ -10,6 +10,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // 메인 (최고 우선순위)
     { url: BASE_URL, lastModified: now, changeFrequency: "daily", priority: 1.0 },
 
+    // 계산기 모음 허브 (구 메인, 15개 계산기 진입점)
+    { url: `${BASE_URL}/hub`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+
     // 계산기 (자주 사용, 콘텐츠 변경 적음)
     { url: `${BASE_URL}/loan`,        lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE_URL}/dsr`,         lastModified: now, changeFrequency: "monthly", priority: 0.9 },
@@ -18,9 +21,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/tax-sell`,    lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE_URL}/total-cost`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/switch-sim`,  lastModified: now, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE_URL}/asset-sim`,   lastModified: now, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE_URL}/rent-convert`,lastModified: now, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${BASE_URL}/compare`,     lastModified: now, changeFrequency: "monthly", priority: 0.8 },
 
     // 실시간 데이터 (매일 갱신)
     { url: `${BASE_URL}/apt-trade`,   lastModified: now, changeFrequency: "daily",   priority: 0.9 },
